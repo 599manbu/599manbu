@@ -220,6 +220,20 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--ochre); outline
 .town-synthesis, .town-progress { width: min(290px, 100%); min-height: 35px; margin: 0 0 9px; }
 .town-synthesis { border-color: rgba(206, 182, 117, .42); color: #e2d2a7; }
 .town-progress { border-color: rgba(154, 192, 157, .35); color: #c6d1ba; }
+.town-attributes { width: min(290px, 100%); min-height: 35px; margin: 0 0 9px; border-color: rgba(165, 214, 198, .4); color: #bfe6d8; }
+.attr-dialog { width: min(520px, 100%); }
+.attr-summary { display: flex; justify-content: space-between; align-items: center; margin: 3px 0 10px; padding: 9px 11px; border: 1px solid rgba(165, 214, 198, .22); background: rgba(40, 70, 63, .35); color: #b9c9bd; font-size: 10px; }
+.attr-summary b { margin-left: 5px; color: #b7e6d2; font-family: var(--mono); font-size: 14px; }
+.attr-summary small { color: #7f948b; font-size: 9px; }
+.attr-list { display: grid; gap: 7px; overflow: auto; padding-right: 3px; }
+.attr-row { min-height: 58px; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 10px; padding: 9px 10px; border: 1px solid rgba(198, 202, 175, .16); background: rgba(43, 60, 54, .44); }
+.attr-copy { min-width: 0; display: grid; gap: 4px; }
+.attr-copy b { color: #dfe3d2; font-size: 11px; font-weight: 500; }
+.attr-copy small { color: #8b9a90; font-family: var(--mono); font-size: 8px; }
+.attr-total { min-width: 54px; color: #bfe6d8; font-family: var(--mono); font-size: 12px; font-weight: 400; text-align: right; }
+.attr-row button { width: 34px; height: 34px; border: 1px solid rgba(165, 214, 198, .4); border-radius: 2px; background: rgba(64, 110, 98, .35); color: #d5f2e7; font-size: 17px; line-height: 1; cursor: pointer; }
+.attr-row button:hover:not(:disabled) { border-color: #a8e0d0; background: rgba(80, 132, 118, .5); }
+.attr-row button:disabled { cursor: not-allowed; opacity: .35; }
 .death-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 .death-actions .secondary { padding: 0 15px; }
 .bag-scrim { position: fixed; z-index: 5; inset: 0; display: grid; place-items: center; padding: 18px; background: rgba(7, 15, 16, .72); animation: fade-in .18s ease-out both; }

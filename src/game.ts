@@ -5,22 +5,47 @@ type Scene = 'title' | 'town' | 'battle' | 'defeat' | 'ending'
 type GearType = 'weapon' | 'armor'
 type Gear = { id: string; name: string; level: number; type?: GearType; hp: number; mp?: number; attack: number; defense: number }
 type WorldDrop = { id: string; type: 'hp-potion' | 'mp-potion'; x: number }
-type StageProgress = { kills: number; bossDefeated: boolean }
-type Save = { role: Role; stage: number; unlockedStage: number; kills: number; stageProgress?: Record<string, StageProgress>; hp: number; mp: number; gear: Gear[]; equipped: string | null; weaponId?: string | null; armorId?: string | null; level?: number; exp?: number; drops?: WorldDrop[]; bossDefeated?: boolean; town: boolean; completed: boolean; dead: boolean }
+type AttributeStat = 'hp' | 'attack' | 'mp' | 'defense'
+type AttributeAllocation = Record<AttributeStat, number>
+type StageProgress = { kills: number; bossDefeated: boolean; pointsClaimed?: number }
+type Save = { role: Role; stage: number; unlockedStage: number; kills: number; stageProgress?: Record<string, StageProgress>; hp: number; mp: number; gear: Gear[]; equipped: string | null; weaponId?: string | null; armorId?: string | null; level?: number; exp?: number; drops?: WorldDrop[]; bossDefeated?: boolean; attributePoints?: number; attributeAllocation?: AttributeAllocation; town: boolean; completed: boolean; dead: boolean }
 type SaveSlot = { id: string; label: string; data: Save; updatedAt: number }
-type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; flash: number; dashWindup?: number; dashDirection?: number }
-type Fx = { x: number; y: number; life: number; kind: string; direction?: number; text?: string; damage?: number; duration?: number }
+type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; flash: number; dashWindup?: number; dashDirection?: number; stunTimer?: number }
+type Fx = { x: number; y: number; life: number; kind: string; direction?: number; text?: string; damage?: number; duration?: number; vx?: number; vy?: number; color?: string; radius?: number }
 type Projectile = { x: number; y: number; vx: number; life: number; damage: number; targetId: number }
 
 const SAVE_KEY = 'elemental-expedition-save-v2'
-const GAME_VERSION = '1.40'
+const GAME_VERSION = '1.51'
 const stageNames = ['苔痕边境', '沉钟矿道', '赤岩峡谷', '风蚀高原', '幽蓝沼泽', '断星回廊', '灰烬王庭', '深渊裂谷', '苍白圣所', '终焉之门']
 const roleLabels: Record<Role, string> = { warrior: '战士', mage: '法师' }
-const skillLabels: Record<Role, string[]> = { warrior: ['前斩', '旋风斩', '突刺', '蓄力重斩'], mage: ['奥术强化', '双生火柱', '闪现', '能量阵'] }
-const skillCosts = [10, 20, 30, 40]
-const skillDamage = [20, 30, 40, 50]
+const skillLabels: Record<Role, string[]> = { warrior: ['前斩', '旋风斩', '突刺', '蓄力重斩'], mage: ['奥术强化', '双生火柱', '闪现', '能量禁锢'] }
 const gearNames: Record<GearType, string[]> = { weapon: ['巡林者长剑', '碎岩战斧', '星火法杖', '守誓者之刃'], armor: ['苔纹护甲', '沉钟胸甲', '赤岩重铠', '星辉法袍'] }
 const xpThresholds = [200, 500, 1200, 2700]
+
+// ── 可调数值集中区 ─────────────────────────────────────────────
+const ROLE_BASE: Record<Role, { hp: number; mp: number; attack: number; defense: number }> = {
+  warrior: { hp: 1000, mp: 500, attack: 100, defense: 10 },
+  mage: { hp: 800, mp: 450, attack: 120, defense: 8 },
+}
+const MAGE_GROWTH_RATE = 0.8
+const SKILL_COSTS: Record<Role, number[]> = { warrior: [20, 30, 20, 50], mage: [40, 30, 10, 50] }
+const SKILL_MULTIPLIERS: Record<Role, number[]> = { warrior: [1.5, 1.5, 1, 2], mage: [0, 1.6, 0, 0] }
+const SKILL_COOLDOWNS = [0, 0, 0, 0]
+const STAGE_CONFIG = [
+  { mobHp: 500, mobAtk: 50, bossHp: 1000, bossAtk: 150 },
+  { mobHp: 700, mobAtk: 70, bossHp: 4000, bossAtk: 200 },
+  { mobHp: 1000, mobAtk: 100, bossHp: 9000, bossAtk: 300 },
+  { mobHp: 1400, mobAtk: 140, bossHp: 13000, bossAtk: 450 },
+  { mobHp: 1900, mobAtk: 190, bossHp: 22000, bossAtk: 650 },
+  { mobHp: 2500, mobAtk: 250, bossHp: 33000, bossAtk: 900 },
+  { mobHp: 3200, mobAtk: 320, bossHp: 46000, bossAtk: 1200 },
+  { mobHp: 4000, mobAtk: 400, bossHp: 61000, bossAtk: 1550 },
+  { mobHp: 4900, mobAtk: 490, bossHp: 78000, bossAtk: 1950 },
+  { mobHp: 5900, mobAtk: 590, bossHp: 97000, bossAtk: 2400 },
+]
+const ATTRIBUTE_STEP: Record<AttributeStat, number> = { hp: 10, attack: 1, mp: 1, defense: 1 }
+const ATTRIBUTE_POINT_CAP_PER_STAGE = 20
+const MAX_SMALL_KILLS = 30
 const app = document.querySelector<HTMLDivElement>('#app')!
 const world = { width: 960, height: 480, floor: 390 }
 let game: Save | null = null
@@ -44,9 +69,11 @@ let attackSwing = 0
 let buffTime = 0
 let burst = 0
 let burstWait = 0
-let burstCenter = 0
+let burstTargetId: number | null = null
+let shake = 0
 let bagOpen = false
 let craftingOpen = false
+let attributesOpen = false
 let effects: Fx[] = []
 let keys = new Set<string>()
 let logText = '小镇的篝火仍亮着，选择一片已开放的遗迹。'
@@ -76,10 +103,26 @@ function normalizeSave(data: Save): Save {
   data.exp ??= 0
   data.drops ??= []
   data.bossDefeated ??= false
+  data.attributePoints ??= 0
+  data.attributeAllocation = {
+    hp: data.attributeAllocation?.hp ?? 0,
+    attack: data.attributeAllocation?.attack ?? 0,
+    mp: data.attributeAllocation?.mp ?? 0,
+    defense: data.attributeAllocation?.defense ?? 0,
+  }
   data.stageProgress ??= {}
   data.stageProgress[String(data.stage)] ??= { kills: data.kills, bossDefeated: data.bossDefeated }
+  for (const progress of Object.values(data.stageProgress)) progress.pointsClaimed ??= 0
   if (data.weaponId === undefined) data.weaponId = data.gear.find((gear) => gear.type === 'weapon' || (!gear.type && gear.id === data.equipped))?.id ?? null
   if (data.armorId === undefined) data.armorId = data.gear.find((gear) => gear.type === 'armor')?.id ?? null
+  for (const gear of data.gear) {
+    if (!gear.type) continue
+    const values = gearStats(gear.level)
+    gear.hp = gear.type === 'armor' ? values.hp : 0
+    gear.defense = gear.type === 'armor' ? values.defense : 0
+    gear.attack = gear.type === 'weapon' ? values.attack : 0
+    gear.mp = gear.type === 'weapon' ? values.mp : 0
+  }
   while (data.exp >= xpToNext(data.level)) { data.exp -= xpToNext(data.level); data.level += 1 }
   return data
 }
@@ -93,34 +136,53 @@ function equippedGear() {
   if (!game) return []
   return game.gear.filter((gear) => gear.id === game?.weaponId || gear.id === game?.armorId || (!gear.type && gear.id === game?.equipped))
 }
-function levelDefenseGrowth(level = game?.level ?? 1) { return 100 * (2 ** Math.max(0, level - 1) - 1) }
-function levelAttackGrowth(level = game?.level ?? 1) { return 10 * (2 ** Math.max(0, level - 1) - 1) }
-function gearDefenseAttribute(level: number) { return 100 * 2 ** Math.max(0, level - 1) }
-function gearAttackAttribute(level: number) { return 10 * 2 ** Math.max(0, level - 1) }
+function levelGrowth(level: number) {
+  const m = Math.max(0, level - 1)
+  const triangle = (m * (m + 1) * (m - 1)) / 6
+  const hpCoefficient = m + triangle
+  const attackCoefficient = m + triangle / 2
+  return { hp: 100 * hpCoefficient, mp: 10 * hpCoefficient, attack: 10 * attackCoefficient, defense: 10 * attackCoefficient }
+}
+function roleLevelGrowth(role: Role, level: number) {
+  const growth = levelGrowth(level)
+  if (role !== 'mage') return growth
+  return { hp: Math.round(growth.hp * MAGE_GROWTH_RATE), mp: Math.round(growth.mp * MAGE_GROWTH_RATE), attack: Math.round(growth.attack * MAGE_GROWTH_RATE), defense: Math.round(growth.defense * MAGE_GROWTH_RATE) }
+}
+function gearStats(level: number) {
+  const triangle = level * (level - 1) / 2
+  // 武器蓝量按用户给定值 10 / 40 / 70 线性增长，与等级成长曲线不同。
+  return { hp: 100 * (1 + triangle), mp: 10 + 30 * (level - 1), attack: 10 + 5 * triangle, defense: 10 + 5 * triangle }
+}
+function roleGearMultiplier(role: Role) { return role === 'mage' ? MAGE_GROWTH_RATE : 1 }
 function foeDamage(foe: Foe, dash = false) {
   if (!game) return 0
-  const stageGrowth = game.stage - 1
-  const base = foe.boss ? (dash ? 82 : 32) + stageGrowth * (dash ? 15 : 12) : 16 + game.stage * 2 + stageGrowth * 5
-  return Math.max(3, base - stats().defense)
+  const config = STAGE_CONFIG[Math.max(0, Math.min(9, game.stage - 1))]
+  const base = foe.boss ? config.bossAtk * (dash ? 1.5 : 1) : config.mobAtk
+  return Math.max(3, Math.round(base - stats().defense))
 }
 function stats() {
+  const role = game?.role ?? 'warrior'
+  const base = ROLE_BASE[role]
+  const growth = roleLevelGrowth(role, game?.level ?? 1)
   const gear = equippedGear()
   const legacy = gear.find((entry) => !entry.type)
   const weapon = gear.find((entry) => entry.type === 'weapon')
   const armor = gear.find((entry) => entry.type === 'armor')
-  const defenseGrowth = levelDefenseGrowth()
-  const attackGrowth = levelAttackGrowth()
+  const gearMultiplier = roleGearMultiplier(role)
+  const allocation = game?.attributeAllocation ?? { hp: 0, attack: 0, mp: 0, defense: 0 }
+  const buffMultiplier = role === 'mage' && buffTime > 0 ? 1.1 : 1
   return {
-    hp: 1000 + defenseGrowth + (armor?.hp ?? legacy?.hp ?? 0),
-    mp: 500 + attackGrowth + (weapon?.mp ?? 0),
-    attack: 10 + attackGrowth + (weapon?.attack ?? legacy?.attack ?? 0),
-    defense: 10 + defenseGrowth + (armor?.defense ?? legacy?.defense ?? 0),
+    hp: base.hp + growth.hp + Math.round((armor?.hp ?? legacy?.hp ?? 0) * gearMultiplier) + allocation.hp * ATTRIBUTE_STEP.hp,
+    mp: base.mp + growth.mp + Math.round((weapon?.mp ?? 0) * gearMultiplier) + allocation.mp * ATTRIBUTE_STEP.mp,
+    attack: Math.round((base.attack + growth.attack + Math.round((weapon?.attack ?? legacy?.attack ?? 0) * gearMultiplier) + allocation.attack * ATTRIBUTE_STEP.attack) * buffMultiplier),
+    defense: base.defense + growth.defense + Math.round((armor?.defense ?? legacy?.defense ?? 0) * gearMultiplier) + allocation.defense * ATTRIBUTE_STEP.defense,
   }
 }
 function save() {
   if (!game || !activeSlotId) return
   game.stageProgress ??= {}
-  game.stageProgress[String(game.stage)] = { kills: game.kills, bossDefeated: game.bossDefeated ?? false }
+  const previous = game.stageProgress[String(game.stage)]
+  game.stageProgress[String(game.stage)] = { kills: game.kills, bossDefeated: game.bossDefeated ?? false, pointsClaimed: previous?.pointsClaimed ?? 0 }
   const slot = saveSlots.find((entry) => entry.id === activeSlotId)
   if (!slot) return
   slot.data = structuredClone(game)
@@ -138,9 +200,18 @@ function addFx(kind: string, x = heroX, y = world.floor - 80, direction = 1, lif
 function addDamageText(foe: Foe, damage: number) {
   effects.push({ kind: 'damage-number', x: foe.x, y: world.floor - (foe.boss ? 205 : 104), life: .95, duration: .95, text: `-${damage}`, damage })
 }
+function addSparks(x: number, y: number, count: number, colors: string[], speed = 150) {
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI * 2
+    const velocity = speed * (.35 + Math.random())
+    effects.push({ kind: 'spark', x, y, life: .35 + Math.random() * .35, duration: .7, vx: Math.cos(angle) * velocity, vy: Math.sin(angle) * velocity - 40, color: colors[i % colors.length], radius: 1.5 + Math.random() * 2.5 })
+  }
+}
+function addShake(amount: number) { shake = Math.max(shake, amount) }
 function spawnFoe(x: number, boss = false): Foe {
-  const hp = (boss ? 2000 : 100) * 2 ** ((game?.stage ?? 1) - 1)
-  return { id: nextFoeId++, x, hp, maxHp: hp, boss, timer: .7 + Math.random() * 1.2, skillTimer: 3.2, flash: 0 }
+  const config = STAGE_CONFIG[Math.max(0, Math.min(9, (game?.stage ?? 1) - 1))]
+  const hp = boss ? config.bossHp : config.mobHp
+  return { id: nextFoeId++, x, hp, maxHp: hp, boss, timer: .7 + Math.random() * 1.2, skillTimer: 3.2, flash: 0, stunTimer: 0 }
 }
 function bossFx(action: 'charge' | 'dash' | 'melee') {
   const themes = ['ember', 'frost', 'storm', 'void', 'moss', 'sun', 'blood', 'tide', 'ash', 'star']
@@ -159,7 +230,7 @@ function spawnWave() {
   setLog(`第 ${Math.floor(game.kills / (groupSize * 2)) + 1} 批守卫从两侧逼近。`)
 }
 function getStageProgress(stage: number): StageProgress {
-  return game?.stageProgress?.[String(stage)] ?? (stage === game?.stage ? { kills: game.kills, bossDefeated: game.bossDefeated ?? false } : { kills: 0, bossDefeated: false })
+  return game?.stageProgress?.[String(stage)] ?? (stage === game?.stage ? { kills: game.kills, bossDefeated: game.bossDefeated ?? false, pointsClaimed: 0 } : { kills: 0, bossDefeated: false, pointsClaimed: 0 })
 }
 function beginStage(stage: number, mode: 'continue' | 'restart' | 'boss' = 'continue') {
   if (!game) return
@@ -179,6 +250,8 @@ function beginStage(stage: number, mode: 'continue' | 'restart' | 'boss' = 'cont
   grounded = true
   projectiles = []
   effects = []
+  burst = 0; burstTargetId = null; shake = 0
+  bagOpen = false; craftingOpen = false; attributesOpen = false
   spawnWave()
   save()
   renderGame()
@@ -188,33 +261,45 @@ function start(role: Role, previous?: Save) {
   game.unlockedStage = Math.min(10, Math.max(game.unlockedStage ?? 1, game.stage))
   scene = game.completed ? 'ending' : game.dead ? 'defeat' : game.town ? 'town' : 'battle'
   paused = false
-  heroX = 480; heroY = 0; velocityY = 0; grounded = true; buffTime = 0; burst = 0
-  skillWait = [0, 0, 0, 0]; effects = []; projectiles = []; bagOpen = false
+  heroX = 480; heroY = 0; velocityY = 0; grounded = true; buffTime = 0; burst = 0; burstTargetId = null; shake = 0
+  skillWait = [0, 0, 0, 0]; effects = []; projectiles = []; bagOpen = false; craftingOpen = false; attributesOpen = false
+  const caps = stats()
+  game.hp = Math.min(Math.max(1, game.hp), caps.hp)
+  game.mp = Math.min(Math.max(0, game.mp), caps.mp)
   if (scene === 'battle') spawnWave()
   save(); render()
 }
 function freshSave(role: Role): Save {
-  return { role, stage: 1, unlockedStage: 1, kills: 0, hp: 1000, mp: 500, gear: [], equipped: null, weaponId: null, armorId: null, level: 1, exp: 0, drops: [], bossDefeated: false, town: true, completed: false, dead: false }
+  const base = ROLE_BASE[role]
+  return { role, stage: 1, unlockedStage: 1, kills: 0, hp: base.hp, mp: base.mp, gear: [], equipped: null, weaponId: null, armorId: null, level: 1, exp: 0, drops: [], bossDefeated: false, attributePoints: 0, attributeAllocation: { hp: 0, attack: 0, mp: 0, defense: 0 }, town: true, completed: false, dead: false }
 }
 function awardExperience(amount: number) {
   if (!game) return
   game.exp = (game.exp ?? 0) + amount
   let levelsGained = 0
-  let hpDefenseGained = 0
-  let mpAttackGained = 0
+  let hpGained = 0
+  let mpGained = 0
+  let attackGained = 0
+  let defenseGained = 0
   while (game.exp >= xpToNext(game.level ?? 1)) {
     game.exp -= xpToNext(game.level ?? 1)
     const previousLevel = game.level ?? 1
+    const before = roleLevelGrowth(game.role, previousLevel)
+    const after = roleLevelGrowth(game.role, previousLevel + 1)
     game.level = previousLevel + 1
-    const hpDefenseIncrease = levelDefenseGrowth(game.level) - levelDefenseGrowth(previousLevel)
-    const mpAttackIncrease = levelAttackGrowth(game.level) - levelAttackGrowth(previousLevel)
-    game.hp += hpDefenseIncrease
-    game.mp += mpAttackIncrease
+    const hpIncrease = after.hp - before.hp
+    const mpIncrease = after.mp - before.mp
+    const attackIncrease = after.attack - before.attack
+    const defenseIncrease = after.defense - before.defense
+    game.hp += hpIncrease
+    game.mp += mpIncrease
     levelsGained += 1
-    hpDefenseGained += hpDefenseIncrease
-    mpAttackGained += mpAttackIncrease
+    hpGained += hpIncrease
+    mpGained += mpIncrease
+    attackGained += attackIncrease
+    defenseGained += defenseIncrease
   }
-  if (levelsGained) toast(`升级至 ${game.level} 级：生命/防御 +${hpDefenseGained}，蓝量/攻击 +${mpAttackGained}。`)
+  if (levelsGained) toast(`升级至 ${game.level} 级：生命 +${hpGained}，攻击 +${attackGained}，防御 +${defenseGained}，法力 +${mpGained}。`)
 }
 function deleteSaveSlot(id: string) {
   const slot = saveSlots.find((entry) => entry.id === id)
@@ -264,10 +349,12 @@ function renderTitle() {
 function gearMarkup(canEquip: boolean) {
   if (!game?.gear.length) return '<div class="empty-gear">背包里还没有武器<small>击败遗迹守卫，寻找装备</small></div>'
   const worn = new Set([game.weaponId, game.armorId])
+  const multiplier = roleGearMultiplier(game.role)
+  const scaled = (value: number | undefined) => Math.round((value ?? 0) * multiplier)
   return game.gear.map((gear) => {
     const equipped = worn.has(gear.id) || (!gear.type && game!.equipped === gear.id)
     const type = gear.type ?? '旧装备'
-    const details = gear.type === 'weapon' ? `蓝量 +${gear.mp ?? 0} · 攻击 +${gear.attack}` : gear.type === 'armor' ? `生命 +${gear.hp} · 防御 +${gear.defense}` : `生命 +${gear.hp} · 攻击 +${gear.attack} · 防御 +${gear.defense}`
+    const details = gear.type === 'weapon' ? `蓝量 +${scaled(gear.mp)} · 攻击 +${scaled(gear.attack)}` : gear.type === 'armor' ? `生命 +${scaled(gear.hp)} · 防御 +${scaled(gear.defense)}` : `生命 +${scaled(gear.hp)} · 攻击 +${scaled(gear.attack)} · 防御 +${scaled(gear.defense)}`
     return `<article class="gear-row ${equipped ? 'active-gear' : ''}"><span class="gear-glyph">${gear.type === 'armor' ? '▰' : '✦'}</span><span class="gear-copy"><b>${gear.name}</b><small>${type} · ${gear.level} 级 · ${details}</small></span><span class="gear-actions">${equipped ? '<i class="equipped">已装备</i>' : `<button data-action="equip" data-id="${gear.id}" ${canEquip ? '' : 'disabled'}>${canEquip ? '穿戴' : '小镇可穿'}</button>`}</span></article>`
   }).join('')
 }
@@ -285,6 +372,19 @@ function craftMarkup() {
   if (!groups.size) return '<div class="empty-gear">没有未穿戴的武器或护甲<small>同品类、同等级装备满 5 件后可合成</small></div>'
   return [...groups.values()].sort((a, b) => a.level - b.level || a.type.localeCompare(b.type)).map((group) => `<article class="craft-row"><span class="gear-glyph">${group.type === 'armor' ? '▰' : '✦'}</span><span class="gear-copy"><b>${group.type === 'weapon' ? '武器' : '护甲'} · ${group.level} 级</b><small>${group.count} / 5 件未穿戴材料 · 合成后为 ${group.level + 1} 级</small></span><button data-action="synthesize-group" data-type="${group.type}" data-level="${group.level}" ${group.count >= 5 ? '' : 'disabled'}>合成</button></article>`).join('')
 }
+function attributeMarkup() {
+  if (!game) return ''
+  const allocation = game.attributeAllocation ?? { hp: 0, attack: 0, mp: 0, defense: 0 }
+  const points = game.attributePoints ?? 0
+  const progress = getStageProgress(game.stage)
+  const rows: Array<{ stat: AttributeStat; label: string; hint: string; count: number }> = [
+    { stat: 'hp', label: '生命', hint: '每点 +10 生命', count: allocation.hp },
+    { stat: 'attack', label: '攻击', hint: '每点 +1 攻击', count: allocation.attack },
+    { stat: 'mp', label: '法力', hint: '每点 +1 法力', count: allocation.mp },
+    { stat: 'defense', label: '防御', hint: '每点 +1 防御', count: allocation.defense },
+  ]
+  return `<div class="bag-scrim attr-scrim"><section class="bag-dialog attr-dialog"><header><div><small>ATTRIBUTES · 剩余 ${points} 点</small><h2>属性分配</h2></div><button data-action="close-attributes" aria-label="关闭属性面板">×</button></header><p>击杀小怪每满 10 只获得本关关卡数等量的属性点，单关最多 20 点。分配后立即生效。</p><div class="attr-summary"><span>可用属性点 <b>${points}</b></span><small>本关已获得 ${progress.pointsClaimed ?? 0} / ${ATTRIBUTE_POINT_CAP_PER_STAGE}</small></div><div class="attr-list">${rows.map((row) => `<article class="attr-row"><span class="attr-copy"><b>${row.label}</b><small>${row.hint} · 已投入 ${row.count} 点</small></span><b class="attr-total">+${row.count * ATTRIBUTE_STEP[row.stat]}</b><button data-action="allocate-attr" data-stat="${row.stat}" ${points > 0 ? '' : 'disabled'}>+</button></article>`).join('')}</div></section></div>`
+}
 function renderGame() {
   if (!game) return renderTitle()
   const s = stats()
@@ -294,8 +394,9 @@ function renderGame() {
   const townOverlay = isTown ? `<div class="overlay town-overlay"><small>SAFE HAVEN · 冒险者小镇</small><h2>${game.completed ? '十片遗迹皆已沉寂' : '旅途从这里继续'}</h2><p>${game.completed ? '你已完成元素远征，装备与记录仍保存在背包。' : '选择已开放的关卡，或在背包里更换装备。'}</p>${game.completed ? '<button class="primary" data-action="title">返回标题　↗</button>' : `<label class="stage-picker"><span>选择关卡</span><select id="stage-select">${Array.from({ length: game.unlockedStage }, (_, i) => `<option value="${i + 1}" ${game!.stage === i + 1 ? 'selected' : ''}>第 ${String(i + 1).padStart(2, '0')} 关 · ${stageNames[i]}</option>`).join('')}</select></label><button class="primary" data-action="enter-stage">进入遗迹　→</button>`}</div>` : ''
   const deathOverlay = scene === 'defeat' ? '<div class="overlay death-overlay"><small>EXPEDITION PAUSED</small><h2>你倒在了遗迹深处</h2><p>已获得的装备和关卡进度都会保留。</p><div class="death-actions"><button data-action="respawn-town" class="primary">重生到小镇</button><button data-action="respawn-fight" class="secondary">继续战斗</button></div></div>' : ''
   const endingOverlay = scene === 'ending' ? '<div class="overlay"><small>THE FRONTIER IS YOURS</small><h2>十片遗迹，皆已沉寂</h2><p>你完成了元素远征。</p><button data-action="town" class="primary">返回小镇　↗</button></div>' : ''
-  app.innerHTML = `<main class="game-shell"><header class="game-header"><a data-action="town" class="wordmark"><b>A</b> 冒险王 <i>／</i> ${isTown ? '冒险者小镇' : '元素远征'}</a><span class="save-state"><i></i>${isTown ? '小镇安全区' : '进度已自动保存'}</span><button class="bag-button" data-action="bag">背包 <span>${game.gear.length}</span></button><button class="save-button" data-action="save" title="保存进度">▣</button></header><section class="overview"><div><small>${isTown ? '冒险者小镇' : `第 ${String(game.stage).padStart(2, '0')} 章`}</small><h1>${isTown ? '营火集市' : stageNames[game.stage - 1]}</h1><p>${isTown ? '缓冲区 · 整备装备与选择关卡' : '遗迹入口 · 击败 30 只守卫后迎战 Boss'}</p></div><div class="metrics"><div><small>职业</small><b>${roleLabels[game.role]}</b></div><div><small>已击杀</small><b>${isTown ? `开放至第 ${game.unlockedStage} 关` : countText}</b></div><div><small>当前装备</small><b>${item()?.name ?? '无'}</b></div></div></section><section class="game-grid"><div class="battle-column"><div class="arena-label"><span>◆ ${isTown ? '冒险者小镇 · 补给站' : `${stageNames[game.stage - 1]} · 深层区域`}</span><b id="enemy-name">${isTown ? '安全区域' : boss ? '守关者冲刺准备中' : `${foes.length} 只守卫正在逼近`}</b></div><div class="arena"><canvas id="arena" aria-label="横版战斗场景"></canvas><div class="coords"><span>${isTown ? 'TOWN · SAFE ZONE' : `遗迹远征 · ${String(game.stage).padStart(2, '0')}`}</span><span>${boss ? 'BOSS ENCOUNTER' : isTown ? 'REST & PREPARE' : 'WAVE ENCOUNTER'}</span></div>${townOverlay}${deathOverlay}${endingOverlay}</div><div class="foe-health"><div><span>${isTown ? '冒险者状态' : boss ? '守关者' : '本批守卫'}</span><b id="foe-hp">${isTown ? '安全休整' : boss ? `${Math.ceil(foes[0]?.hp ?? 0)} / ${foes[0]?.maxHp ?? 0}` : `${foes.length} 名敌人 · 已击败 ${game.kills} / 30`}</b></div><div><i id="foe-fill" style="width:${boss ? `${Math.max(0, foes[0].hp / foes[0].maxHp * 100)}%` : '100%'}"></i></div></div><div class="combat-bar"><button data-action="attack" class="attack" ${scene === 'battle' ? '' : 'disabled'}><b>${game.role === 'warrior' ? '⚔' : '✦'}</b><span><strong>${game.role === 'warrior' ? '剑刃斩击' : '法杖射击'}</strong><small>J · ${game.role === 'warrior' ? '近战' : '远程'}</small></span></button><button data-action="jump" ${scene === 'battle' ? '' : 'disabled'}><b>↟</b><span><strong>跳跃</strong><small>SPACE</small></span></button>${skillLabels[game.role].map((label, i) => `<button data-action="skill" data-index="${i}" ${scene === 'battle' ? '' : 'disabled'}><i>${i + 1}</i><span><strong>${label}</strong><small>${skillDamage[i]}伤害 · ${skillCosts[i]}MP</small></span></button>`).join('')}</div><div class="mobile-move"><button data-move="left" aria-label="向左移动">←</button><button data-move="right" aria-label="向右移动">→</button></div><div class="combat-log"><b>✦</b><span>${logText}</span></div></div><aside class="side-column"><section class="panel status-panel"><header><span>角色状态</span><small>${String(game.stage).padStart(2, '0')}</small></header><div class="hero-card"><b class="avatar ${game.role}">${game.role === 'warrior' ? '刃' : '✦'}</b><span><strong>${roleLabels[game.role]}</strong><small>${game.role === 'warrior' ? '钢铁誓约 · 剑士' : '星辉学派 · 法杖'}</small></span></div><div class="resource-label"><span>生命</span><b id="hp-text">${Math.ceil(game.hp)} <i>/ ${s.hp}</i></b><em>♥</em></div><div class="resource"><i id="hp-fill" style="width:${game.hp / s.hp * 100}%"></i></div><div class="resource-label mana-label"><span>法力</span><b id="mp-text">${Math.ceil(game.mp)} <i>/ 500</i></b><em>✦</em></div><div class="resource"><i id="mp-fill" style="width:${game.mp / 500 * 100}%"></i></div><div class="stats"><div><small>攻击</small><b>${s.attack}</b></div><div><small>防御</small><b>${s.defense}</b></div><div><small>增益</small><b id="buff-stat">${buffTime > 0 ? `${buffTime.toFixed(1)}s` : '—'}</b></div></div></section><section class="panel gear-panel"><header><span>装备栏</span><small>${item()?.name ?? '未装备'}</small></header><div class="gear-summary">${item() ? `生命 +${item()!.hp}　攻击 +${item()!.attack}　防御 +${item()!.defense}` : '装备不会自动穿戴，请在小镇打开背包手动更换。'}</div><button class="open-bag" data-action="bag">打开背包　↗</button><div class="camp-hint">⌂　${isTown ? '安全区内可自由更换装备' : '击败 Boss 后回到小镇整备'}</div></section></aside></section><footer class="game-footer"><span>WASD / ← → 移动　·　J 攻击　·　Space 跳跃　·　Q W E R 技能</span><b>LOCAL SAVE　●</b></footer>${bagOpen ? `<div class="bag-scrim"><section class="bag-dialog"><header><div><small>INVENTORY · ${game.gear.length} ITEMS</small><h2>远征背包</h2></div><button data-action="close-bag" aria-label="关闭背包">×</button></header><p>${isTown ? '选择要装备的武器，属性会立即更新。' : '装备已安全保存。返回小镇后即可更换。'}</p><div class="bag-list">${gearMarkup(isTown)}</div></section></div>` : ''}</main>`
+  app.innerHTML = `<main class="game-shell"><header class="game-header"><a data-action="town" class="wordmark"><b>A</b> 冒险王 <i>／</i> ${isTown ? '冒险者小镇' : '元素远征'}</a><span class="save-state"><i></i>${isTown ? '小镇安全区' : '进度已自动保存'}</span><button class="bag-button" data-action="bag">背包 <span>${game.gear.length}</span></button><button class="save-button" data-action="save" title="保存进度">▣</button></header><section class="overview"><div><small>${isTown ? '冒险者小镇' : `第 ${String(game.stage).padStart(2, '0')} 章`}</small><h1>${isTown ? '营火集市' : stageNames[game.stage - 1]}</h1><p>${isTown ? '缓冲区 · 整备装备与选择关卡' : '遗迹入口 · 击败 30 只守卫后迎战 Boss'}</p></div><div class="metrics"><div><small>职业</small><b>${roleLabels[game.role]}</b></div><div><small>已击杀</small><b>${isTown ? `开放至第 ${game.unlockedStage} 关` : countText}</b></div><div><small>当前装备</small><b>${item()?.name ?? '无'}</b></div></div></section><section class="game-grid"><div class="battle-column"><div class="arena-label"><span>◆ ${isTown ? '冒险者小镇 · 补给站' : `${stageNames[game.stage - 1]} · 深层区域`}</span><b id="enemy-name">${isTown ? '安全区域' : boss ? '守关者冲刺准备中' : `${foes.length} 只守卫正在逼近`}</b></div><div class="arena"><canvas id="arena" aria-label="横版战斗场景"></canvas><div class="coords"><span>${isTown ? 'TOWN · SAFE ZONE' : `遗迹远征 · ${String(game.stage).padStart(2, '0')}`}</span><span>${boss ? 'BOSS ENCOUNTER' : isTown ? 'REST & PREPARE' : 'WAVE ENCOUNTER'}</span></div>${townOverlay}${deathOverlay}${endingOverlay}</div><div class="foe-health"><div><span>${isTown ? '冒险者状态' : boss ? '守关者' : '本批守卫'}</span><b id="foe-hp">${isTown ? '安全休整' : boss ? `${Math.ceil(foes[0]?.hp ?? 0)} / ${foes[0]?.maxHp ?? 0}` : `${foes.length} 名敌人 · 已击败 ${game.kills} / 30`}</b></div><div><i id="foe-fill" style="width:${boss ? `${Math.max(0, foes[0].hp / foes[0].maxHp * 100)}%` : '100%'}"></i></div></div><div class="combat-bar"><button data-action="attack" class="attack" ${scene === 'battle' ? '' : 'disabled'}><b>${game.role === 'warrior' ? '⚔' : '✦'}</b><span><strong>${game.role === 'warrior' ? '剑刃斩击' : '法杖射击'}</strong><small>J · ${game.role === 'warrior' ? '近战' : '远程'}</small></span></button><button data-action="jump" ${scene === 'battle' ? '' : 'disabled'}><b>↟</b><span><strong>跳跃</strong><small>K</small></span></button>${skillLabels[game.role].map((label, i) => `<button data-action="skill" data-index="${i}" ${scene === 'battle' ? '' : 'disabled'}><i>${i + 1}</i><span><strong>${label}</strong><small>${skillSummary(game!.role, i)}</small></span></button>`).join('')}</div><div class="mobile-move"><button data-move="left" aria-label="向左移动">←</button><button data-move="right" aria-label="向右移动">→</button></div><div class="combat-log"><b>✦</b><span>${logText}</span></div></div><aside class="side-column"><section class="panel status-panel"><header><span>角色状态</span><small>${String(game.stage).padStart(2, '0')}</small></header><div class="hero-card"><b class="avatar ${game.role}">${game.role === 'warrior' ? '刃' : '✦'}</b><span><strong>${roleLabels[game.role]}</strong><small>${game.role === 'warrior' ? '钢铁誓约 · 剑士' : '星辉学派 · 法杖'}</small></span></div><div class="resource-label"><span>生命</span><b id="hp-text">${Math.ceil(game.hp)} <i>/ ${s.hp}</i></b><em>♥</em></div><div class="resource"><i id="hp-fill" style="width:${game.hp / s.hp * 100}%"></i></div><div class="resource-label mana-label"><span>法力</span><b id="mp-text">${Math.ceil(game.mp)} <i>/ ${s.mp}</i></b><em>✦</em></div><div class="resource"><i id="mp-fill" style="width:${game.mp / s.mp * 100}%"></i></div><div class="stats"><div><small>攻击</small><b>${s.attack}</b></div><div><small>防御</small><b>${s.defense}</b></div><div><small>增益</small><b id="buff-stat">${buffTime > 0 ? `${buffTime.toFixed(1)}s` : '—'}</b></div></div></section><section class="panel gear-panel"><header><span>装备栏</span><small>${item()?.name ?? '未装备'}</small></header><div class="gear-summary">${item() ? `生命 +${item()!.hp}　攻击 +${item()!.attack}　防御 +${item()!.defense}` : '装备不会自动穿戴，请在小镇打开背包手动更换。'}</div><button class="open-bag" data-action="bag">打开背包　↗</button><div class="camp-hint">⌂　${isTown ? '安全区内可自由更换装备' : '击败 Boss 后回到小镇整备'}</div></section></aside></section><footer class="game-footer"><span>WASD / ← → 移动　·　J 攻击　·　K 跳跃　·　1–4 技能</span><b>LOCAL SAVE　●</b></footer>${bagOpen ? `<div class="bag-scrim"><section class="bag-dialog"><header><div><small>INVENTORY · ${game.gear.length} ITEMS</small><h2>远征背包</h2></div><button data-action="close-bag" aria-label="关闭背包">×</button></header><p>${isTown ? '选择要装备的武器，属性会立即更新。' : '装备已安全保存。返回小镇后即可更换。'}</p><div class="bag-list">${gearMarkup(isTown)}</div></section></div>` : ''}</main>`
   if (craftingOpen && isTown) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', `<div class="bag-scrim craft-scrim"><section class="bag-dialog craft-dialog"><header><div><small>FORGE · 冒险者小镇</small><h2>合成台</h2></div><button data-action="close-crafting" aria-label="关闭合成台">×</button></header><p>只消耗未穿戴的材料：5 件同类同等级装备合成 1 件高一级装备。</p><div class="bag-list craft-list">${craftMarkup()}</div></section></div>`)
+  if (attributesOpen && isTown) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', attributeMarkup())
   mountBattleHud()
   mountLevelHud()
   mountEquipmentHud()
@@ -308,6 +409,7 @@ function renderGame() {
     const shortcuts = [
       '<button class="secondary town-rest" data-action="rest">在小镇休整　恢复生命与法力</button>',
       '<button class="secondary town-synthesis" data-action="open-crafting">合成台</button>',
+      `<button class="secondary town-attributes" data-action="open-attributes">属性分配 · ${game.attributePoints ?? 0} 点</button>`,
     ].join('')
     document.querySelector('.town-overlay .stage-picker')?.insertAdjacentHTML('beforebegin', shortcuts)
   }
@@ -319,12 +421,12 @@ function renderGame() {
   skillButtons.forEach((button, index) => {
     if (paused) button.disabled = true
     const detail = button.querySelector('small')
-    if (detail) detail.textContent = `${skillDamage[index]} 伤害 · ${skillCosts[index]} MP · ${index + 1}`
+    if (detail) detail.textContent = `${skillSummary(game!.role, index)} · ${index + 1}`
   })
   if (paused) document.querySelector<HTMLButtonElement>('.combat-bar button[data-action="attack"]')!.disabled = true
   if (paused) document.querySelector<HTMLButtonElement>('.combat-bar button[data-action="jump"]')!.disabled = true
   const controls = document.querySelector<HTMLElement>('.game-footer span')
-  if (controls) controls.textContent = 'WASD / ← → 移动　·　J 攻击　·　Space 跳跃　·　1–4 技能　·　S 拾取药水　·　P 暂停'
+  if (controls) controls.textContent = 'WASD / ← → 移动　·　J 攻击　·　K 跳跃　·　1–4 技能　·　S 拾取药水　·　P 暂停'
   setupCanvas()
   syncHud()
 }
@@ -369,10 +471,12 @@ function mountEquipmentHud() {
   if (!game) return
   const weapon = game.gear.find((gear) => gear.id === game?.weaponId)
   const armor = game.gear.find((gear) => gear.id === game?.armorId)
+  const multiplier = roleGearMultiplier(game.role)
+  const scaled = (value: number | undefined) => Math.round((value ?? 0) * multiplier)
   const header = document.querySelector<HTMLElement>('.gear-panel header small')
   const summary = document.querySelector<HTMLElement>('.gear-summary')
-  if (header) header.textContent = `武器：${weapon?.name ?? '未装备'} · 护甲：${armor?.name ?? '未装备'}`
-  if (summary) summary.innerHTML = `<span>武器　蓝量 +${weapon?.mp ?? 0}　攻击 +${weapon?.attack ?? 0}</span><span>护甲　生命 +${armor?.hp ?? 0}　防御 +${armor?.defense ?? 0}</span>`
+  if (header) header.textContent = `武器：${weapon?.name ?? '未装备'} · 护甲：${armor?.name ?? '未装备'}${game.role === 'mage' ? ' · 法师收益 80%' : ''}`
+  if (summary) summary.innerHTML = `<span>武器　蓝量 +${scaled(weapon?.mp)}　攻击 +${scaled(weapon?.attack)}</span><span>护甲　生命 +${scaled(armor?.hp)}　防御 +${scaled(armor?.defense)}</span>`
   const metric = document.querySelector<HTMLElement>('.metrics div:last-child b')
   if (metric) metric.textContent = `${weapon?.name ?? '无武器'} / ${armor?.name ?? '无护甲'}`
 }
@@ -454,7 +558,13 @@ function syncFoeHeads() {
     if (fill) fill.style.width = `${Math.max(0, foe.hp / foe.maxHp * 100)}%`
   }
 }
-function skillPower(index: number) { return skillDamage[index] + stats().attack - 10 }
+function skillPower(index: number) { return Math.round(stats().attack * SKILL_MULTIPLIERS[game?.role ?? 'warrior'][index]) }
+function skillSummary(role: Role, index: number) {
+  if (role === 'mage' && index === 0) return `+10% 攻速/攻击 · 10s · ${SKILL_COSTS.mage[0]} MP`
+  if (role === 'mage' && index === 2) return `无伤害位移 · ${SKILL_COSTS.mage[2]} MP`
+  if (role === 'mage' && index === 3) return `眩晕 1s · 5 连击 · ${SKILL_COSTS.mage[3]} MP`
+  return `${Math.round(SKILL_MULTIPLIERS[role][index] * 100)}% 攻击 · ${SKILL_COSTS[role][index]} MP`
+}
 function spend(cost: number) { if (!game || game.mp < cost) { toast('法力不足，无法释放技能。'); return false } game.mp -= cost; return true }
 function targetForFacing(range: number): Foe | undefined {
   return foes.filter((foe) => Math.abs(foe.x - heroX) <= range).sort((a, b) => {
@@ -465,10 +575,11 @@ function targetForFacing(range: number): Foe | undefined {
 }
 function strike(target: Foe, damage: number, label: string) {
   if (!game || !foes.includes(target)) return
-  const dealt = Math.round(damage * (buffTime > 0 ? 2 : 1))
+  const dealt = Math.max(1, Math.round(damage))
   target.hp -= dealt; target.flash = .18
   addDamageText(target, dealt)
   addFx('impact', target.x, world.floor - (target.boss ? 120 : 72), -1, .22)
+  addSparks(target.x, world.floor - (target.boss ? 110 : 62), 4, ['#ffe6a8', '#e8b56f'], 110)
   if (target.hp <= 0) defeatFoe(target)
   else syncHud()
   setLog(`${label} · 命中${target.boss ? '守关者' : '守卫'}`)
@@ -480,7 +591,8 @@ function strikeNearby(damage: number, label: string, range: number, all = false)
 }
 function attack() {
   if (scene !== 'battle' || paused || !game || attackWait > 0) return
-  attackWait = .42; attackSwing = .32
+  const hasted = game.role === 'mage' && buffTime > 0
+  attackWait = hasted ? .42 / 1.1 : .42; attackSwing = .32
   const nearest = [...foes].sort((a, b) => Math.abs(a.x - heroX) - Math.abs(b.x - heroX))[0]
   if (nearest) facing = Math.sign(nearest.x - heroX) || facing
   if (game.role === 'warrior') {
@@ -490,7 +602,7 @@ function attack() {
     const target = targetForFacing(world.width)
     if (!target) { setLog('法杖光弹没有找到目标。'); return }
     const projectileDirection = Math.sign(target.x - heroX) || facing
-    projectiles.push({ x: heroX + projectileDirection * 25, y: world.floor - 68 + heroY, vx: projectileDirection * 620, life: 1.3, damage: stats().attack + (buffTime > 0 ? 10 : 0), targetId: target.id })
+    projectiles.push({ x: heroX + projectileDirection * 25, y: world.floor - 68 + heroY, vx: projectileDirection * 620, life: 1.3, damage: stats().attack, targetId: target.id })
     addFx('muzzle', heroX + projectileDirection * 25, world.floor - 68 + heroY, projectileDirection, .16)
   }
 }
@@ -501,36 +613,65 @@ function jump() {
 function cast(index: number) {
   if (scene !== 'battle' || paused || !game || index < 0 || index > 3) return
   if (skillWait[index] > 0) { toast('技能还在冷却中。'); return }
-  if (!spend(skillCosts[index])) return
-  skillWait[index] = [.65, .9, 1.15, 1.5][index]
+  if (game.role === 'mage' && index === 3 && !foes.length) { setLog('能量禁锢没有找到目标。'); return }
+  if (!spend(SKILL_COSTS[game.role][index])) return
+  skillWait[index] = SKILL_COOLDOWNS[index]
   const power = skillPower(index)
-  if (foes.length) facing = foes[0].x < heroX ? -1 : 1
+  // 技能 3（突刺/闪现）保持当前朝向，方便向远离敌人的方向位移。
+  if (index !== 2) {
+    const nearest = [...foes].sort((a, b) => Math.abs(a.x - heroX) - Math.abs(b.x - heroX))[0]
+    if (nearest) facing = Math.sign(nearest.x - heroX) || facing
+  }
   if (game.role === 'warrior') {
-    const kinds = ['sword-arc', 'whirlwind', 'thrust', 'ground-break']
-    addFx(kinds[index], heroX + facing * (index === 2 ? 88 : 46), world.floor - 82, facing, [.42, .72, .38, .6][index])
-    if (index === 2) {
+    if (index === 0) {
+      addFx('slash-crescent', heroX + facing * 46, world.floor - 82, facing, .5)
+      addSparks(heroX + facing * 70, world.floor - 70, 8, ['#ffe3a1', '#f2c46d'])
+      strikeNearby(power, '前斩', 165)
+    } else if (index === 1) {
+      addFx('whirlwind-storm', heroX, world.floor - 82, facing, .8)
+      addSparks(heroX, world.floor - 70, 14, ['#e9d797', '#cfae6a'], 210)
+      addShake(5)
+      strikeNearby(power, '旋风斩', 205, true)
+    } else if (index === 2) {
+      addFx('thrust-dash', heroX + facing * 88, world.floor - 82, facing, .42)
       const startX = heroX
       const endX = Math.max(38, Math.min(922, heroX + facing * 150))
       const targets = foes.filter((foe) => foe.x >= Math.min(startX, endX) - 38 && foe.x <= Math.max(startX, endX) + 38)
       heroX = endX
+      addSparks(heroX, world.floor - 70, 6, ['#f3efd6', '#d8c07a'], 120)
       if (targets.length) targets.forEach((foe) => strike(foe, power, '突刺'))
       else setLog('突刺穿过前方，未命中目标。')
-    } else strikeNearby(power, skillLabels.warrior[index], [165, 205, 175][index === 3 ? 2 : index], index === 1 || index === 3)
+    } else {
+      addFx('ground-break', heroX + facing * 60, world.floor - 70, facing, .75)
+      addSparks(heroX + facing * 60, world.floor - 8, 16, ['#d8b96c', '#a98d55'], 240)
+      addShake(12)
+      strikeNearby(power, '蓄力重斩', 175, true)
+    }
   } else if (index === 0) {
-    buffTime = 5; addFx('arcane-aura', heroX, world.floor - 88, facing, .8); setLog('奥术强化：5 秒内法杖攻击基础伤害提升至 20。')
+    buffTime = 10
+    addFx('arcane-blessing', heroX, world.floor - 88, facing, 1)
+    addSparks(heroX, world.floor - 70, 12, ['#b9e0d2', '#e6ddb0'], 90)
+    setLog('奥术强化：10 秒内攻击与攻速提升 10%。')
   } else if (index === 1) {
-    addFx('fire-pillar', heroX + facing * 110, world.floor - 2, facing, .72)
-    addFx('fire-pillar', heroX + facing * 220, world.floor - 2, facing, .82)
+    addFx('twin-fire-pillars', heroX + facing * 150, world.floor - 2, facing, .9)
+    addSparks(heroX + facing * 120, world.floor - 40, 16, ['#ff9a5c', '#ffd27a'], 170)
+    addShake(4)
     strikeNearby(power, '双生火柱', 320, true)
   } else if (index === 2) {
-    addFx('blink-out', heroX, world.floor - 65, facing, .24)
+    addFx('blink-rift', heroX, world.floor - 65, facing, .35)
     heroX = Math.max(38, Math.min(922, heroX + facing * 210))
-    addFx('blink-in', heroX, world.floor - 65, facing, .5)
-    strikeNearby(power, '闪现冲击', 150)
+    addFx('blink-rift', heroX, world.floor - 65, -facing, .45)
+    addSparks(heroX, world.floor - 65, 10, ['#b7d9cb', '#8fc4b4'], 130)
+    setLog('闪现穿过前方，未造成伤害。')
   } else {
-    burst = 8; burstWait = .08; burstCenter = foes[0]?.x ?? heroX
-    addFx('energy-array', burstCenter, world.floor - 83, facing, 1.6)
-    setLog('能量阵展开 · 接下来释放 8 次 50 点基础伤害。')
+    const target = foes.slice().sort((a, b) => Number(b.boss) - Number(a.boss) || Math.abs(a.x - heroX) - Math.abs(b.x - heroX))[0]
+    if (!target) { setLog('能量禁锢没有找到目标。'); return }
+    target.stunTimer = 1
+    target.dashWindup = undefined
+    burst = 5; burstWait = .06; burstTargetId = target.id
+    addFx('energy-prison', target.x, world.floor - (target.boss ? 130 : 83), facing, 1.2)
+    addSparks(target.x, world.floor - 80, 18, ['#a8e0d0', '#d7f4ea'], 120)
+    setLog('能量禁锢展开 · 控制目标 1 秒并瞬发 5 次普攻。')
   }
   syncHud(); save()
 }
@@ -549,45 +690,67 @@ function defeatFoe(target: Foe) {
     save(); renderGame(); return
   }
   game.kills += 1
+  awardKillPoints()
   if (foes.length === 0) {
-    if (game.kills >= 30) { foes = [spawnFoe(heroX < 480 ? 880 : 80, true)]; setLog('三十名守卫已清除，守关者冲入战场！') }
+    if (game.kills >= MAX_SMALL_KILLS) { foes = [spawnFoe(heroX < 480 ? 880 : 80, true)]; setLog('三十名守卫已清除，守关者冲入战场！') }
     else spawnWave()
   }
   save(); syncHud()
 }
+function awardKillPoints() {
+  if (!game) return
+  game.stageProgress ??= {}
+  const key = String(game.stage)
+  const progress = game.stageProgress[key] ?? { kills: game.kills, bossDefeated: game.bossDefeated ?? false, pointsClaimed: 0 }
+  game.stageProgress[key] = progress
+  const claimed = progress.pointsClaimed ?? 0
+  const target = Math.min(ATTRIBUTE_POINT_CAP_PER_STAGE, Math.floor(game.kills / 10) * game.stage)
+  const gain = Math.max(0, target - claimed)
+  if (!gain) return
+  progress.pointsClaimed = target
+  game.attributePoints = (game.attributePoints ?? 0) + gain
+  toast(`获得 ${gain} 点属性点 · 本关 ${target} / ${ATTRIBUTE_POINT_CAP_PER_STAGE}`)
+}
 function makeGear(type: GearType, level: number): Gear {
-  const defenseValue = gearDefenseAttribute(level)
-  const attackValue = gearAttackAttribute(level)
+  const values = gearStats(level)
   const names = gearNames[type]
   return {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     name: names[Math.floor(Math.random() * names.length)],
     level,
     type,
-    hp: type === 'armor' ? defenseValue : 0,
-    mp: type === 'weapon' ? attackValue : 0,
-    attack: type === 'weapon' ? attackValue : 0,
-    defense: type === 'armor' ? defenseValue : 0,
+    hp: type === 'armor' ? values.hp : 0,
+    mp: type === 'weapon' ? values.mp : 0,
+    attack: type === 'weapon' ? values.attack : 0,
+    defense: type === 'armor' ? values.defense : 0,
   }
+}
+function gearDropLevel(): number {
+  if (!game) return 0
+  for (let candidate = game.stage; candidate >= 1; candidate -= 1) {
+    const chance = Math.max(0, .06 - candidate * .01)
+    if (Math.random() < chance) return candidate
+  }
+  return 0
 }
 function dropGear(boss: boolean) {
   if (!game) return
-  let level = 0
+  const drops: GearType[] = []
   if (boss) {
-    if (Math.random() >= .7) return
-    level = game.stage
+    if (Math.random() < .7) drops.push(Math.random() < .5 ? 'weapon' : 'armor')
   } else {
-    for (let candidate = game.stage; candidate >= 1; candidate -= 1) {
-      const chance = Math.max(0, .06 - candidate * .01)
-      if (Math.random() < chance) { level = candidate; break }
-    }
+    // 小怪：武器 5%、护甲 5%，两者独立判定。
+    if (Math.random() < .05) drops.push('weapon')
+    if (Math.random() < .05) drops.push('armor')
   }
-  if (!level) return
-  const type: GearType = Math.random() < .5 ? 'weapon' : 'armor'
-  const gear = makeGear(type, level)
-  game.gear.unshift(gear)
-  toast(`${boss ? 'Boss' : '小怪'}掉落：${level} 级${type === 'weapon' ? '武器' : '护甲'}「${gear.name}」`)
-  setLog(`${gear.name}已放入背包，穿戴后生效。`)
+  for (const type of drops) {
+    const level = boss ? game.stage : gearDropLevel()
+    if (!level) continue
+    const gear = makeGear(type, level)
+    game.gear.unshift(gear)
+    toast(`${boss ? 'Boss' : '小怪'}掉落：${level} 级${type === 'weapon' ? '武器' : '护甲'}「${gear.name}」`)
+    setLog(`${gear.name}已放入背包，穿戴后生效。`)
+  }
 }
 function dropPotions(x: number) {
   if (!game) return
@@ -610,6 +773,18 @@ function pickupDrop() {
     setLog(`拾取并使用蓝瓶，恢复 ${recovered} 点法力。`)
   }
   syncHud(); save()
+}
+function allocateAttribute(stat: AttributeStat) {
+  if (!game || scene !== 'town') { toast('只能在冒险者小镇分配属性点。'); return }
+  if ((game.attributePoints ?? 0) <= 0) { toast('没有可用的属性点。'); return }
+  const before = stats()
+  game.attributeAllocation ??= { hp: 0, attack: 0, mp: 0, defense: 0 }
+  game.attributeAllocation[stat] += 1
+  game.attributePoints = (game.attributePoints ?? 0) - 1
+  const after = stats()
+  if (stat === 'hp') game.hp = Math.min(after.hp, game.hp + after.hp - before.hp)
+  if (stat === 'mp') game.mp = Math.min(after.mp, game.mp + after.mp - before.mp)
+  save(); attributesOpen = true; renderGame()
 }
 function equip(id: string) {
   if (!game || scene !== 'town') { toast('请回到小镇后更换装备。'); return }
@@ -641,19 +816,19 @@ function continueCurrentProgress() {
   if (!game || scene !== 'town' || game.kills <= 0 || game.bossDefeated) return
   scene = 'battle'; game.town = false; game.dead = false; paused = false
   heroX = 480; heroY = 0; velocityY = 0; grounded = true
-  projectiles = []; effects = []; spawnWave(); save(); renderGame()
+  projectiles = []; effects = []; burst = 0; burstTargetId = null; spawnWave(); save(); renderGame()
 }
 function retreatToTown() {
   if (!game) return
   paused = false
   scene = 'town'; game.town = true; game.dead = false; game.hp = Math.max(1, Math.round(stats().hp * .55)); game.mp = stats().mp
-  foes = []; projectiles = []; bagOpen = false; save(); renderGame()
+  foes = []; projectiles = []; burst = 0; burstTargetId = null; bagOpen = false; save(); renderGame()
 }
 function resumeBattle() {
   if (!game) return
   paused = false
   scene = 'battle'; game.town = false; game.dead = false; game.hp = Math.max(1, Math.round(stats().hp * .55)); game.mp = Math.min(stats().mp, game.mp)
-  heroX = 480; heroY = 0; velocityY = 0; grounded = true; projectiles = []; spawnWave(); save(); renderGame()
+  heroX = 480; heroY = 0; velocityY = 0; grounded = true; projectiles = []; burst = 0; burstTargetId = null; spawnWave(); save(); renderGame()
 }
 function performAction(name: string, target: HTMLElement) {
   if (name === 'role') createRole(target.dataset.role as Role)
@@ -663,7 +838,7 @@ function performAction(name: string, target: HTMLElement) {
   }
   if (name === 'role-select' && game) {
     save()
-    scene = 'title'; paused = false; pendingRole = null; foes = []; projectiles = []; bagOpen = false
+    scene = 'title'; paused = false; pendingRole = null; foes = []; projectiles = []; bagOpen = false; craftingOpen = false; attributesOpen = false
     saveSlots = readSaves()
     renderTitle()
   }
@@ -673,8 +848,14 @@ function performAction(name: string, target: HTMLElement) {
   if (name === 'overwrite-slot' && pendingRole && target.dataset.slot) createRole(pendingRole, target.dataset.slot)
   if (name === 'cancel-new') { pendingRole = null; renderTitle() }
   if (name === 'rest' && game && scene === 'town') { game.hp = stats().hp; game.mp = stats().mp; save(); renderGame(); toast('休整完成，生命与法力已恢复。') }
-  if (name === 'open-crafting' && scene === 'town') { bagOpen = false; craftingOpen = true; renderGame() }
+  if (name === 'open-crafting' && scene === 'town') { bagOpen = false; attributesOpen = false; craftingOpen = true; renderGame() }
   if (name === 'close-crafting') { craftingOpen = false; renderGame() }
+  if (name === 'open-attributes' && game && scene === 'town') { bagOpen = false; craftingOpen = false; attributesOpen = true; renderGame() }
+  if (name === 'close-attributes') { attributesOpen = false; renderGame() }
+  if (name === 'allocate-attr' && target.dataset.stat) {
+    const stat = target.dataset.stat
+    if (stat === 'hp' || stat === 'attack' || stat === 'mp' || stat === 'defense') allocateAttribute(stat)
+  }
   if (name === 'continue-progress' && game && scene === 'town') continueCurrentProgress()
   if (name === 'continue-stage' && game && scene === 'town') beginStage(game.stage, 'continue')
   if (name === 'restart-stage' && game && scene === 'town') beginStage(game.stage, 'restart')
@@ -683,7 +864,7 @@ function performAction(name: string, target: HTMLElement) {
   if (name === 'jump') jump()
   if (name === 'skill') cast(Number(target.dataset.index))
   if (name === 'pause' && scene === 'battle') { paused = !paused; keys.clear(); renderGame() }
-  if (name === 'bag') { bagOpen = true; renderGame() }
+  if (name === 'bag') { bagOpen = true; craftingOpen = false; attributesOpen = false; renderGame() }
   if (name === 'close-bag') { bagOpen = false; renderGame() }
   if (name === 'equip' && target.dataset.id) equip(target.dataset.id)
   if (name === 'synthesize-group' && target.dataset.type && target.dataset.level) synthesizeGear(target.dataset.type as GearType, Number(target.dataset.level))
@@ -716,6 +897,7 @@ app.addEventListener('change', (event) => {
 window.addEventListener('pointerup', () => { keys.delete('arrowleft'); keys.delete('arrowright') })
 window.addEventListener('keydown', (event) => {
   const key = event.key.toLowerCase()
+  if (attributesOpen && key === 'escape') { attributesOpen = false; renderGame(); return }
   if (craftingOpen && key === 'escape') { craftingOpen = false; renderGame(); return }
   if (pendingDeleteId && key === 'escape') { pendingDeleteId = null; document.querySelector('.delete-confirm')?.remove(); return }
   if ([' ', 'arrowleft', 'arrowright', 'arrowup'].includes(key)) event.preventDefault()
@@ -725,7 +907,7 @@ window.addEventListener('keydown', (event) => {
   if (event.repeat) return
   if (key === 'j') attack()
   if (key === 's') pickupDrop()
-  if (key === ' ' || key === 'arrowup') jump()
+  if (key === 'k') jump()
   const index = ['1', '2', '3', '4'].indexOf(key); if (index >= 0) cast(index)
 })
 window.addEventListener('keyup', (event) => keys.delete(event.key.toLowerCase()))
@@ -736,6 +918,7 @@ function setupCanvas() {
   canvas.width = world.width; canvas.height = world.height; ctx = canvas.getContext('2d')
 }
 function update(dt: number) {
+  shake = Math.max(0, shake - dt * 30)
   if (paused) return
   if (scene === 'battle' && game) {
     attackWait = Math.max(0, attackWait - dt); attackSwing = Math.max(0, attackSwing - dt); buffTime = Math.max(0, buffTime - dt)
@@ -749,6 +932,11 @@ function update(dt: number) {
     }
     for (const foe of [...foes]) {
       foe.flash = Math.max(0, foe.flash - dt)
+      if ((foe.stunTimer ?? 0) > 0) {
+        foe.stunTimer = Math.max(0, (foe.stunTimer ?? 0) - dt)
+        if (foe.stunTimer === 0) foe.skillTimer = Math.max(foe.skillTimer, .5)
+        continue
+      }
       const distance = heroX - foe.x
       const directionToHero = Math.sign(distance) || 1
       if (foe.boss && foe.dashWindup !== undefined) {
@@ -761,6 +949,7 @@ function update(dt: number) {
           if (Math.abs(heroX - foe.x) < 105 && (grounded || heroY > -35)) {
             game.hp = Math.max(0, game.hp - foeDamage(foe, true))
             addFx('hurt', heroX, world.floor - 68, 1, .32)
+            addShake(9)
             setLog('守关者冲刺命中 · 提前后退或跳跃可躲避。')
           } else setLog('守关者冲刺落空！')
         }
@@ -777,6 +966,7 @@ function update(dt: number) {
           game.hp = Math.max(0, game.hp - damage); foe.timer = foe.boss ? 1.5 : 1.7 + Math.random() * .5
           addFx(foe.boss ? bossFx('melee') : 'enemy-swipe', heroX, world.floor - 65, -directionToHero, .38)
           effects.push({ kind: 'damage-number', x: heroX, y: world.floor - 112, life: .82, duration: .82, text: `-${damage}` })
+          addShake(foe.boss ? 8 : 3)
           if (game.hp <= 0) { scene = 'defeat'; paused = false; game.dead = true; save(); renderGame(); break }
         }
       }
@@ -796,13 +986,24 @@ function update(dt: number) {
     if (burst > 0) {
       burstWait -= dt
       if (burstWait <= 0) {
-        burst -= 1; burstWait = .2
-        const targets = foes.filter((foe) => Math.abs(foe.x - burstCenter) < 250)
-        targets.forEach((target) => strike(target, skillPower(3), `能量阵 ${8 - burst} / 8`))
-        if (!targets.length) setLog(`能量阵 ${8 - burst} / 8 · 未命中目标。`)
+        burstWait = .08
+        const target = foes.find((foe) => foe.id === burstTargetId)
+        if (target) {
+          burst -= 1
+          strike(target, stats().attack, `能量禁锢 ${5 - burst} / 5`)
+          addFx('energy-prison-hit', target.x, world.floor - (target.boss ? 120 : 72), 1, .32)
+          addSparks(target.x, world.floor - (target.boss ? 110 : 62), 5, ['#a8e0d0', '#e8ffe8'], 130)
+          if (burst <= 0) burstTargetId = null
+        } else { burst = 0; burstTargetId = null }
       }
     }
     syncHud()
+  }
+  for (const fx of effects) {
+    if (fx.kind !== 'spark') continue
+    fx.x += (fx.vx ?? 0) * dt
+    fx.y += (fx.vy ?? 0) * dt
+    fx.vy = (fx.vy ?? 0) + 420 * dt
   }
   effects = effects.filter((fx) => (fx.life -= dt) > 0)
   noticeTime = Math.max(0, noticeTime - dt)
@@ -842,6 +1043,15 @@ function drawFoe(c: CanvasRenderingContext2D, foe: Foe) {
   c.fillStyle = '#bca96d'; c.beginPath(); c.moveTo(-17, -47); c.lineTo(-27, -71); c.lineTo(-4, -55); c.lineTo(17, -47); c.lineTo(27, -71); c.lineTo(5, -55); c.closePath(); c.fill(); c.fillStyle = '#e5c87a'; c.fillRect(-13, -42, 6, 4); c.fillRect(7, -42, 6, 4); c.fillStyle = '#d0bd88'; c.fillRect(-15, -27, 30, 7)
   if (foe.boss) { c.fillStyle = '#d5b979'; c.fillRect(-21, -17, 42, 7); c.fillStyle = '#593936'; c.fillRect(-6, -84, 12, 11) }
   c.restore()
+  if ((foe.stunTimer ?? 0) > 0) {
+    const orbitY = world.floor - (foe.boss ? 192 : 96)
+    c.save(); c.strokeStyle = '#c7f0de'; c.lineWidth = 2
+    for (let i = 0; i < 3; i++) {
+      const angle = performance.now() / 260 + (i * Math.PI * 2) / 3
+      c.beginPath(); c.arc(foe.x + Math.cos(angle) * 20, orbitY + Math.sin(angle) * 7, 3, 0, Math.PI * 2); c.stroke()
+    }
+    c.restore()
+  }
 }
 function drawFx(c: CanvasRenderingContext2D, fx: Fx) {
   const duration = fx.duration ?? .55
@@ -867,6 +1077,102 @@ function drawFx(c: CanvasRenderingContext2D, fx: Fx) {
     c.strokeStyle = '#b9d9cb'; c.lineWidth = 4; c.beginPath(); c.arc(fx.x, fx.y, 20 + progress * 47, 0, Math.PI * 2); c.stroke(); c.beginPath(); c.arc(fx.x, fx.y, 12 + progress * 28, 0, Math.PI * 2); c.stroke()
   } else if (fx.kind === 'energy-array') {
     c.strokeStyle = '#a5d6c6'; c.lineWidth = 3; c.beginPath(); c.ellipse(fx.x, fx.y, 32 + progress * 22, 14 + progress * 8, 0, 0, Math.PI * 2); c.stroke(); c.beginPath(); c.moveTo(fx.x, fx.y - 56); c.lineTo(fx.x - 24, fx.y + 14); c.lineTo(fx.x + 24, fx.y + 14); c.closePath(); c.stroke(); c.beginPath(); c.arc(fx.x, fx.y - 10, 23, 0, Math.PI * 2); c.stroke()
+  } else if (fx.kind === 'slash-crescent') {
+    const dir = fx.direction ?? 1
+    for (let layer = 0; layer < 3; layer++) {
+      c.globalAlpha = alpha * (.9 - layer * .22)
+      c.strokeStyle = layer === 0 ? '#fff1b8' : '#e6b95f'
+      c.lineWidth = 10 - layer * 3
+      c.beginPath(); c.arc(fx.x + dir * layer * 8, fx.y, 34 + progress * 46 - layer * 5, dir > 0 ? -1.05 : 2.1, dir > 0 ? .85 : 4)
+      c.stroke()
+    }
+    c.globalAlpha = alpha * .7; c.strokeStyle = '#f7df9b'; c.lineWidth = 2
+    c.beginPath(); c.moveTo(fx.x - dir * 20, fx.y - 30); c.lineTo(fx.x + dir * 70, fx.y - 8); c.stroke()
+    c.beginPath(); c.moveTo(fx.x - dir * 20, fx.y + 18); c.lineTo(fx.x + dir * 60, fx.y + 30); c.stroke()
+  } else if (fx.kind === 'whirlwind-storm') {
+    const spin = performance.now() / 90
+    for (let i = 0; i < 2; i++) {
+      c.strokeStyle = i ? '#c9d6a5' : '#f0d98a'; c.lineWidth = 5
+      c.save(); c.translate(fx.x, fx.y); c.rotate(spin * (i ? -1 : 1))
+      c.beginPath(); c.ellipse(0, 0, 42 + progress * 80, 15 + progress * 22, 0, 0, Math.PI * 2); c.stroke()
+      for (let blade = 0; blade < 4; blade++) {
+        const angle = (blade * Math.PI) / 2
+        c.beginPath(); c.moveTo(Math.cos(angle) * 20, Math.sin(angle) * 8); c.lineTo(Math.cos(angle) * (60 + progress * 60), Math.sin(angle) * (18 + progress * 18)); c.stroke()
+      }
+      c.restore()
+    }
+    c.strokeStyle = 'rgba(214, 196, 140, .55)'; c.lineWidth = 3
+    c.beginPath(); c.ellipse(fx.x, world.floor - 4, 50 + progress * 70, 8 + progress * 6, 0, 0, Math.PI * 2); c.stroke()
+  } else if (fx.kind === 'thrust-dash') {
+    const dir = fx.direction ?? 1
+    c.strokeStyle = '#eef4e2'; c.lineWidth = 7
+    c.beginPath(); c.moveTo(fx.x - dir * 90, fx.y); c.lineTo(fx.x + dir * 45, fx.y); c.stroke()
+    c.fillStyle = '#f7e8ae'; c.beginPath(); c.moveTo(fx.x + dir * 55, fx.y - 9); c.lineTo(fx.x + dir * 78, fx.y); c.lineTo(fx.x + dir * 55, fx.y + 9); c.closePath(); c.fill()
+    c.strokeStyle = 'rgba(220, 232, 205, .65)'; c.lineWidth = 2
+    for (let line = 0; line < 3; line++) {
+      c.beginPath(); c.moveTo(fx.x - dir * (70 + line * 14), fx.y - 22 + line * 22); c.lineTo(fx.x + dir * (30 + line * 10), fx.y - 22 + line * 22); c.stroke()
+    }
+    c.fillStyle = 'rgba(160, 196, 176, .16)'
+    for (let ghost = 0; ghost < 3; ghost++) c.fillRect(fx.x - dir * (30 + ghost * 22), fx.y - 48, 12, 96)
+  } else if (fx.kind === 'ground-break') {
+    c.strokeStyle = '#e0bd72'; c.lineWidth = 5
+    c.beginPath(); c.moveTo(fx.x - 90, fx.y + 30); c.lineTo(fx.x - 52, fx.y + 6); c.lineTo(fx.x - 20, fx.y + 26); c.lineTo(fx.x + 12, fx.y - 4); c.lineTo(fx.x + 52, fx.y + 18); c.lineTo(fx.x + 86, fx.y + 2); c.stroke()
+    c.strokeStyle = 'rgba(240, 210, 140, .7)'; c.lineWidth = 3
+    c.beginPath(); c.arc(fx.x, fx.y + 26, 30 + progress * 90, Math.PI, Math.PI * 2); c.stroke()
+    c.fillStyle = '#b08d4e'
+    for (let rock = 0; rock < 4; rock++) {
+      const bx = fx.x - 60 + rock * 40
+      const by = fx.y + 26 - progress * (20 + rock * 10)
+      c.beginPath(); c.moveTo(bx - 7, by); c.lineTo(bx, by - 16); c.lineTo(bx + 7, by); c.closePath(); c.fill()
+    }
+  } else if (fx.kind === 'arcane-blessing') {
+    c.strokeStyle = '#b9e0d2'; c.lineWidth = 3
+    c.beginPath(); c.ellipse(fx.x, world.floor - 4, 38 + progress * 22, 13 + progress * 6, 0, 0, Math.PI * 2); c.stroke()
+    for (let ring = 0; ring < 3; ring++) {
+      c.save(); c.translate(fx.x, fx.y); c.rotate(performance.now() / 500 + (ring * Math.PI * 2) / 3)
+      c.beginPath(); c.ellipse(0, 0, 24 + ring * 10, 8 + ring * 3, ring * .7, 0, Math.PI * 2); c.stroke(); c.restore()
+    }
+    c.fillStyle = '#e7f4dc'
+    for (let mote = 0; mote < 6; mote++) {
+      const angle = performance.now() / 600 + (mote * Math.PI) / 3
+      c.beginPath(); c.arc(fx.x + Math.cos(angle) * 34, fx.y - 30 + Math.sin(angle) * 14, 3, 0, Math.PI * 2); c.fill()
+    }
+  } else if (fx.kind === 'twin-fire-pillars') {
+    for (const [offset, warm] of [[-80, false], [80, true]] as const) {
+      c.fillStyle = warm ? '#f2a35c' : '#e86e4a'
+      c.beginPath(); c.moveTo(fx.x + offset - 20, fx.y + 10); c.quadraticCurveTo(fx.x + offset - 14, fx.y - 60, fx.x + offset + 4, fx.y - 140); c.quadraticCurveTo(fx.x + offset + 20, fx.y - 52, fx.x + offset + 18, fx.y + 10); c.closePath(); c.fill()
+      c.fillStyle = warm ? '#ffe0a0' : '#ffd07a'; c.fillRect(fx.x + offset - 5, fx.y - 50, 10, 55)
+    }
+    c.fillStyle = 'rgba(232, 120, 74, .25)'; c.beginPath(); c.ellipse(fx.x, fx.y + 8, 120, 12, 0, 0, Math.PI * 2); c.fill()
+  } else if (fx.kind === 'blink-rift') {
+    const dir = fx.direction ?? 1
+    c.strokeStyle = '#b7d9cb'; c.lineWidth = 3
+    for (let slit = 0; slit < 2; slit++) {
+      const x = fx.x + dir * slit * 10
+      c.beginPath(); c.moveTo(x, fx.y - 58); c.quadraticCurveTo(x + dir * 14, fx.y, x, fx.y + 48); c.stroke()
+    }
+    c.strokeStyle = 'rgba(180, 220, 205, .55)'; c.lineWidth = 2
+    for (let trail = 0; trail < 4; trail++) {
+      c.beginPath(); c.moveTo(fx.x - dir * (20 + trail * 18), fx.y - 20 + trail * 12); c.lineTo(fx.x - dir * (55 + trail * 20), fx.y - 20 + trail * 12); c.stroke()
+    }
+  } else if (fx.kind === 'energy-prison') {
+    const spin = performance.now() / 400
+    c.strokeStyle = '#a8e0d0'; c.lineWidth = 3
+    c.save(); c.translate(fx.x, fx.y); c.rotate(spin)
+    for (let side = 0; side < 4; side++) {
+      c.rotate(Math.PI / 2)
+      c.beginPath(); c.moveTo(0, -70); c.lineTo(18, -20); c.lineTo(0, 30); c.lineTo(-18, -20); c.closePath(); c.stroke()
+    }
+    c.restore()
+    c.strokeStyle = 'rgba(215, 244, 234, .7)'; c.lineWidth = 2
+    c.beginPath(); c.ellipse(fx.x, world.floor - 4, 52, 13, 0, 0, Math.PI * 2); c.stroke()
+  } else if (fx.kind === 'energy-prison-hit') {
+    c.strokeStyle = '#e8fff2'; c.lineWidth = 4
+    c.beginPath(); c.moveTo(fx.x - 40, fx.y - 30); c.lineTo(fx.x + 40, fx.y + 20); c.stroke()
+    c.beginPath(); c.moveTo(fx.x - 35, fx.y + 25); c.lineTo(fx.x + 35, fx.y - 25); c.stroke()
+  } else if (fx.kind === 'spark') {
+    c.fillStyle = fx.color ?? '#ffe09a'
+    c.beginPath(); c.arc(fx.x, fx.y, fx.radius ?? 2, 0, Math.PI * 2); c.fill()
   } else if (fx.kind.startsWith('boss-')) {
     const theme = fx.kind.split('-')[2]
     const charging = fx.kind.includes('charge')
@@ -929,6 +1235,8 @@ function drawPotionDrops(c: CanvasRenderingContext2D) {
 function draw() {
   if (!ctx) return
   ctx.clearRect(0, 0, world.width, world.height); drawBackground(ctx)
+  ctx.save()
+  if (shake > 0) ctx.translate((Math.random() - .5) * shake, (Math.random() - .5) * shake)
   drawPotionDrops(ctx)
   for (const foe of foes) drawFoe(ctx, foe)
   drawHero(ctx)
@@ -936,6 +1244,15 @@ function draw() {
     ctx.fillStyle = game?.role === 'mage' ? '#b6e0d0' : '#f2dc9e'; ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 15; ctx.beginPath(); ctx.arc(projectile.x, projectile.y, 7, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0
   }
   for (const fx of effects) drawFx(ctx, fx)
+  if (game?.role === 'mage' && buffTime > 0) {
+    const buffY = world.floor - Math.max(0, -heroY) - 118
+    const buffWidth = 88
+    ctx.fillStyle = 'rgba(13, 28, 28, .82)'; ctx.fillRect(heroX - buffWidth / 2, buffY - 14, buffWidth, 20)
+    ctx.strokeStyle = 'rgba(185, 224, 210, .55)'; ctx.lineWidth = 1; ctx.strokeRect(heroX - buffWidth / 2, buffY - 14, buffWidth, 20)
+    ctx.fillStyle = '#c7f0de'; ctx.font = "700 11px 'Microsoft YaHei', sans-serif"; ctx.textAlign = 'center'
+    ctx.fillText(`强化 ${buffTime.toFixed(1)}s`, heroX, buffY)
+  }
+  ctx.restore()
   if (noticeTime > 0) { ctx.fillStyle = 'rgba(13, 28, 28, .86)'; ctx.fillRect(310, 24, 340, 38); ctx.fillStyle = '#e6d5a2'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(notice, 480, 48, 320) }
 }
 function frame(now: number) { const dt = Math.min((now - lastTime) / 1000, .045); lastTime = now; update(dt); draw(); requestAnimationFrame(frame) }
