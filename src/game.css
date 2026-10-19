@@ -405,7 +405,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--ochre); outline
 .town-stage-actions { display: grid; gap: 7px; }
 .town-stage-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
 .town-stage-choices .primary, .town-stage-choices .secondary { min-height: 33px; font-size: 9px; }
-.town-mode .combat-bar, .town-mode .foe-health { display: none; }
+.town-mode .foe-health { display: none; }
 .town-mode .combat-log { margin-top: 6px; }
 .audio-button { min-width: 31px; min-height: 31px; height: 31px; margin-left: 8px; padding: 0 6px; border: 1px solid var(--line); border-radius: 2px; background: #203332; color: #d4d3c0; font-size: 12px; line-height: 1; cursor: pointer; }
 .audio-button:hover { border-color: #a79a6e; }
