@@ -424,4 +424,11 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--ochre); outline
 @media (max-width: 760px) and (orientation: portrait) {
   .landscape-button { display: none !important; }
 }
+@media (orientation: landscape) and (max-height: 560px) {
+  .town-mode .game-shell { height: auto; min-height: 100dvh; overflow-y: auto; }
+  .town-mode .game-grid { height: auto; }
+  .town-mode .battle-column { height: auto; }
+  .town-mode .side-column { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 10px; }
+  .town-mode .side-column .town-panel { order: -1; }
+}
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
