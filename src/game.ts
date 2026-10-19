@@ -19,7 +19,7 @@ type Projectile = { x: number; y: number; vx: number; life: number; damage: numb
 type FoeShot = { x: number; y: number; vx: number; vy: number; damage: number; radius: number; color: string; life: number }
 
 const SAVE_KEY = 'elemental-expedition-save-v2'
-const GAME_VERSION = '1.59'
+const GAME_VERSION = '1.60'
 const stageNames = ['苔痕边境', '沉钟矿道', '赤岩峡谷', '风蚀高原', '幽蓝沼泽', '断星回廊', '灰烬王庭', '深渊裂谷', '苍白圣所', '终焉之门']
 const roleLabels: Record<Role, string> = { warrior: '战士', mage: '法师' }
 const skillLabels: Record<Role, string[]> = { warrior: ['前斩', '旋风斩', '突刺', '蓄力重斩'], mage: ['奥术强化', '双生火柱', '闪现', '能量禁锢'] }
@@ -1045,9 +1045,9 @@ function cast(index: number) {
     } else if (index === 2) {
       addFx('thrust-dash', heroX + facing * 88, world.floor - 82, facing, .42)
       const startX = heroX
-      const minX = scene === 'town' ? TOWN_LEFT : 38
-      const maxX = scene === 'town' ? TOWN_RIGHT : 922
-      const endX = Math.max(minX, Math.min(maxX, heroX + facing * 150))
+      const endX = scene === 'town'
+        ? Math.max(TOWN_LEFT, Math.min(TOWN_RIGHT, heroX + facing * 150))
+        : clampHeroX(heroX + facing * 150)
       const targets = foes.filter((foe) => foe.x >= Math.min(startX, endX) - 38 && foe.x <= Math.max(startX, endX) + 38)
       heroX = endX
       addSparks(heroX, world.floor - 70, 6, ['#f3efd6', '#d8c07a'], 120)
@@ -1071,9 +1071,9 @@ function cast(index: number) {
     strikeNearby(power, '双生火柱', 320, true)
   } else if (index === 2) {
     addFx('blink-rift', heroX, world.floor - 65, facing, .35)
-    const minX = scene === 'town' ? TOWN_LEFT : 38
-    const maxX = scene === 'town' ? TOWN_RIGHT : 922
-    heroX = Math.max(minX, Math.min(maxX, heroX + facing * 210))
+    heroX = scene === 'town'
+      ? Math.max(TOWN_LEFT, Math.min(TOWN_RIGHT, heroX + facing * 210))
+      : clampHeroX(heroX + facing * 210)
     addFx('blink-rift', heroX, world.floor - 65, -facing, .45)
     addSparks(heroX, world.floor - 65, 10, ['#b7d9cb', '#8fc4b4'], 130)
     setLog('闪现穿过前方，未造成伤害。')
