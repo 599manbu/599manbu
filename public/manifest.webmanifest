@@ -1,0 +1,19 @@
+{
+  "name": "冒险王：元素远征",
+  "short_name": "冒险王",
+  "description": "横版动作 RPG · 十章元素远征",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#152528",
+  "theme_color": "#152528",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

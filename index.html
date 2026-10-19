@@ -5,10 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#152528" />
     <meta name="description" content="选择战士或法师，踏上十章元素远征。" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="冒险王" />
+    <link rel="icon" type="image/svg+xml" href="./icon.svg" />
+    <link rel="manifest" href="./manifest.webmanifest" />
     <title>冒险王：元素远征</title>
   </head>
   <body>
     <div id="app"></div>
+    <div id="rotate-hint" class="rotate-hint" role="status">
+      <span><b>横屏体验更好</b><small>旋转手机，或点击进入横屏</small></span>
+      <button id="rotate-lock">进入横屏</button>
+      <button id="rotate-dismiss" aria-label="关闭提示">×</button>
+    </div>
     <script type="module" src="/src/game.ts"></script>
   </body>
 </html>

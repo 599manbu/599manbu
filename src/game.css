@@ -275,6 +275,9 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--ochre); outline
   .title-copy h1 { font-size: 48px; }
   .game-shell { padding-right: 16px; padding-left: 16px; }
   .game-header { height: 54px; }
+  .wordmark { max-width: 92px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 10px; }
+  .wordmark i { display: none; }
+  .save-button { display: none; }
   .save-state { font-size: 8px; }
   .bag-button { margin-left: 9px; padding: 0 7px; font-size: 9px; }
   .role-select-button { margin-left: 7px; padding: 0 7px; font-size: 8px; }
@@ -312,4 +315,82 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--ochre); outline
   .gear-copy small { font-size: 8px; }
   .overlay { padding: 14px; }
 }
+/* ── 手机横屏 / 旋转提示 ─────────────────────────── */
+.landscape-button { display: none; min-height: 31px; margin-left: 9px; padding: 0 9px; border: 1px solid var(--line); border-radius: 2px; background: #203332; color: #d4d3c0; font-size: 9px; cursor: pointer; }
+.landscape-button:hover { border-color: #a79a6e; }
+.rotate-hint { display: none; }
+@media (pointer: coarse) {
+  .landscape-button { display: inline-flex; align-items: center; }
+}
+@media (orientation: portrait) and (pointer: coarse) {
+  .rotate-hint { position: fixed; z-index: 30; left: 12px; right: 12px; bottom: 12px; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid rgba(201, 190, 150, .35); background: rgba(17, 32, 32, .94); color: #d8dccb; box-shadow: 0 8px 30px rgba(0, 0, 0, .35); }
+  .rotate-hint > span { display: grid; gap: 2px; margin-right: auto; }
+  .rotate-hint b { font-size: 11px; font-weight: 500; }
+  .rotate-hint small { color: #8e9c91; font-size: 9px; }
+  .rotate-hint button { min-height: 30px; padding: 0 9px; border: 1px solid rgba(201, 190, 150, .35); border-radius: 2px; background: #203332; color: #dfd8bd; font-size: 9px; cursor: pointer; }
+  .rotate-hint #rotate-dismiss { width: 30px; padding: 0; font-size: 15px; }
+  .rotate-hint.dismissed { display: none !important; }
+}
+@media (orientation: landscape) and (max-height: 560px) {
+  .landscape-button { display: inline-flex; align-items: center; }
+  .mobile-move { display: flex; }
+  .game-shell { height: 100dvh; padding: 0 10px; overflow: hidden; }
+  .game-header { height: 38px; gap: 4px; }
+  .wordmark { flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 11px; }
+  .wordmark i { display: none; }
+  .save-state { display: none; }
+  .overview { display: none; }
+  .game-grid { display: block; height: calc(100dvh - 38px); padding: 2px 0 0; }
+  .battle-column { height: 100%; display: flex; flex-direction: column; min-height: 0; }
+  .side-column { display: none; }
+  .arena-label, .coords, .combat-log, .game-footer { display: none; }
+  .arena { flex: 0 0 auto; width: auto; max-width: 100%; height: min(calc(100dvh - 140px), 56vw); aspect-ratio: 2 / 1; margin: 0 auto; }
+  .player-resource-bars { padding: 4px 8px; gap: 8px; }
+  .player-resource span, .player-resource b { font-size: 8px; }
+  .foe-health { padding: 5px 1px 6px; }
+  .foe-health span, .foe-health b { font-size: 8px; }
+  .combat-bar { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+  .combat-bar button { min-height: 38px; padding: 4px 5px; gap: 4px; }
+  .combat-bar button > b { font-size: 14px; }
+  .combat-bar strong { font-size: 8px; }
+  .combat-bar small { font-size: 7px; }
+  .mobile-move { position: fixed; z-index: 4; left: 50%; right: auto; bottom: 100px; width: min(560px, 88vw); margin: 0; transform: translateX(-50%); justify-content: space-between; pointer-events: none; }
+  .mobile-move button { width: 62px; height: 44px; pointer-events: auto; background: rgba(24, 42, 41, .78); }
+  .bag-button, .role-select-button, .pause-button, .save-button, .landscape-button { margin-left: 5px; padding: 0 6px; font-size: 8px; }
+  .overlay { padding: 10px; overflow-y: auto; }
+  .overlay h2 { margin: 5px 0 3px; font-size: 18px; }
+  .overlay p { display: none; }
+  .stage-picker { margin-bottom: 6px; }
+  .town-rest, .town-synthesis, .town-attributes { min-height: 28px; margin-bottom: 5px; }
+}
+/* ── 账号注册 / 登录 ─────────────────────────────── */
+.auth-screen { min-height: 100dvh; display: grid; place-items: center; padding: 24px; background: radial-gradient(circle at 30% 18%, rgba(91, 130, 105, .2), transparent 55%), #12211f; color: #e7e5d6; }
+.auth-card { width: min(420px, 100%); padding: 24px; border: 1px solid rgba(205, 198, 157, .28); background: rgba(23, 39, 40, .96); box-shadow: 0 24px 80px rgba(0, 0, 0, .35); }
+.auth-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.auth-brand > b { width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid rgba(201, 190, 150, .45); color: #d4b876; font-family: 'STKaiti', 'KaiTi', serif; font-size: 20px; font-weight: 400; }
+.auth-brand span { display: grid; gap: 3px; }
+.auth-brand strong { color: #e6e3d4; font-size: 15px; font-weight: 500; letter-spacing: .08em; }
+.auth-brand small { color: #8d9b91; font-size: 9px; }
+.auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 16px; }
+.auth-tabs button { min-height: 34px; border: 1px solid var(--line); background: transparent; color: #93a096; font-size: 10px; cursor: pointer; }
+.auth-tabs button.active { border-color: rgba(201, 190, 150, .5); background: rgba(201, 190, 150, .12); color: #e4d6a8; }
+.auth-form { display: grid; gap: 11px; }
+.auth-form label { display: grid; gap: 5px; color: #9aa79b; font-size: 9px; }
+.auth-form input { height: 38px; padding: 0 10px; border: 1px solid rgba(202, 196, 155, .28); border-radius: 2px; background: #152525; color: #e7e4d5; font: inherit; font-size: 12px; outline: none; }
+.auth-form input:focus { border-color: #c9b273; }
+.auth-submit { min-height: 40px; margin-top: 3px; border: 1px solid #c9b273; border-radius: 2px; background: #c3aa69; color: #1c2927; font-size: 12px; font-weight: 600; cursor: pointer; }
+.auth-submit:disabled { opacity: .55; cursor: wait; }
+.auth-message { min-height: 18px; margin: 10px 0 2px; color: #e2a17f; font-size: 10px; line-height: 1.6; white-space: pre-wrap; }
+.auth-links { display: flex; justify-content: space-between; gap: 8px; padding-top: 10px; border-top: 1px solid var(--line); }
+.auth-links button { padding: 4px 0; border: 0; background: transparent; color: #b9c6b9; font-size: 9px; cursor: pointer; }
+.auth-links button:hover { color: #e2d2a7; }
+.auth-note { margin: 12px 0 0; color: #6f7f76; font-size: 8px; line-height: 1.7; }
+.auth-hint { margin: 0 0 8px; color: #a6b4a7; font-size: 9px; line-height: 1.7; }
+.auth-loading p { color: #a6b4a7; font-size: 11px; }
+.account-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 18px; padding: 8px 10px; border: 1px solid var(--line); background: rgba(26, 41, 41, .55); color: #aab7aa; font-size: 9px; }
+.account-bar span { display: flex; align-items: center; gap: 7px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-bar i { width: 6px; height: 6px; flex: 0 0 auto; border-radius: 50%; background: #93b28a; }
+.account-bar.offline i { background: #c9a96e; }
+.account-bar button { flex: 0 0 auto; padding: 5px 8px; border: 1px solid rgba(188, 192, 159, .23); background: transparent; color: #d1ceba; font-size: 8px; cursor: pointer; }
+.account-bar button:hover { border-color: #b7b78e; background: #263b37; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }

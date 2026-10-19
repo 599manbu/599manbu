@@ -1,4 +1,6 @@
 import './game.css'
+import { cloudAvailable, currentCloudUser, fetchCloudProfile, loginCloudUser, logoutCloudUser, registerCloudUser, resetCloudPassword, saveCloudProfile } from './cloud'
+import type { CloudProfile, CloudUser } from './cloud'
 
 type Role = 'warrior' | 'mage'
 type Scene = 'title' | 'town' | 'battle' | 'defeat' | 'ending'
@@ -16,7 +18,7 @@ type Projectile = { x: number; y: number; vx: number; life: number; damage: numb
 type FoeShot = { x: number; y: number; vx: number; vy: number; damage: number; radius: number; color: string; life: number }
 
 const SAVE_KEY = 'elemental-expedition-save-v2'
-const GAME_VERSION = '1.54'
+const GAME_VERSION = '1.56'
 const stageNames = ['苔痕边境', '沉钟矿道', '赤岩峡谷', '风蚀高原', '幽蓝沼泽', '断星回廊', '灰烬王庭', '深渊裂谷', '苍白圣所', '终焉之门']
 const roleLabels: Record<Role, string> = { warrior: '战士', mage: '法师' }
 const skillLabels: Record<Role, string[]> = { warrior: ['前斩', '旋风斩', '突刺', '蓄力重斩'], mage: ['奥术强化', '双生火柱', '闪现', '能量禁锢'] }
@@ -90,8 +92,17 @@ function bossDashConfig(stage: number) { return { cooldown: Math.max(2.7, 4.7 - 
 const app = document.querySelector<HTMLDivElement>('#app')!
 const world = { width: 960, height: 480, floor: 390 }
 let game: Save | null = null
+let currentSaveKey = SAVE_KEY
 let saveSlots: SaveSlot[] = readSaves()
 let activeSlotId: string | null = null
+let authState: 'loading' | 'auth' | 'game' = cloudAvailable() ? 'loading' : 'game'
+let authView: 'login' | 'register' | 'forgot' = 'login'
+let authMessage = ''
+let authBusy = false
+let cloudUser: CloudUser | null = null
+let cloudProfileId: string | null = null
+let cloudSyncTimer: number | null = null
+let offlineMode = !cloudAvailable()
 let pendingRole: Role | null = null
 let pendingDeleteId: string | null = null
 let scene: Scene = 'title'
@@ -131,9 +142,9 @@ let lastTime = performance.now()
 let canvas: HTMLCanvasElement | null = null
 let ctx: CanvasRenderingContext2D | null = null
 
-function readSaves(): SaveSlot[] {
+function readSaves(key = currentSaveKey): SaveSlot[] {
   try {
-    const parsed = JSON.parse(localStorage.getItem(SAVE_KEY) ?? 'null') as unknown
+    const parsed = JSON.parse(localStorage.getItem(key) ?? 'null') as unknown
     if (Array.isArray(parsed)) return parsed.filter((slot): slot is SaveSlot => Boolean(slot && typeof slot.id === 'string' && slot.data && ['warrior', 'mage'].includes(slot.data.role) && Array.isArray(slot.data.gear))).slice(0, 3).map((slot) => ({ ...slot, data: normalizeSave(slot.data) }))
     if (parsed && typeof parsed === 'object' && ['warrior', 'mage'].includes((parsed as Save).role) && Array.isArray((parsed as Save).gear)) {
       const data = normalizeSave(parsed as Save)
@@ -236,8 +247,9 @@ function save() {
   if (!slot) return
   slot.data = structuredClone(game)
   slot.updatedAt = Date.now()
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(saveSlots)) }
+  try { localStorage.setItem(currentSaveKey, JSON.stringify(saveSlots)) }
   catch { toast('无法保存，请检查浏览器存储空间。') }
+  scheduleCloudSync()
 }
 function toast(message: string) { notice = message; noticeTime = 2.2 }
 function setLog(message: string) {
@@ -432,8 +444,9 @@ function confirmDeleteSave() {
   const slot = saveSlots.find((entry) => entry.id === id)
   if (!id || !slot) return
   const remaining = saveSlots.filter((entry) => entry.id !== id)
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(remaining)) }
+  try { localStorage.setItem(currentSaveKey, JSON.stringify(remaining)) }
   catch { toast('删除失败，存档未更改。'); return }
+  scheduleCloudSync()
   pendingDeleteId = null
   saveSlots = remaining
   document.querySelector('.delete-confirm')?.remove()
@@ -457,10 +470,227 @@ function createRole(role: Role, overwriteId?: string) {
   pendingRole = null
   start(role, slot.data)
 }
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char] ?? char))
+}
+function errorMessage(error: unknown) {
+  const value = error as { error?: string; message?: string; code?: number }
+  return value?.error || value?.message || String(error)
+}
+function writeSavesToLocal(slots: SaveSlot[]) {
+  try { localStorage.setItem(currentSaveKey, JSON.stringify(slots)) } catch { /* ignore */ }
+}
+function parseCloudSlots(raw: string): SaveSlot[] {
+  try {
+    const parsed = JSON.parse(raw) as unknown
+    if (!Array.isArray(parsed)) return []
+    return parsed
+      .filter((slot): slot is SaveSlot => Boolean(slot && typeof slot.id === 'string' && slot.data && ['warrior', 'mage'].includes(slot.data.role) && Array.isArray(slot.data.gear)))
+      .slice(0, 3)
+      .map((slot) => ({ ...slot, data: normalizeSave(slot.data) }))
+  } catch { return [] }
+}
+function scheduleCloudSync() {
+  if (!cloudUser || offlineMode) return
+  if (cloudSyncTimer !== null) window.clearTimeout(cloudSyncTimer)
+  cloudSyncTimer = window.setTimeout(() => { cloudSyncTimer = null; void pushCloud() }, 800)
+}
+async function pushCloud() {
+  if (!cloudUser || offlineMode) return
+  try {
+    const id = await saveCloudProfile(cloudUser, JSON.stringify(saveSlots), cloudProfileId ?? undefined)
+    if (id) cloudProfileId = id
+  } catch (error) {
+    toast(`云端同步失败：${errorMessage(error)}`)
+  }
+}
+function authSubmitLabel() {
+  return authView === 'register' ? '注册并登录' : authView === 'forgot' ? '发送重置邮件' : '登录'
+}
+function setAuthFeedback(message: string, busy: boolean) {
+  authMessage = message
+  authBusy = busy
+  const messageNode = document.querySelector<HTMLElement>('#auth-message')
+  if (messageNode) messageNode.textContent = message
+  const button = document.querySelector<HTMLButtonElement>('#auth-submit')
+  if (button) {
+    button.disabled = busy
+    button.textContent = busy ? '处理中…' : authSubmitLabel()
+  }
+}
+function renderAuthLoading() {
+  app.innerHTML = `<main class="auth-screen"><section class="auth-card auth-loading"><div class="auth-brand"><b>A</b><span><strong>冒险王</strong><small>元素远征 · 云端存档</small></span></div><p>正在连接云端存档…</p></section></main>`
+}
+function renderAuth() {
+  const isRegister = authView === 'register'
+  const isForgot = authView === 'forgot'
+  const firstInput = isForgot ? 'auth-email' : 'auth-username'
+  app.innerHTML = `<main class="auth-screen"><section class="auth-card">
+    <div class="auth-brand"><b>A</b><span><strong>冒险王</strong><small>元素远征 · 云端远征档案</small></span></div>
+    <div class="auth-tabs">
+      <button class="${!isRegister && !isForgot ? 'active' : ''}" data-action="auth-tab" data-tab="login" type="button">登录</button>
+      <button class="${isRegister ? 'active' : ''}" data-action="auth-tab" data-tab="register" type="button">注册</button>
+    </div>
+    <form id="auth-form" class="auth-form" novalidate>
+      ${isForgot ? '<p class="auth-hint">输入注册时使用的邮箱，我们会发送重置密码邮件。</p>' : ''}
+      ${!isForgot ? `<label>用户名<input id="auth-username" name="username" autocomplete="username" maxlength="32" spellcheck="false" ${firstInput === 'auth-username' ? 'autofocus' : ''} required></label>` : ''}
+      ${isRegister || isForgot ? `<label>邮箱<input id="auth-email" name="email" type="email" autocomplete="email" spellcheck="false" ${firstInput === 'auth-email' ? 'autofocus' : ''} required></label>` : ''}
+      ${!isForgot ? `<label>密码<input id="auth-password" name="password" type="password" autocomplete="${isRegister ? 'new-password' : 'current-password'}" required></label>` : ''}
+      ${isRegister ? '<label>确认密码<input id="auth-confirm" name="confirm" type="password" autocomplete="new-password" required></label>' : ''}
+      <button id="auth-submit" class="primary auth-submit" type="submit" ${authBusy ? 'disabled' : ''}>${authBusy ? '处理中…' : authSubmitLabel()}</button>
+    </form>
+    <div id="auth-message" class="auth-message">${escapeHtml(authMessage)}</div>
+    <div class="auth-links">
+      ${isForgot ? '<button data-action="auth-tab" data-tab="login" type="button">返回登录</button>' : '<button data-action="auth-forgot" type="button">忘记密码？</button>'}
+      <button data-action="offline-play" type="button">离线试玩</button>
+    </div>
+    <p class="auth-note">云端存档需要联网。离线试玩只保存在当前设备，不会同步。</p>
+  </section></main>`
+}
+async function submitAuth() {
+  if (authBusy) return
+  const username = document.querySelector<HTMLInputElement>('#auth-username')?.value.trim() ?? ''
+  const email = document.querySelector<HTMLInputElement>('#auth-email')?.value.trim() ?? ''
+  const password = document.querySelector<HTMLInputElement>('#auth-password')?.value ?? ''
+  const confirm = document.querySelector<HTMLInputElement>('#auth-confirm')?.value ?? ''
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (authView === 'forgot') {
+    if (!emailPattern.test(email)) { setAuthFeedback('请输入有效邮箱。', false); return }
+    setAuthFeedback('正在发送重置邮件…', true)
+    try {
+      await resetCloudPassword(email)
+      setAuthFeedback('重置邮件已发送，请检查邮箱。', false)
+    } catch (error) { setAuthFeedback(errorMessage(error), false) }
+    return
+  }
+  if (username.length < 3 || username.length > 32) { setAuthFeedback('用户名长度为 3-32 个字符。', false); return }
+  if (password.length < 6) { setAuthFeedback('密码至少需要 6 位。', false); return }
+  if (authView === 'register') {
+    if (!emailPattern.test(email)) { setAuthFeedback('请填写有效邮箱。', false); return }
+    if (password !== confirm) { setAuthFeedback('两次输入的密码不一致。', false); return }
+  }
+  setAuthFeedback('正在连接…', true)
+  try {
+    if (authView === 'register') {
+      await registerCloudUser(username, password, email)
+      setAuthFeedback('注册成功，正在登录…', true)
+    }
+    const user = await loginCloudUser(username, password)
+    if (!user) throw new Error('登录失败，请重试。')
+    await enterAccount(user)
+  } catch (error) {
+    setAuthFeedback(errorMessage(error), false)
+  }
+}
+async function enterAccount(user: CloudUser) {
+  cloudUser = user
+  offlineMode = false
+  authBusy = false
+  authMessage = ''
+  currentSaveKey = `${SAVE_KEY}:${user.objectId}`
+  const localSlots = readSaves(currentSaveKey)
+  const guestSlots = readSaves(SAVE_KEY)
+  let profile: CloudProfile | null = null
+  try { profile = await fetchCloudProfile(user) } catch (error) { toast(`云端存档读取失败：${errorMessage(error)}`) }
+  if (profile) {
+    cloudProfileId = profile.objectId ?? null
+    const cloudSlots = parseCloudSlots(profile.slots)
+    const localTime = Math.max(0, ...localSlots.map((slot) => slot.updatedAt || 0))
+    const cloudTime = profile.savedAt ? Date.parse(profile.savedAt) || 0 : 0
+    saveSlots = localSlots.length > 0 && localTime > cloudTime ? localSlots : cloudSlots
+    writeSavesToLocal(saveSlots)
+    if (saveSlots === localSlots) void pushCloud()
+  } else {
+    saveSlots = localSlots.length > 0 ? localSlots : guestSlots
+    writeSavesToLocal(saveSlots)
+    try {
+      const id = await saveCloudProfile(user, JSON.stringify(saveSlots))
+      if (id) cloudProfileId = id
+    } catch (error) {
+      toast(`云端存档初始化失败：${errorMessage(error)}`)
+    }
+  }
+  activeSlotId = null
+  game = null
+  foes = []
+  projectiles = []
+  foeShots = []
+  scene = 'title'
+  paused = false
+  bagOpen = false
+  craftingOpen = false
+  attributesOpen = false
+  authState = 'game'
+  renderTitle()
+}
+function logoutAccount() {
+  if (cloudSyncTimer !== null) { window.clearTimeout(cloudSyncTimer); cloudSyncTimer = null }
+  try { if (cloudUser) localStorage.removeItem(`${SAVE_KEY}:${cloudUser.objectId}`) } catch { /* ignore */ }
+  try { logoutCloudUser() } catch { /* ignore */ }
+  cloudUser = null
+  cloudProfileId = null
+  offlineMode = false
+  authState = 'auth'
+  authView = 'login'
+  authMessage = ''
+  authBusy = false
+  currentSaveKey = SAVE_KEY
+  saveSlots = []
+  activeSlotId = null
+  game = null
+  foes = []
+  projectiles = []
+  foeShots = []
+  scene = 'title'
+  paused = false
+  bagOpen = false
+  craftingOpen = false
+  attributesOpen = false
+  renderAuth()
+}
+function playOffline() {
+  offlineMode = true
+  cloudUser = null
+  cloudProfileId = null
+  authState = 'game'
+  authView = 'login'
+  authMessage = ''
+  authBusy = false
+  currentSaveKey = SAVE_KEY
+  saveSlots = readSaves(SAVE_KEY)
+  activeSlotId = null
+  game = null
+  scene = 'title'
+  renderTitle()
+}
+async function boot() {
+  if (!cloudAvailable()) {
+    authState = 'game'
+    offlineMode = true
+    currentSaveKey = SAVE_KEY
+    saveSlots = readSaves(SAVE_KEY)
+    render()
+    return
+  }
+  authState = 'loading'
+  render()
+  try {
+    const user = await currentCloudUser()
+    if (!user) { authState = 'auth'; render(); return }
+    await enterAccount(user)
+  } catch (error) {
+    authState = 'auth'
+    authMessage = errorMessage(error)
+    render()
+  }
+}
 function renderTitle() {
+  const accountBar = cloudUser
+    ? `<div class="account-bar"><span><i></i>云端账号 · ${escapeHtml(cloudUser.username)}</span><button data-action="logout" type="button">退出登录</button></div>`
+    : `<div class="account-bar offline"><span><i></i>离线模式 · 进度仅保存在本机</span>${cloudAvailable() ? '<button data-action="login" type="button">登录 / 注册</button>' : ''}</div>`
   const slots = saveSlots.map((slot) => `<article class="save-slot"><span class="save-slot-info"><b>${slot.label}</b><small>${roleLabels[slot.data.role]} · ${slot.data.level ?? 1} 级 · ${slot.data.town ? '小镇' : `第 ${slot.data.stage} 关`} · 击败 ${slot.data.kills}</small></span><button class="save-resume" data-action="resume" data-slot="${slot.id}">继续　↗</button><button class="save-delete" data-action="delete-slot" data-slot="${slot.id}" aria-label="删除${slot.label}" title="删除存档">×</button></article>`).join('')
   const overwriteDialog = pendingRole ? `<div class="slot-scrim"><section class="slot-dialog"><small>存档槽已满 · 3 / 3</small><h2>新建${roleLabels[pendingRole]}存档</h2><p>请选择一个存档槽。覆盖前会再次确认，取消不会改动任何存档。</p>${saveSlots.map((slot) => `<button data-action="overwrite-slot" data-slot="${slot.id}"><span><b>${slot.label}</b><small>${roleLabels[slot.data.role]} · ${slot.data.town ? '小镇' : `第 ${slot.data.stage} 关`}</small></span><i>选择覆盖</i></button>`).join('')}<button class="slot-cancel" data-action="cancel-new">取消</button></section></div>` : ''
-  app.innerHTML = `<main class="title-screen"><section class="title-copy"><div class="eyebrow"><i></i> 单机动作 RPG · 十章远征</div><h1>冒险王<span>：元素远征</span></h1><p class="intro">古老遗迹再度苏醒。选择你的职业，穿越十片失落之地，直面守关者。</p>${saveSlots.length ? `<section class="saved-slots"><div class="slots-heading"><span>远征存档</span><small>${saveSlots.length} / 3</small></div>${slots}</section>` : ''}<div class="rule"></div><div class="class-picks"><button class="class-card" data-action="role" data-role="warrior"><b class="role-mark">刃</b><span><strong>新建战士</strong><small>剑刃近战 · 创建独立存档</small></span><i>↗</i></button><button class="class-card" data-action="role" data-role="mage"><b class="role-mark mage-mark">✦</b><span><strong>新建法师</strong><small>法杖远程 · 创建独立存档</small></span><i>↗</i></button></div><footer><span>存档最多 3 个 · 覆盖前确认</span><span class="game-version">版本 ${GAME_VERSION}</span><span>01 — 10</span></footer></section><div class="title-art" aria-hidden="true"><div class="sun"></div><div class="mountains"></div><div class="ruins"><i></i><i></i><i></i></div><div class="silhouette"><b></b><i></i><span></span></div><small>THE LOST FRONTIER <span>遗迹之外，仍有远方</span></small></div></main>${overwriteDialog}`
+  app.innerHTML = `<main class="title-screen"><section class="title-copy"><div class="eyebrow"><i></i> 单机动作 RPG · 十章远征</div><h1>冒险王<span>：元素远征</span></h1><p class="intro">古老遗迹再度苏醒。选择你的职业，穿越十片失落之地，直面守关者。</p>${accountBar}${saveSlots.length ? `<section class="saved-slots"><div class="slots-heading"><span>远征存档</span><small>${saveSlots.length} / 3</small></div>${slots}</section>` : ''}<div class="rule"></div><div class="class-picks"><button class="class-card" data-action="role" data-role="warrior"><b class="role-mark">刃</b><span><strong>新建战士</strong><small>剑刃近战 · 创建独立存档</small></span><i>↗</i></button><button class="class-card" data-action="role" data-role="mage"><b class="role-mark mage-mark">✦</b><span><strong>新建法师</strong><small>法杖远程 · 创建独立存档</small></span><i>↗</i></button></div><footer><span>存档最多 3 个 · 覆盖前确认</span><span class="game-version">版本 ${GAME_VERSION}</span><span>01 — 10</span></footer></section><div class="title-art" aria-hidden="true"><div class="sun"></div><div class="mountains"></div><div class="ruins"><i></i><i></i><i></i></div><div class="silhouette"><b></b><i></i><span></span></div><small>THE LOST FRONTIER <span>遗迹之外，仍有远方</span></small></div></main>${overwriteDialog}`
 }
 function gearMarkup(canEquip: boolean) {
   if (!game?.gear.length) return '<div class="empty-gear">背包里还没有武器<small>击败遗迹守卫，寻找装备</small></div>'
@@ -531,6 +761,7 @@ function renderGame() {
   }
   const header = document.querySelector<HTMLElement>('.game-header')
   header?.insertAdjacentHTML('beforeend', '<button class="role-select-button" data-action="role-select">角色选择</button>')
+  header?.insertAdjacentHTML('beforeend', '<button class="landscape-button" data-action="landscape" title="进入横屏全屏">横屏</button>')
   if (scene === 'battle' && header) header.insertAdjacentHTML('beforeend', `<button class="pause-button" data-action="pause" title="按 P 暂停或继续">${paused ? '继续' : '暂停'} <span>P</span></button>`)
   if (paused) document.querySelector('.arena')?.insertAdjacentHTML('beforeend', '<div class="overlay pause-overlay"><small>PAUSED · P</small><h2>远征暂停</h2><p>战斗已冻结，敌人与计时器不会继续行动。</p><button class="primary" data-action="pause">继续战斗　▶</button></div>')
   const skillButtons = document.querySelectorAll<HTMLButtonElement>('.combat-bar button[data-action="skill"]')
@@ -546,7 +777,11 @@ function renderGame() {
   setupCanvas()
   syncHud()
 }
-function render() { scene === 'title' ? renderTitle() : renderGame() }
+function render() {
+  if (authState === 'auth') return renderAuth()
+  if (authState === 'loading') return renderAuthLoading()
+  scene === 'title' ? renderTitle() : renderGame()
+}
 function foeHeadTop(foe: Foe) {
   const offset = (foe.boss ? 242 : 90) + (foe.flying ? (foe.flyHeight ?? 0) : 0)
   return `${((world.floor - offset) / world.height) * 100}%`
@@ -969,7 +1204,30 @@ function resumeBattle() {
   scene = 'battle'; game.town = false; game.dead = false; game.hp = Math.max(1, Math.round(stats().hp * .5)); game.mp = Math.min(stats().mp, game.mp)
   heroX = 480; heroY = 0; velocityY = 0; grounded = true; projectiles = []; foeShots = []; burst = 0; burstTargetId = null; enterBattlefield(); save(); renderGame()
 }
+async function enterLandscape() {
+  try {
+    if (!document.fullscreenElement) await document.documentElement.requestFullscreen?.()
+  } catch { /* 部分浏览器不支持全屏 */ }
+  try {
+    const orientation = (screen as Screen & { orientation?: { lock?: (value: string) => Promise<void> } }).orientation
+    await orientation?.lock?.('landscape')
+    toast('已进入横屏模式。')
+  } catch {
+    toast('请把手机横过来，并关闭竖屏锁定。')
+  }
+}
 function performAction(name: string, target: HTMLElement) {
+  if (name === 'landscape') { void enterLandscape(); return }
+  if (name === 'auth-tab' && target.dataset.tab) {
+    authView = target.dataset.tab === 'register' ? 'register' : 'login'
+    authMessage = ''
+    renderAuth()
+    return
+  }
+  if (name === 'auth-forgot') { authView = 'forgot'; authMessage = ''; renderAuth(); return }
+  if (name === 'offline-play') { playOffline(); return }
+  if (name === 'login') { authState = 'auth'; authView = 'login'; authMessage = ''; renderAuth(); return }
+  if (name === 'logout') { logoutAccount(); return }
   if (name === 'role') createRole(target.dataset.role as Role)
   if (name === 'resume' && target.dataset.slot) {
     const slot = saveSlots.find((entry) => entry.id === target.dataset.slot)
@@ -1019,6 +1277,11 @@ function performAction(name: string, target: HTMLElement) {
 app.addEventListener('click', (event) => {
   const target = event.target instanceof HTMLElement ? event.target.closest<HTMLElement>('[data-action]') : null
   if (target && !target.hasAttribute('disabled')) performAction(target.dataset.action ?? '', target)
+})
+app.addEventListener('submit', (event) => {
+  if ((event.target as HTMLElement | null)?.id !== 'auth-form') return
+  event.preventDefault()
+  void submitAuth()
 })
 app.addEventListener('pointerdown', (event) => {
   const button = event.target instanceof HTMLElement ? event.target.closest<HTMLElement>('[data-move]') : null
@@ -1807,4 +2070,6 @@ function draw() {
   if (noticeTime > 0) { ctx.fillStyle = 'rgba(13, 28, 28, .86)'; ctx.fillRect(310, 24, 340, 38); ctx.fillStyle = '#e6d5a2'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(notice, 480, 48, 320) }
 }
 function frame(now: number) { const dt = Math.min((now - lastTime) / 1000, .045); lastTime = now; update(dt); draw(); requestAnimationFrame(frame) }
-render(); requestAnimationFrame(frame)
+document.querySelector('#rotate-lock')?.addEventListener('click', () => { void enterLandscape() })
+document.querySelector('#rotate-dismiss')?.addEventListener('click', () => document.querySelector('#rotate-hint')?.classList.add('dismissed'))
+void boot(); requestAnimationFrame(frame)
