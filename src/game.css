@@ -393,4 +393,35 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--ochre); outline
 .account-bar.offline i { background: #c9a96e; }
 .account-bar button { flex: 0 0 auto; padding: 5px 8px; border: 1px solid rgba(188, 192, 159, .23); background: transparent; color: #d1ceba; font-size: 8px; cursor: pointer; }
 .account-bar button:hover { border-color: #b7b78e; background: #263b37; }
+/* ── 小镇独立地图 / 账号栏 / 音效 / 等比例缩放 ───────────── */
+.town-panel { padding: 13px 14px 12px; display: grid; gap: 9px; }
+.town-panel > header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 9px; border-bottom: 1px solid var(--line); color: #c8cbbb; font-size: 11px; font-weight: 500; }
+.town-panel > header small { color: #829087; font-size: 8px; font-weight: 400; }
+.town-panel > p { margin: 0; color: #91a096; font-size: 9px; line-height: 1.6; }
+.town-shortcuts { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.town-shortcuts .secondary { min-height: 32px; font-size: 9px; }
+.town-panel .stage-picker { width: 100%; margin-bottom: 0; }
+.town-panel .primary { width: 100%; min-height: 35px; }
+.town-stage-actions { display: grid; gap: 7px; }
+.town-stage-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.town-stage-choices .primary, .town-stage-choices .secondary { min-height: 33px; font-size: 9px; }
+.town-mode .combat-bar, .town-mode .foe-health { display: none; }
+.town-mode .combat-log { margin-top: 6px; }
+.audio-button { min-width: 31px; min-height: 31px; height: 31px; margin-left: 8px; padding: 0 6px; border: 1px solid var(--line); border-radius: 2px; background: #203332; color: #d4d3c0; font-size: 12px; line-height: 1; cursor: pointer; }
+.audio-button:hover { border-color: #a79a6e; }
+.account-actions { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; }
+.account-actions .audio-button { min-width: 28px; min-height: 28px; height: 28px; margin-left: 0; }
+.auth-links { flex-wrap: wrap; justify-content: flex-start; gap: 10px; }
+.arena { container-type: inline-size; }
+.foe-head { width: 8.6cqw; font-size: clamp(8px, 1.05cqw, 14px); }
+.boss-head { width: 15.6cqw; font-size: clamp(9px, 1.2cqw, 16px); }
+.coords { font-size: clamp(7px, .85cqw, 12px); }
+.combat-bar strong { font-size: clamp(9px, .75vw, 12px); }
+.combat-bar small { font-size: clamp(7px, .55vw, 10px); }
+@media (max-width: 760px) {
+  .audio-button { min-width: 28px; min-height: 28px; height: 28px; margin-left: 5px; padding: 0 4px; font-size: 10px; }
+}
+@media (max-width: 760px) and (orientation: portrait) {
+  .landscape-button { display: none !important; }
+}
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
