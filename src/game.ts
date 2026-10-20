@@ -196,6 +196,8 @@ let burst = 0
 let burstWait = 0
 let burstTargetId: number | null = null
 let shake = 0
+let flashTime = 0
+let flashColor = '#ffe6a8'
 let bagOpen = false
 let bagTab: 'gear' | 'talent' | 'other' = 'gear'
 let craftingOpen = false
@@ -411,6 +413,7 @@ function addSparks(x: number, y: number, count: number, colors: string[], speed 
   }
 }
 function addShake(amount: number) { shake = Math.max(shake, amount) }
+function addFlash(amount: number, color = '#ffe6a8') { flashTime = Math.max(flashTime, amount); flashColor = color }
 function stageIndexNow() { return Math.max(0, Math.min(9, (game?.stage ?? 1) - 1)) }
 function computeUnlockedWidth() {
   if (!game) return BASE_MAP_WIDTH
@@ -1476,9 +1479,13 @@ function cast(index: number) {
     const style = weaponStyle()
     const fxColor = weaponFxColor()
     if (index === 0) {
-      addFx(`weapon-swing-${style}`, heroX + facing * 48, world.floor - 80 + heroY, facing, .48, fxColor)
-      addFx('slash-crescent', heroX + facing * 46, world.floor - 82 + heroY, facing, .5)
-      addSparks(heroX + facing * 70, world.floor - 70 + heroY, 8, [fxColor, '#f2c46d'])
+      const frontY = world.floor - 78 + heroY
+      addFx(`weapon-swing-${style}`, heroX + facing * 56, frontY, facing, .56, fxColor)
+      addFx('front-slash', heroX + facing * 62, frontY, facing, .66, fxColor)
+      addFx('slash-crescent', heroX + facing * 50, frontY - 2, facing, .55)
+      addSparks(heroX + facing * 82, frontY + 6, 16, [fxColor, '#f2c46d', '#fff6d0'], 190)
+      addShake(3)
+      addFlash(.18, fxColor)
       const target = targetForFacing(165)
       if (!target) setLog(foes.length ? '距离太远，攻击没有命中。' : '剑气划过空气。')
       else {
@@ -1509,10 +1516,14 @@ function cast(index: number) {
         })
       } else setLog('突刺穿过前方，未命中目标。')
     } else {
-      addFx(`weapon-swing-${style}`, heroX + facing * 54, world.floor - 78 + heroY, facing, .5, fxColor)
-      addFx('ground-break', heroX + facing * 60, world.floor - 70, facing, .75)
-      addSparks(heroX + facing * 60, world.floor - 8, 16, ['#d8b96c', '#a98d55'], 240)
-      addShake(12)
+      const greatY = world.floor - 80 + heroY
+      addFx(`weapon-swing-${style}`, heroX + facing * 60, greatY, facing, .7, fxColor)
+      addFx('great-slash', heroX + facing * 92, greatY, facing, 1.15, fxColor)
+      addFx('great-quake', heroX + facing * 70, world.floor - 8, facing, 1.0, fxColor)
+      addFx('ground-break', heroX + facing * 60, world.floor - 70, facing, .85)
+      addSparks(heroX + facing * 60, world.floor - 8, 36, [fxColor, '#d8b96c', '#fff6d0', '#a98d55'], 340)
+      addShake(18)
+      addFlash(.55, fxColor)
       strikeNearby(power, '蓄力重斩', 175, true)
     }
   } else if (index === 0) {
@@ -1978,6 +1989,7 @@ function setupCanvas() {
 }
 function update(dt: number) {
   shake = Math.max(0, shake - dt * 30)
+  flashTime = Math.max(0, flashTime - dt * 1.6)
   if (paused) return
   if (scene !== 'battle') cameraX = 0
   attackWait = Math.max(0, attackWait - dt); attackSwing = Math.max(0, attackSwing - dt); buffTime = Math.max(0, buffTime - dt)
@@ -2983,6 +2995,78 @@ function drawFx(c: CanvasRenderingContext2D, fx: Fx) {
       c.beginPath(); c.moveTo(fx.x + Math.cos(angle) * inner, centerY + Math.sin(angle) * inner * .55); c.lineTo(fx.x + Math.cos(angle) * outer, centerY + Math.sin(angle) * outer * .55); c.stroke()
     }
     c.fillStyle = 'rgba(255, 236, 176, .22)'; c.beginPath(); c.arc(fx.x, centerY, 18 + progress * 62, 0, Math.PI * 2); c.fill()
+  } else if (fx.kind === 'front-slash') {
+    const dir = fx.direction ?? 1
+    const color = fx.color ?? '#ffe6a8'
+    for (let layer = 0; layer < 3; layer++) {
+      c.globalAlpha = alpha * (1 - layer * .18)
+      c.strokeStyle = layer === 0 ? '#fff6d0' : color
+      c.lineWidth = 12 - layer * 3
+      c.beginPath(); c.arc(fx.x + dir * layer * 8, fx.y, 44 + progress * 108 - layer * 5, dir > 0 ? -1.15 : 2.0, dir > 0 ? 1.0 : 4.15); c.stroke()
+    }
+    c.globalAlpha = alpha * .68; c.strokeStyle = '#ffffff'; c.lineWidth = 3
+    c.beginPath(); c.moveTo(fx.x - dir * 30, fx.y - 44); c.lineTo(fx.x + dir * 104, fx.y - 6); c.stroke()
+    c.beginPath(); c.moveTo(fx.x - dir * 28, fx.y + 34); c.lineTo(fx.x + dir * 88, fx.y + 48); c.stroke()
+    c.globalAlpha = alpha * .35; c.strokeStyle = color; c.lineWidth = 2
+    c.beginPath(); c.ellipse(fx.x, fx.y, 54 + progress * 120, 16 + progress * 30, 0, 0, Math.PI * 2); c.stroke()
+  } else if (fx.kind === 'great-slash') {
+    const dir = fx.direction ?? 1
+    const color = fx.color ?? '#ffe6a8'
+    for (let layer = 0; layer < 5; layer++) {
+      c.globalAlpha = alpha * (1 - layer * .14)
+      c.strokeStyle = layer === 0 ? '#fff6d0' : layer === 1 ? '#ffffff' : color
+      c.lineWidth = 22 - layer * 3.6
+      c.beginPath(); c.arc(fx.x + dir * layer * 12, fx.y, 90 + progress * 260 - layer * 14, dir > 0 ? -1.25 : 2.0, dir > 0 ? 1.05 : 4.2); c.stroke()
+    }
+    c.globalAlpha = alpha * .72
+    for (let beam = 0; beam < 7; beam++) {
+      const offset = (beam - 3) * 28
+      c.strokeStyle = beam % 2 ? '#fff6d0' : color
+      c.lineWidth = 4
+      c.beginPath(); c.moveTo(fx.x + dir * offset, fx.y - 140 - progress * 80); c.lineTo(fx.x + dir * (offset + 40), fx.y + 40 + progress * 30); c.stroke()
+    }
+    c.globalAlpha = alpha * .85; c.fillStyle = '#fff6d0'
+    for (let spark = 0; spark < 18; spark++) {
+      const angle = (spark / 18) * Math.PI * 2 + progress * .6
+      const radius = 40 + progress * 170 + (spark % 4) * 14
+      c.beginPath(); c.arc(fx.x + Math.cos(angle) * radius, fx.y + Math.sin(angle) * radius * .6, 2 + (spark % 3), 0, Math.PI * 2); c.fill()
+    }
+    c.globalAlpha = alpha * .3; c.strokeStyle = '#ffffff'; c.lineWidth = 2
+    c.beginPath(); c.arc(fx.x, fx.y, 120 + progress * 300, 0, Math.PI * 2); c.stroke()
+  } else if (fx.kind === 'great-quake') {
+    const color = fx.color ?? '#d8b96c'
+    const groundY = world.floor - 2
+    for (let ring = 0; ring < 3; ring++) {
+      const ringProgress = (progress + ring * .12) % 1
+      c.globalAlpha = alpha * (1 - ringProgress * .75)
+      c.strokeStyle = ring === 0 ? '#fff6d0' : color
+      c.lineWidth = 6 - ring * 1.6
+      c.beginPath(); c.ellipse(fx.x, groundY, 40 + ringProgress * 230, 10 + ringProgress * 34, 0, 0, Math.PI * 2); c.stroke()
+    }
+    c.globalAlpha = alpha * .85; c.strokeStyle = color; c.lineWidth = 4
+    for (let crack = 0; crack < 10; crack++) {
+      const dir = crack % 2 ? 1 : -1
+      const startX = fx.x + dir * 12
+      const endX = fx.x + dir * (30 + progress * (50 + (crack * 17) % 110))
+      const endY = groundY - 8 - ((crack * 13) % 46) * (1 - progress * .2)
+      c.beginPath(); c.moveTo(startX, groundY - 2); c.lineTo(endX, endY); c.stroke()
+    }
+    c.fillStyle = '#b08d4e'
+    for (let rock = 0; rock < 10; rock++) {
+      const dir = rock % 2 ? 1 : -1
+      const bx = fx.x + dir * (20 + progress * (60 + rock * 9))
+      const by = groundY - progress * (40 + (rock % 5) * 22) + progress * progress * 60
+      const size = 4 + (rock % 4)
+      c.save(); c.translate(bx, by); c.rotate(progress * 4 + rock)
+      c.beginPath(); c.moveTo(-size, 0); c.lineTo(0, -size * 1.6); c.lineTo(size, 0); c.closePath(); c.fill(); c.restore()
+    }
+    c.globalAlpha = alpha * .55
+    const pillar = c.createLinearGradient(fx.x, groundY, fx.x, groundY - 250)
+    pillar.addColorStop(0, color); pillar.addColorStop(1, 'rgba(255, 255, 255, 0)')
+    c.fillStyle = pillar; c.fillRect(fx.x - 14, groundY - 250, 28, 250)
+    c.globalAlpha = alpha * .3; c.fillStyle = '#fff6d0'; c.fillRect(fx.x - 4, groundY - 220, 8, 220)
+    c.globalAlpha = alpha * .5; c.fillStyle = '#ffffff'
+    c.beginPath(); c.arc(fx.x, groundY - 16, 14 + progress * 26, 0, Math.PI * 2); c.fill()
   } else if (fx.kind.startsWith('weapon-swing-')) {
     const style = fx.kind.slice('weapon-swing-'.length)
     const dir = fx.direction ?? 1
@@ -3092,6 +3176,13 @@ function draw() {
     ctx.fillText(`强化 ${buffTime.toFixed(1)}s`, heroX, buffY)
   }
   ctx.restore()
+  if (flashTime > 0) {
+    ctx.save()
+    ctx.globalAlpha = Math.min(.42, flashTime * .9)
+    ctx.fillStyle = flashColor
+    ctx.fillRect(0, 0, world.width, world.height)
+    ctx.restore()
+  }
   if (noticeTime > 0) { ctx.fillStyle = 'rgba(13, 28, 28, .86)'; ctx.fillRect(310, 24, 340, 38); ctx.fillStyle = '#e6d5a2'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(notice, 480, 48, 320) }
 }
 function frame(now: number) { const dt = Math.min((now - lastTime) / 1000, .045); lastTime = now; update(dt); draw(); requestAnimationFrame(frame) }
