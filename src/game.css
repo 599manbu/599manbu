@@ -730,7 +730,7 @@ body { background: #0d1717; }
 .hud-buttons button:hover { border-color: #c9b273; background: #29423c; }
 .hud-bag { position: absolute; left: 14px; bottom: 14px; width: 58px; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 7px 4px 5px; border: 1px solid rgba(201, 178, 115, .45); border-radius: 4px; background: rgba(18, 34, 32, .74); color: #e8d7a0; font-size: 9px; cursor: pointer; backdrop-filter: blur(8px); box-shadow: 0 8px 24px rgba(0, 0, 0, .3); }
 .hud-bag b { color: #e4dfc8; font-size: 10px; font-weight: 500; }
-.hud-bag > span { position: absolute; top: -6px; right: -6px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 9px; background: #c9b273; color: #182523; font-family: var(--mono); font-size: 9px; line-height: 16px; text-align: center; }
+.hud-bag > #hud-bag-count { position: absolute; top: -6px; right: -6px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 9px; background: #c9b273; color: #182523; font-family: var(--mono); font-size: 9px; line-height: 16px; text-align: center; }
 /* 功能菜单与设置 */
 .game-menu-scrim, .settings-scrim { z-index: 45; }
 .game-menu-dialog { width: min(680px, 100%); overflow-y: auto; }
@@ -827,5 +827,79 @@ body { background: #0d1717; }
   .tutorial-hint { top: 76px; font-size: 12px; padding: 6px 10px; }
   .tutorial-hint b { font-size: 9px; }
   .mobile-move-rail .mobile-pad, .mobile-skill, .mobile-action-rail .mobile-pad { background: rgba(17, 32, 32, .3); }
+}
+/* ── 1.68.1 HUD / 对话框放大 ────────────────────────── */
+.hud-player { padding: 10px 14px 10px 10px; gap: 12px; }
+.hud-portrait { width: 72px; height: 72px; }
+.hud-player-info { width: 230px; gap: 5px; }
+.hud-name { font-size: 9px; }
+.hud-name b { font-size: 15px; }
+.hud-bar { height: 20px; }
+.hud-bar span { font-size: 11px; line-height: 18px; }
+.hud-bar.xp { height: 12px; }
+.hud-bar.xp span { font-size: 9px; line-height: 10px; }
+.hud-buttons button { min-height: 40px; padding: 0 14px; font-size: 13px; }
+.hud-currency { font-size: 10px; padding: 6px 10px; }
+.hud-fabs { position: absolute; left: 16px; bottom: 16px; display: flex; align-items: flex-end; gap: 14px; }
+.hud-bag, .hud-forge { position: relative; left: auto; bottom: auto; width: 116px; min-height: 96px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 10px 8px; border: 1px solid rgba(201, 178, 115, .5); border-radius: 6px; background: rgba(18, 34, 32, .82); color: #e8d7a0; font-size: 12px; cursor: pointer; backdrop-filter: blur(8px); box-shadow: 0 10px 28px rgba(0, 0, 0, .35); }
+.hud-bag .item-icon, .hud-forge .item-icon { width: 30px; height: 30px; }
+.hud-bag b, .hud-forge b { color: #e4dfc8; font-size: 14px; font-weight: 600; }
+.hud-bag > #hud-bag-count { top: -8px; right: -8px; min-width: 22px; height: 22px; line-height: 22px; font-size: 11px; }
+.bag-dialog { width: min(92vw, 920px); max-height: 96dvh; padding: 22px; overflow-y: auto; }
+.bag-scrim { padding: 10px; }
+.craft-dialog, .npc-dialog, .settings-dialog, .game-menu-dialog, .lottery-dialog { width: min(92vw, 920px); max-height: 96dvh; }
+.bag-character { grid-template-columns: 150px minmax(0, 1fr); align-items: stretch; gap: 12px; }
+.bag-character-info { display: grid; gap: 8px; align-content: start; }
+.bag-preview { display: grid; place-items: center; overflow: hidden; border: 1px solid rgba(201, 178, 115, .25); background: rgba(10, 20, 20, .6); }
+.bag-preview canvas { display: block; width: 150px; height: auto; }
+@media (max-width: 760px) {
+  .hud-player { padding: 8px 10px 8px 8px; gap: 9px; }
+  .hud-portrait { width: 56px; height: 56px; }
+  .hud-player-info { width: 150px; gap: 4px; }
+  .hud-name b { font-size: 13px; }
+  .hud-bar { height: 16px; }
+  .hud-bar span { font-size: 9px; line-height: 14px; }
+  .hud-bar.xp { height: 10px; }
+  .hud-bar.xp span { font-size: 8px; line-height: 8px; }
+  .hud-buttons button { min-height: 36px; padding: 0 10px; font-size: 11px; }
+  .hud-fabs { left: 10px; bottom: 176px; gap: 10px; }
+  .hud-bag, .hud-forge { width: 104px; min-height: 88px; padding: 8px 6px; font-size: 11px; }
+  .hud-bag b, .hud-forge b { font-size: 13px; }
+  .hud-bag .item-icon, .hud-forge .item-icon { width: 26px; height: 26px; }
+  .hud-center { top: 96px; }
+  .tutorial-hint { top: 200px; }
+  .bag-dialog { width: 100%; padding: 14px; max-height: 97dvh; }
+  .bag-scrim { padding: 4px; }
+  .bag-character { grid-template-columns: 120px minmax(0, 1fr); gap: 8px; }
+  .bag-preview canvas { width: 120px; }
+}
+@media (max-width: 400px) {
+  .hud-player-info { width: 118px; }
+  .hud-portrait { width: 48px; height: 48px; }
+  .hud-buttons button { padding: 0 7px; font-size: 10px; }
+  .hud-buttons button[data-action="pause"] { display: none; }
+  .hud-fabs { gap: 8px; }
+  .hud-bag, .hud-forge { width: 92px; min-height: 82px; }
+  .bag-character { grid-template-columns: 100px minmax(0, 1fr); }
+  .bag-preview canvas { width: 100px; }
+}
+@media (orientation: landscape) and (max-height: 560px) {
+  .hud-player { padding: 6px 10px 6px 6px; gap: 8px; }
+  .hud-portrait { width: 52px; height: 52px; }
+  .hud-player-info { width: 170px; gap: 3px; }
+  .hud-name b { font-size: 13px; }
+  .hud-bar { height: 15px; }
+  .hud-bar span { font-size: 9px; line-height: 13px; }
+  .hud-bar.xp { height: 9px; }
+  .hud-buttons button { min-height: 34px; padding: 0 10px; font-size: 11px; }
+  .hud-fabs { left: 8px; bottom: 142px; gap: 8px; }
+  .hud-bag, .hud-forge { width: 92px; min-height: 78px; padding: 6px 5px; font-size: 10px; }
+  .hud-bag b, .hud-forge b { font-size: 11px; }
+  .hud-bag .item-icon, .hud-forge .item-icon { width: 22px; height: 22px; }
+  .hud-center { top: 6px; }
+  .tutorial-hint { top: 96px; }
+  .bag-dialog { width: 100%; padding: 12px; max-height: 96dvh; }
+  .bag-character { grid-template-columns: 100px minmax(0, 1fr); }
+  .bag-preview canvas { width: 100px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }

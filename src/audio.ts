@@ -23,8 +23,8 @@ function ensureContext(): AudioContext | null {
     compressor.attack.value = .003; compressor.release.value = .25
     compressor.connect(ctx.destination)
     master = ctx.createGain(); master.gain.value = enabled ? 1 : 0; master.connect(compressor)
-    musicBus = ctx.createGain(); musicBus.gain.value = .5; musicBus.connect(master)
-    sfxBus = ctx.createGain(); sfxBus.gain.value = .95; sfxBus.connect(master)
+    musicBus = ctx.createGain(); musicBus.gain.value = .72; musicBus.connect(master)
+    sfxBus = ctx.createGain(); sfxBus.gain.value = 1; sfxBus.connect(master)
   }
   if (ctx.state === 'suspended') void ctx.resume()
   return ctx
@@ -77,19 +77,19 @@ type MusicCfg = {
 // 16 步一小节：主旋律、低音、铺底和弦与鼓点分层，战斗与 Boss 曲更密集、更有推进感。
 const MUSIC: Record<MusicMode, MusicCfg> = {
   title: {
-    root: 196, scale: [0, 2, 3, 5, 7, 8, 10, 12], stepMs: 205, wave: 'triangle', volume: .085, leadOctave: 2,
+    root: 196, scale: [0, 2, 3, 5, 7, 8, 10, 12], stepMs: 205, wave: 'triangle', volume: .1, leadOctave: 2,
     progression: [0, 5, 3, 7], leadSteps: [0, 2, 4, 6, 8, 10, 12, 14], bassSteps: [0, 8], padSteps: [0], drums: false,
   },
   town: {
-    root: 262, scale: [0, 2, 4, 5, 7, 9, 11, 12], stepMs: 235, wave: 'triangle', volume: .075, leadOctave: 2,
+    root: 262, scale: [0, 2, 4, 5, 7, 9, 11, 12], stepMs: 235, wave: 'triangle', volume: .09, leadOctave: 2,
     progression: [0, 4, 5, 3], leadSteps: [0, 3, 6, 8, 11, 14], bassSteps: [0, 8], padSteps: [0, 8], drums: false,
   },
   battle: {
-    root: 165, scale: [0, 2, 3, 5, 7, 8, 10, 12], stepMs: 120, wave: 'sawtooth', volume: .08, leadOctave: 2,
+    root: 165, scale: [0, 2, 3, 5, 7, 8, 10, 12], stepMs: 120, wave: 'sawtooth', volume: .1, leadOctave: 2,
     progression: [0, 5, 3, 7], leadSteps: [0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14], bassSteps: [0, 2, 4, 6, 8, 10, 12, 14], padSteps: [0], drums: true,
   },
   boss: {
-    root: 123.47, scale: [0, 1, 3, 5, 6, 8, 10, 12], stepMs: 102, wave: 'sawtooth', volume: .09, leadOctave: 2,
+    root: 123.47, scale: [0, 1, 3, 5, 6, 8, 10, 12], stepMs: 102, wave: 'sawtooth', volume: .11, leadOctave: 2,
     progression: [0, 1, 5, 4], leadSteps: [0, 1, 2, 3, 4, 6, 7, 8, 10, 11, 12, 14, 15], bassSteps: [0, 2, 3, 4, 6, 8, 10, 11, 12, 14], padSteps: [0, 8], drums: true,
   },
 }

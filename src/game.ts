@@ -26,7 +26,7 @@ type BattlePlatform = { x: number; w: number; height: number; kind: 'tree' | 'ro
 const SAVE_KEY = 'elemental-expedition-save-v2'
 const DEMO_MODE = import.meta.env.MODE === 'demo'
 const DEMO_SAVE_KEY = `${SAVE_KEY}:demo`
-const GAME_VERSION = '1.68'
+const GAME_VERSION = '1.69'
 const stageNames = ['苔痕边境', '沉钟矿道', '赤岩峡谷', '风蚀高原', '幽蓝沼泽', '断星回廊', '灰烬王庭', '深渊裂谷', '苍白圣所', '终焉之门']
 const roleLabels: Record<Role, string> = { warrior: '战士', mage: '法师' }
 const skillLabels: Record<Role, string[]> = { warrior: ['前斩', '旋风斩', '突刺', '蓄力重斩'], mage: ['奥术强化', '双生火柱', '闪现', '能量禁锢'] }
@@ -88,8 +88,8 @@ const OTHER_ROLE: Record<Role, Role> = { warrior: 'mage', mage: 'warrior' }
 const HIDDEN_CONFIG = { bossHp: 99000, bossAtk: 2900, mp: 1000 }
 const TALENT_FRAGMENTS_PER_COIN = 10
 const ADVANCED_TALENT_COST = 3
-const TOWN_NPC_X = 560
-const TOWN_CIRCLE_X = 480
+const TOWN_NPC_X = 620
+const TOWN_CIRCLE_X = 430
 const TOWN_NPC_NAME = '阿岩'
 const NORMAL_TALENTS = [
   { id: 1, name: '生命祝福', desc: '生命上限 +10%' },
@@ -300,6 +300,8 @@ let lastTime = performance.now()
 let canvas: HTMLCanvasElement | null = null
 let ctx: CanvasRenderingContext2D | null = null
 let viewOffsetY = 0
+let viewHeight = world.height
+let renderScale = 1
 let bossVictory: BossVictory | null = null
 let storyState: StoryData | null = null
 let storyIndex = 0
@@ -1642,7 +1644,7 @@ function bagMarkup() {
   const tabs = [['gear', `${itemIcon('weapon')} 装备`], ['talent', `${itemIcon('coin')} 天赋币`], ['other', `${itemIcon('soul')} 其他`], ['skill', '✦ 技能']] as const
   const tabButtons = tabs.map(([id, label]) => `<button class="${bagTab === id ? 'active' : ''}" data-action="bag-tab" data-tab="${id}" type="button">${label}</button>`).join('')
   const content = bagTab === 'gear' ? `<div class="bag-list">${gearMarkup(scene === 'town')}</div>` : bagTab === 'talent' ? talentBagMarkup() : bagTab === 'skill' ? skillBagMarkup() : otherBagMarkup()
-  return `<div class="bag-scrim"><section class="bag-dialog"><header><div><small>INVENTORY · ${game.gear.length} 件物品</small><h2>远征背包</h2></div><button data-action="close-bag" aria-label="关闭背包">×</button></header><div class="bag-character"><div class="bag-stats"><span>♥ 生命 ${displayNumber(game.hp)} / ${displayNumber(s.hp)}</span><span>✦ 法力 ${displayNumber(game.mp)} / ${displayNumber(s.mp)}</span><span>⚔ 攻击 ${displayNumber(s.attack)}</span><span>▰ 防御 ${displayNumber(s.defense)}</span><span>★ 等级 ${game.level ?? 1}</span></div><div class="bag-equipped">${chips}</div></div><div class="bag-tabs">${tabButtons}</div>${content}</section></div>`
+  return `<div class="bag-scrim"><section class="bag-dialog"><header><div><small>INVENTORY · ${game.gear.length} 件物品</small><h2>远征背包</h2></div><button data-action="close-bag" aria-label="关闭背包">×</button></header><div class="bag-character"><div class="bag-preview"><canvas id="bag-portrait" width="300" height="360" aria-label="角色全身预览"></canvas></div><div class="bag-character-info"><div class="bag-stats"><span>♥ 生命 ${displayNumber(game.hp)} / ${displayNumber(s.hp)}</span><span>✦ 法力 ${displayNumber(game.mp)} / ${displayNumber(s.mp)}</span><span>⚔ 攻击 ${displayNumber(s.attack)}</span><span>▰ 防御 ${displayNumber(s.defense)}</span><span>★ 等级 ${game.level ?? 1}</span></div><div class="bag-equipped">${chips}</div></div></div><div class="bag-tabs">${tabButtons}</div>${content}</section></div>`
 }
 function talentBagMarkup() {
   if (!game) return ''
@@ -1909,8 +1911,8 @@ type TownCompanion = { id: 'xiaoman' | 'zhou'; name: string; x: number }
 function townCompanions(): TownCompanion[] {
   if (!game) return []
   const list: TownCompanion[] = []
-  if (game.rescuedXiaoman) list.push({ id: 'xiaoman', name: '小满', x: 340 })
-  if (game.rescuedZhou) list.push({ id: 'zhou', name: '老周', x: 720 })
+  if (game.rescuedXiaoman) list.push({ id: 'xiaoman', name: '小满', x: 280 })
+  if (game.rescuedZhou) list.push({ id: 'zhou', name: '老周', x: 740 })
   return list
 }
 function companionThanksStoryData(id: TownCompanion['id']): StoryData {
@@ -2047,7 +2049,7 @@ function hudMarkup() {
   const enemyName = isTown ? '' : bossVictory ? '守关者已击败' : tutorialMode ? '训练傀儡' : hiddenBattle ? '宿敌' : boss ? foeLabel(boss) : `${foes.length} 名敌人`
   return `<div class="hud">
     <section class="hud-player">
-      <div class="hud-portrait"><canvas id="hud-portrait" width="96" height="96" aria-label="角色头像"></canvas></div>
+      <div class="hud-portrait"><canvas id="hud-portrait" width="192" height="192" aria-label="角色头像"></canvas></div>
       <div class="hud-player-info">
         <div class="hud-name"><b id="hud-level">Lv.${level}</b><span>${maxed ? 'MAX' : `${displayNumber(exp)} / ${displayNumber(needed)} EXP`}</span></div>
         <div class="hud-bar hp"><i id="hud-hp-fill" style="width:${Math.max(0, Math.min(100, game.hp / s.hp * 100))}%"></i><span id="hud-hp-text">${displayNumber(game.hp)} / ${displayNumber(s.hp)}</span></div>
@@ -2073,7 +2075,10 @@ function hudMarkup() {
         <button data-action="open-settings" title="设置">⚙ 设置</button>
       </div>
     </section>
-    <button class="hud-bag" data-action="bag" title="打开背包">${itemIcon('bag')}<b>背包</b><span id="hud-bag-count">${game.gear.length}</span></button>
+    <div class="hud-fabs">
+      <button class="hud-bag" data-action="bag" title="打开背包">${itemIcon('bag')}<b>背包</b><span id="hud-bag-count">${game.gear.length}</span></button>
+      ${scene === 'town' && forgeUnlocked() ? `<button class="hud-forge" data-action="open-crafting" title="打开合成台">⚒<b>合成台</b></button>` : ''}
+    </div>
   </div>`
 }
 function gameMenuMarkup() {
@@ -2085,15 +2090,11 @@ function gameMenuMarkup() {
   ]
   if (isTown) {
     items.push(
-      { action: 'open-crafting', icon: '⚒', title: '合成台', desc: forgeUnlocked() ? '5 件同类装备 / 3 件同阶时装合成' : '通关第一关后解锁', disabled: !forgeUnlocked() },
       { action: 'open-attributes', icon: itemIcon('attribute'), title: '属性分配', desc: `${game.attributePoints ?? 0} 点可用属性点` },
       { action: 'open-lottery', icon: itemIcon('ticket'), title: '抽奖', desc: `${game.lotteryChances ?? 0} 次抽奖机会`, disabled: (game.lotteryChances ?? 0) <= 0 },
-      { action: 'open-npc', icon: itemIcon('npc'), title: `${TOWN_NPC_NAME} · 商人`, desc: npcUnlocked() ? '灵魂商城、天赋研究与抽奖' : '通关第一关后解锁', disabled: !npcUnlocked() },
-      { action: 'open-stage-circle', icon: '◎', title: '远征法阵', desc: '选择已解锁的遗迹关卡' },
       { action: 'open-hidden', icon: '◈', title: '隐藏关卡', desc: hiddenUnlocked() ? '挑战宿敌' : `集齐 ${STAMP_UNLOCK} 枚王印印章后解锁`, disabled: !hiddenUnlocked() },
     )
   }
-  items.push({ action: 'open-settings', icon: '⚙', title: '设置', desc: '角色选择、返回小镇、退出游戏与按键设置' })
   return `<div class="bag-scrim game-menu-scrim"><section class="bag-dialog game-menu-dialog"><header><div><small>MENU · ${isTown ? '冒险者小镇' : '远征中'}</small><h2>功能菜单</h2></div><button data-action="close-game-menu" aria-label="关闭菜单">×</button></header><div class="game-menu-grid">${items.map((item) => `<button class="game-menu-item" data-action="${item.action}" ${item.disabled ? 'disabled' : ''}><b>${item.icon}</b><span><strong>${item.title}</strong><small>${item.desc}</small></span><i>→</i></button>`).join('')}</div></section></div>`
 }
 function settingsMarkup() {
@@ -2128,15 +2129,41 @@ function paintHudPortrait() {
   bg.addColorStop(0, game.role === 'warrior' ? '#2d4540' : '#26314a'); bg.addColorStop(1, '#0d1717')
   context.fillStyle = bg; context.fillRect(0, 0, width, height)
   context.translate(width / 2, height * 2.2)
-  context.scale(2, 2)
+  context.scale(width / 48, width / 48)
   if (game.role === 'warrior') drawWarriorHero(context, performance.now(), 0)
   else drawMageHero(context, performance.now(), 0)
   context.restore()
   context.save()
   context.strokeStyle = game.role === 'warrior' ? '#d9b96f' : '#9fe8ff'
-  context.lineWidth = 3
-  context.beginPath(); context.arc(width / 2, height / 2, width / 2 - 2, 0, Math.PI * 2); context.stroke()
+  context.lineWidth = 6
+  context.beginPath(); context.arc(width / 2, height / 2, width / 2 - 3, 0, Math.PI * 2); context.stroke()
   context.restore()
+}
+function paintBagPreview() {
+  const canvas = document.querySelector<HTMLCanvasElement>('#bag-portrait')
+  if (!canvas || !game) return
+  const context = canvas.getContext('2d')
+  if (!context) return
+  const width = canvas.width
+  const height = canvas.height
+  context.clearRect(0, 0, width, height)
+  const bg = context.createLinearGradient(0, 0, 0, height)
+  bg.addColorStop(0, game.role === 'warrior' ? '#1d3230' : '#1a2438')
+  bg.addColorStop(1, '#0a1313')
+  context.fillStyle = bg; context.fillRect(0, 0, width, height)
+  context.strokeStyle = 'rgba(201, 178, 115, .18)'; context.lineWidth = 2
+  context.beginPath(); context.arc(width / 2, height * 0.56, Math.min(width, height) * 0.4, 0, Math.PI * 2); context.stroke()
+  context.fillStyle = 'rgba(0, 0, 0, .38)'
+  context.beginPath(); context.ellipse(width / 2, height * 0.93, 76, 13, 0, 0, Math.PI * 2); context.fill()
+  context.save()
+  context.translate(width / 2, height * 0.93)
+  context.scale(2.6, 2.6)
+  if (game.role === 'warrior') drawWarriorHero(context, performance.now(), 0)
+  else drawMageHero(context, performance.now(), 0)
+  context.restore()
+  context.strokeStyle = game.role === 'warrior' ? 'rgba(255, 210, 122, .38)' : 'rgba(159, 232, 255, .38)'
+  context.lineWidth = 2
+  context.beginPath(); context.ellipse(width / 2, height * 0.93, 92, 15, 0, 0, Math.PI * 2); context.stroke()
 }
 function renderGame() {
   if (!game) return renderTitle()
@@ -2185,6 +2212,7 @@ function renderGame() {
   if (controls) controls.textContent = 'WASD / ← → 移动　·　J 攻击　·　K 跳跃 / 二段跳　·　1–4 技能　·　L 按住护盾（防御 ×10，耗蓝 3/秒）　·　S 拾取药水　·　P 暂停'
   setupCanvas()
   paintHudPortrait()
+  if (bagOpen) paintBagPreview()
   syncHud()
 }
 function render() {
@@ -2195,8 +2223,7 @@ function render() {
 function foeLabel(foe: Foe) { return foe.tutorial ? '训练傀儡' : foe.mirror ? '宿敌' : foe.boss ? '守关者' : '遗迹守卫' }
 function foeHeadTop(foe: Foe) {
   const offset = (foe.tutorial ? 270 : foe.mirror ? 118 : foe.boss ? 242 : 72) + foeFlyOffset(foe)
-  const height = canvas?.height ?? world.height
-  return `${((viewOffsetY + world.floor - offset) / height) * 100}%`
+  return `${((viewOffsetY + world.floor - offset) / viewHeight) * 100}%`
 }
 function mountBattleHud() {
   const statusPanel = document.querySelector('.status-panel')
@@ -3153,9 +3180,11 @@ function setupCanvas() {
   if (!canvas) return
   const rect = canvas.getBoundingClientRect()
   const ratio = rect.width > 1 ? rect.height / rect.width : world.height / world.width
-  const viewHeight = Math.max(world.height, Math.min(2600, Math.round(world.width * ratio)))
-  canvas.width = world.width
-  canvas.height = viewHeight
+  viewHeight = Math.max(world.height, Math.min(2600, Math.round(world.width * ratio)))
+  const dpr = window.devicePixelRatio || 1
+  renderScale = dpr > 1 ? Math.min(2, dpr) : 1.5
+  canvas.width = Math.round(world.width * renderScale)
+  canvas.height = Math.round(viewHeight * renderScale)
   viewOffsetY = Math.round((viewHeight - world.height) / 2)
   ctx = canvas.getContext('2d')
 }
@@ -3456,7 +3485,7 @@ function sceneBackground() {
 // 全屏竖屏时在游戏世界上下补足天空与地面，避免拉伸画面。
 function fillExtendedBackdrop(c: CanvasRenderingContext2D) {
   const bg = sceneBackground()
-  const height = canvas?.height ?? world.height
+  const height = viewHeight
   if (viewOffsetY > 0) {
     c.fillStyle = bg.skyTop
     c.fillRect(0, 0, world.width, viewOffsetY)
@@ -4830,7 +4859,8 @@ function drawPotionDrops(c: CanvasRenderingContext2D) {
 }
 function draw() {
   if (!ctx) return
-  ctx.clearRect(0, 0, canvas?.width ?? world.width, canvas?.height ?? world.height)
+  ctx.setTransform(renderScale, 0, 0, renderScale, 0, 0)
+  ctx.clearRect(0, 0, world.width, viewHeight)
   fillExtendedBackdrop(ctx)
   ctx.save()
   ctx.translate(0, viewOffsetY)
@@ -4874,7 +4904,7 @@ function draw() {
     ctx.save()
     ctx.globalAlpha = Math.min(.42, flashTime * .9)
     ctx.fillStyle = flashColor
-    ctx.fillRect(0, 0, canvas?.width ?? world.width, canvas?.height ?? world.height)
+    ctx.fillRect(0, 0, world.width, viewHeight)
     ctx.restore()
   }
   if (noticeTime > 0) {
