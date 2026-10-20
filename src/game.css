@@ -114,6 +114,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--ochre); outline
 .combat-bar button:nth-of-type(4) > i { color: #9fc8bd; }
 .arena-stage { display: block; }
 .mobile-rail { display: none; }
+.mobile-control-deck { display: none; }
 button, .mobile-pad, .mobile-skill, [data-move], [data-shield] {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -410,16 +411,21 @@ button, .mobile-pad, .mobile-skill, [data-move], [data-shield] {
   .boss-head { width: 128px; }
   .pause-button { margin-left: 5px; padding: 0 6px; }
   .save-button { margin-left: 7px; }
-  .overview { align-items: start; flex-direction: column; gap: 14px; padding-top: 20px; }
+  .overview { display: none; }
   .metrics { width: 100%; justify-content: space-between; gap: 12px; }
   .metrics b { max-width: 115px; font-size: 10px; }
   .game-grid { grid-template-columns: 1fr; gap: 14px; }
-  .arena-stage { display: grid; grid-template-columns: clamp(42px, 11vw, 50px) minmax(0, 1fr) clamp(62px, 17vw, 74px); gap: 3px; align-items: center; }
-  .mobile-rail { display: flex; flex-direction: column; gap: 5px; }
-  .mobile-move-rail .mobile-pad { height: 66px; }
-  .mobile-action-rail .mobile-pad { height: 56px; }
-  .mobile-skills { grid-template-columns: 1fr; }
-  .arena { aspect-ratio: 1.2 / 1; }
+  .arena-stage { display: block; }
+  .arena { aspect-ratio: 1.5 / 1; }
+  .mobile-control-deck { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; padding: 8px 0 2px; }
+  .mobile-rail { display: flex; }
+  .mobile-move-rail { flex-direction: row; gap: 8px; align-items: flex-end; }
+  .mobile-move-rail .mobile-pad { width: clamp(56px, 16vw, 72px); height: clamp(56px, 16vw, 70px); font-size: 20px; }
+  .mobile-action-rail { width: min(200px, 52vw); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; align-items: stretch; }
+  .mobile-skills { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .mobile-skill { min-height: clamp(42px, 12vw, 54px); font-size: 14px; }
+  .mobile-utils { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; gap: 6px; margin: 0; }
+  .mobile-action-rail .mobile-pad { height: clamp(48px, 14vw, 60px); font-size: 20px; }
   .combat-bar { display: none; }
   .side-column { grid-template-columns: 1fr 1fr; align-items: start; }
   .boss-victory-overlay .victory-copy { gap: 3px; max-width: 94%; padding: 6px 8px; }
@@ -440,7 +446,7 @@ button, .mobile-pad, .mobile-skill, [data-move], [data-shield] {
   .title-art { left: 12%; }
   .metrics { flex-wrap: wrap; }
   .metrics div { min-width: 28%; }
-  .arena { aspect-ratio: 1.12 / 1; }
+  .arena { aspect-ratio: 1.5 / 1; }
   .coords { font-size: 7px; }
   .side-column { grid-template-columns: 1fr; }
   .gear-copy small { font-size: 8px; }
@@ -464,8 +470,16 @@ button, .mobile-pad, .mobile-skill, [data-move], [data-shield] {
 }
 @media (orientation: landscape) and (max-height: 560px) {
   .landscape-button { display: inline-flex; align-items: center; }
-  .mobile-rail { display: flex; flex-direction: column; gap: 5px; }
-  .arena-stage { display: grid; grid-template-columns: 48px minmax(0, 1fr) 68px; gap: 4px; align-items: center; width: 100%; min-height: 0; }
+  .mobile-rail { display: flex; }
+  .arena-stage { display: grid; grid-template-columns: 132px minmax(0, 1fr) 190px; gap: 6px; align-items: center; width: 100%; min-height: 0; }
+  .mobile-control-deck { display: contents; }
+  .mobile-move-rail { grid-column: 1; grid-row: 1; flex-direction: row; gap: 8px; align-self: end; margin-bottom: 4px; }
+  .mobile-action-rail { grid-column: 3; grid-row: 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; align-self: center; width: 100%; }
+  .mobile-skills { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .mobile-utils { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; gap: 5px; margin: 0; }
+  .mobile-skill { min-height: clamp(32px, 5vh, 42px); background: rgba(24, 42, 41, .78); font-size: 12px; }
+  .mobile-move-rail .mobile-pad { width: clamp(54px, 6.5vw, 60px); height: 56px; background: rgba(24, 42, 41, .78); }
+  .mobile-action-rail .mobile-pad { height: clamp(40px, 7vh, 50px); background: rgba(24, 42, 41, .78); }
   .game-shell { height: 100dvh; padding: 0 10px; overflow: hidden; }
   .game-header { height: 38px; gap: 4px; }
   .wordmark { flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 11px; }
@@ -476,16 +490,12 @@ button, .mobile-pad, .mobile-skill, [data-move], [data-shield] {
   .battle-column { height: 100%; display: flex; flex-direction: column; min-height: 0; }
   .side-column { display: none; }
   .arena-label, .coords, .combat-log, .game-footer { display: none; }
-  .arena { flex: 0 0 auto; width: auto; max-width: 100%; height: min(calc(100dvh - 140px), 56vw); aspect-ratio: 2 / 1; margin: 0 auto; }
+  .arena { grid-column: 2; grid-row: 1; flex: 0 0 auto; width: auto; max-width: 100%; height: min(calc(100dvh - 140px), 56vw); aspect-ratio: 2 / 1; margin: 0 auto; }
   .player-resource-bars { padding: 4px 8px; gap: 8px; }
   .player-resource span, .player-resource b { font-size: 8px; }
   .foe-health { padding: 5px 1px 6px; }
   .foe-health span, .foe-health b { font-size: 8px; }
   .combat-bar { display: none; }
-  .mobile-move-rail .mobile-pad { height: 58px; background: rgba(24, 42, 41, .78); }
-  .mobile-action-rail .mobile-pad { height: 50px; background: rgba(24, 42, 41, .78); }
-  .mobile-skills { grid-template-columns: 1fr 1fr; }
-  .mobile-skill { min-height: 26px; background: rgba(24, 42, 41, .78); font-size: 11px; }
   .victory-copy h2 { font-size: 22px; }
   .victory-rewards { display: flex; flex-wrap: wrap; justify-content: center; }
   .victory-rewards li { flex: 0 1 auto; }
@@ -500,12 +510,14 @@ button, .mobile-pad, .mobile-skill, [data-move], [data-shield] {
 /* 桌面端即使窗口很矮也不显示手机控制栏。 */
 @media (pointer: fine) and (orientation: landscape) and (max-height: 560px) {
   .mobile-rail { display: none !important; }
+  .mobile-control-deck { display: none !important; }
   .arena-stage { display: block; }
   .combat-bar { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
   .combat-bar button[data-action="attack"], .combat-bar button[data-action="jump"] { display: inline-flex; }
 }
 @media (pointer: fine) and (max-width: 760px) {
   .mobile-rail { display: none !important; }
+  .mobile-control-deck { display: none !important; }
   .arena-stage { display: block; }
   .arena { aspect-ratio: 2 / 1; }
   .combat-bar { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
