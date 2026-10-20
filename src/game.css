@@ -648,4 +648,22 @@ button, .mobile-pad, .mobile-skill, [data-move], [data-shield] {
   .lottery-card span { font-size: 11px; }
   .lottery-card small { font-size: 10px; }
 }
+/* ── 新手引导提示 ───────────────────────────────────── */
+.tutorial-hint { position: absolute; z-index: 3; top: 10px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; max-width: 92%; padding: 7px 12px; border: 1px solid rgba(201, 178, 115, .45); background: rgba(13, 27, 28, .86); color: #e7ddbd; font-size: 11px; white-space: nowrap; pointer-events: none; }
+.tutorial-hint b { color: #c9b273; font-family: var(--mono); font-size: 9px; }
+@media (max-width: 600px) { .tutorial-hint { font-size: 9px; padding: 5px 8px; } .tutorial-hint b { font-size: 8px; } }
+/* ── 剧情对话框 ─────────────────────────────────────── */
+.story-scrim { z-index: 9; }
+.story-dialog { width: min(720px, 100%); max-height: min(720px, 88vh); }
+.story-body { display: grid; gap: 12px; padding: 18px 4px; }
+.story-speaker { color: #e2c57e; font-family: 'STKaiti', 'KaiTi', serif; font-size: 20px; font-weight: 500; }
+.story-text { margin: 0; color: #e1e6d6; font-size: 15px; line-height: 2; white-space: pre-wrap; }
+.story-progress { color: #829087; font-family: var(--mono); font-size: 9px; text-align: right; }
+.story-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.story-actions .primary, .story-actions .secondary { min-height: 38px; min-width: 100px; padding: 0 16px; font-size: 12px; }
+@media (max-width: 600px) {
+  .story-text { font-size: 13px; line-height: 1.9; }
+  .story-speaker { font-size: 18px; }
+  .story-actions .primary, .story-actions .secondary { flex: 1 1 45%; min-width: 0; }
+}
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
