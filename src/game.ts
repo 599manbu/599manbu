@@ -13,7 +13,7 @@ type AttributeAllocation = Record<AttributeStat, number>
 type StageProgress = { kills: number; bossDefeated: boolean; pointsClaimed?: number }
 type Save = { role: Role; stage: number; unlockedStage: number; kills: number; stageProgress?: Record<string, StageProgress>; hp: number; mp: number; gear: Gear[]; equipped: string | null; weaponId?: string | null; weapon2Id?: string | null; armorId?: string | null; fashionId?: string | null; level?: number; exp?: number; drops?: WorldDrop[]; bossDefeated?: boolean; attributePoints?: number; attributeAllocation?: AttributeAllocation; soul?: number; normalTalent?: number; advancedTalent?: number; talentFragments?: number; talentCoins?: number; lotteryChances?: number; shopFashionBought?: boolean; town: boolean; completed: boolean; dead: boolean }
 type SaveSlot = { id: string; label: string; data: Save; updatedAt: number }
-type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number }
+type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; flyPhase?: number; flyAmplitude?: number; flySpeed?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number }
 type Fx = { x: number; y: number; life: number; kind: string; direction?: number; text?: string; damage?: number; duration?: number; vx?: number; vy?: number; color?: string; radius?: number }
 type Projectile = { x: number; y: number; vx: number; life: number; damage: number; targetId: number }
 type FoeShot = { x: number; y: number; vx: number; vy: number; damage: number; radius: number; color: string; life: number }
@@ -99,7 +99,7 @@ const LOTTERY_PRIZES = [
 const ATTRIBUTE_STEP: Record<AttributeStat, number> = { hp: 10, attack: 1, mp: 1, defense: 1 }
 const ATTRIBUTE_POINT_CAP_PER_STAGE = 20
 const MAX_SMALL_KILLS = 50
-const POTION_DROP_CHANCE = .20
+const POTION_DROP_CHANCE = .15
 const MAP_LEFT = 40
 const TOWN_LEFT = 150
 const TOWN_RIGHT = 810
@@ -240,7 +240,8 @@ function applyDemoUnlock(save: Save) {
   save.stageProgress ??= {}
   for (let stage = 1; stage <= 10; stage++) {
     const progress = save.stageProgress[String(stage)] ?? { kills: 0, bossDefeated: false, pointsClaimed: 0 }
-    progress.bossDefeated = true
+    // 其它关卡标记为已通关，方便直接挑战 Boss；当前关卡保留真实进度，便于体验继续/重开。
+    progress.bossDefeated = stage === save.stage ? Boolean(save.bossDefeated) : true
     progress.pointsClaimed ??= 0
     save.stageProgress[String(stage)] = progress
   }
@@ -287,6 +288,18 @@ function normalizeSave(data: Save): Save {
   return applyDemoUnlock(data)
 }
 function xpToNext(level: number) { return level <= xpThresholds.length ? xpThresholds[level - 1] : xpThresholds[xpThresholds.length - 1] * 2 ** (level - xpThresholds.length) }
+function compactNumber(value: number) {
+  if (!Number.isFinite(value)) return '∞'
+  const abs = Math.abs(value)
+  if (abs >= 1e12) return `${(value / 1e12).toFixed(1)}万亿`
+  if (abs >= 1e8) return `${(value / 1e8).toFixed(1)}亿`
+  if (abs >= 1e7) return `${(value / 1e8).toFixed(2)}亿`
+  if (abs >= 1e4) return `${(value / 1e4).toFixed(1)}万`
+  return String(Math.round(value))
+}
+// 正式版保持原样显示；体验版的 9999 级属性与资源用紧凑格式显示，避免撑破界面。
+function displayNumber(value: number) { return DEMO_MODE ? compactNumber(value) : String(Math.round(value)) }
+function displayCurrency(value: number) { return DEMO_MODE ? Math.round(value).toLocaleString('zh-CN') : String(Math.round(value)) }
 function item(): Gear | undefined {
   return game?.gear.find((gear) => gear.id === game?.weaponId)
     ?? game?.gear.find((gear) => gear.id === game?.weapon2Id && game?.advancedTalent === 3)
@@ -365,6 +378,7 @@ function stats() {
   attack = Math.round(attack * buffMultiplier)
   return { hp: Math.round(hp), mp: Math.round(mp), attack: Math.round(attack), defense: Math.round(defense) }
 }
+function restoreTownVitals() { if (!game) return; game.hp = stats().hp; game.mp = stats().mp }
 function save() {
   if (!game || !activeSlotId) return
   game.stageProgress ??= {}
@@ -385,9 +399,9 @@ function setLog(message: string) {
   const line = document.querySelector<HTMLElement>('.combat-log span:last-child')
   if (line) line.textContent = message
 }
-function addFx(kind: string, x = heroX, y = world.floor - 80, direction = 1, life = .56) { effects.push({ kind, x, y, direction, life }) }
+function addFx(kind: string, x = heroX, y = world.floor - 80, direction = 1, life = .56, color?: string) { effects.push({ kind, x, y, direction, life, color }) }
 function addDamageText(foe: Foe, damage: number) {
-  effects.push({ kind: 'damage-number', x: foe.x, y: world.floor - (foe.boss ? 205 : 104), life: .95, duration: .95, text: `-${damage}`, damage })
+  effects.push({ kind: 'damage-number', x: foe.x, y: world.floor - (foe.boss ? 205 : 104) - foeFlyOffset(foe), life: .95, duration: .95, text: `-${displayNumber(damage)}`, damage })
 }
 function addSparks(x: number, y: number, count: number, colors: string[], speed = 150) {
   for (let i = 0; i < count; i++) {
@@ -409,13 +423,20 @@ function clampFoeX(x: number) { return Math.max(MAP_LEFT, Math.min(Math.max(MAP_
 function updateCamera() {
   cameraX = Math.max(0, Math.min(Math.max(0, unlockedWidth - world.width), heroX - world.width * .42))
 }
-function foeWorldY(foe: Foe) { return world.floor - (foe.flying ? (foe.flyHeight ?? 0) : 0) }
+function foeFlyOffset(foe: Foe) {
+  if (!foe.flying) return 0
+  const base = foe.flyHeight ?? 0
+  const amplitude = foe.flyAmplitude ?? 0
+  const speed = foe.flySpeed ?? 1
+  return base + Math.sin(performance.now() / 1000 * speed + (foe.flyPhase ?? 0)) * amplitude
+}
+function foeWorldY(foe: Foe) { return world.floor - foeFlyOffset(foe) }
 function foeScreenLeft(foe: Foe) { return `${((foe.x - cameraX) / world.width) * 100}%` }
 function spawnFoe(x: number, boss = false, flying = false): Foe {
   const config = STAGE_CONFIG[stageIndexNow()]
   const hp = boss ? config.bossHp : config.mobHp
   const clampedX = Math.max(MAP_LEFT + 20, Math.min(unlockedWidth - 40, x))
-  return { id: nextFoeId++, x: clampedX, hp, maxHp: hp, boss, timer: .7 + Math.random() * 1.2, skillTimer: 3.2, rangedTimer: 3.4 + Math.random() * 1.2, flash: 0, attackAnim: 0, flying: boss ? false : flying, flyHeight: !boss && flying ? 70 + Math.random() * 55 : 0, stunTimer: 0 }
+  return { id: nextFoeId++, x: clampedX, hp, maxHp: hp, boss, timer: .7 + Math.random() * 1.2, skillTimer: 3.2, rangedTimer: 3.4 + Math.random() * 1.2, flash: 0, attackAnim: 0, flying: boss ? false : flying, flyHeight: !boss && flying ? 120 + Math.random() * 70 : 0, flyPhase: !boss && flying ? Math.random() * Math.PI * 2 : 0, flyAmplitude: !boss && flying ? 16 + Math.random() * 20 : 0, flySpeed: !boss && flying ? .8 + Math.random() * .5 : 0, stunTimer: 0 }
 }
 function bossFx(action: 'charge' | 'dash' | 'melee' | 'ranged') {
   return `boss-${action}-${BOSS_THEMES[Math.max(0, Math.min(9, (game?.stage ?? 1) - 1))]}`
@@ -530,6 +551,7 @@ function start(role: Role, previous?: Save) {
   const caps = stats()
   game.hp = Math.min(Math.max(1, game.hp), caps.hp)
   game.mp = Math.min(Math.max(0, game.mp), caps.mp)
+  if (scene === 'town') { game.hp = caps.hp; game.mp = caps.mp }
   if (scene === 'battle') enterBattlefield()
   save(); render()
 }
@@ -924,7 +946,7 @@ function townPanelMarkup() {
   if (!game) return ''
   const current = game
   const options = Array.from({ length: current.unlockedStage }, (_, i) => `<option value="${i + 1}" ${current.stage === i + 1 ? 'selected' : ''}>第 ${String(i + 1).padStart(2, '0')} 关 · ${stageNames[i]}</option>`).join('')
-  return `<section class="panel town-panel"><header><span>冒险者小镇</span><small>SAFE HAVEN</small></header><p>在镇内自由走动整备；可以跳跃、攻击和练习技能，不消耗法力。准备好后选择关卡进入遗迹。</p><div class="town-shortcuts"><button class="secondary" data-action="open-crafting">⚒ 合成台</button><button class="secondary" data-action="open-attributes">✦ 属性分配 · ${current.attributePoints ?? 0} 点</button><button class="secondary town-lottery" data-action="open-lottery" ${(current.lotteryChances ?? 0) > 0 ? '' : 'disabled'}>🎟 抽奖 · ${current.lotteryChances ?? 0} 次</button>${npcUnlocked() ? `<button class="secondary town-npc" data-action="open-npc">${itemIcon('npc')} 神秘商人 · S</button>` : ''}</div><div class="town-currency"><span>${itemIcon('soul')} 灵魂 ${current.soul ?? 0}</span><span>${itemIcon('fragment')} 碎片 ${current.talentFragments ?? 0}</span><span>${itemIcon('coin')} 天赋币 ${current.talentCoins ?? 0}</span></div>${npcUnlocked() ? '<p class="npc-hint">商人已经出现在镇上：走到她面前按 S 对话。</p>' : '<p class="npc-hint">通关第三关后，镇上会出现一位商人。</p>'}${current.completed ? `<p class="stage-progress-copy">十片遗迹皆已沉寂</p><button class="primary" data-action="role-select">返回角色选择</button>` : `<label class="stage-picker"><span>选择关卡</span><select id="stage-select">${options}</select></label><button class="primary" data-action="enter-stage">进入遗迹　→</button>`}</section>`
+  return `<section class="panel town-panel"><header><span>冒险者小镇</span><small>SAFE HAVEN</small></header><p>在镇内自由走动整备；可以跳跃、攻击和练习技能，不消耗法力。准备好后选择关卡进入遗迹。</p><div class="town-shortcuts"><button class="secondary" data-action="open-crafting">⚒ 合成台</button><button class="secondary" data-action="open-attributes">✦ 属性分配 · ${current.attributePoints ?? 0} 点</button><button class="secondary town-lottery" data-action="open-lottery" ${(current.lotteryChances ?? 0) > 0 ? '' : 'disabled'}>🎟 抽奖 · ${current.lotteryChances ?? 0} 次</button>${npcUnlocked() ? `<button class="secondary town-npc" data-action="open-npc">${itemIcon('npc')} 神秘商人 · S</button>` : ''}</div><div class="town-currency"><span>${itemIcon('soul')} 灵魂 ${displayCurrency(current.soul ?? 0)}</span><span>${itemIcon('fragment')} 碎片 ${displayCurrency(current.talentFragments ?? 0)}</span><span>${itemIcon('coin')} 天赋币 ${displayCurrency(current.talentCoins ?? 0)}</span></div>${npcUnlocked() ? '<p class="npc-hint">商人已经出现在镇上：走到她面前按 S 对话。</p>' : '<p class="npc-hint">通关第三关后，镇上会出现一位商人。</p>'}${current.completed ? `<p class="stage-progress-copy">十片遗迹皆已沉寂</p><button class="primary" data-action="role-select">返回角色选择</button>` : `<label class="stage-picker"><span>选择关卡</span><select id="stage-select">${options}</select></label><button class="primary" data-action="enter-stage">进入遗迹　→</button>`}</section>`
 }
 function npcUnlocked() {
   if (!game) return false
@@ -971,17 +993,17 @@ function bagMarkup() {
   const tabs = [['gear', `${itemIcon('weapon')} 装备`], ['talent', `${itemIcon('coin')} 天赋币`], ['other', `${itemIcon('soul')} 其他`]] as const
   const tabButtons = tabs.map(([id, label]) => `<button class="${bagTab === id ? 'active' : ''}" data-action="bag-tab" data-tab="${id}" type="button">${label}</button>`).join('')
   const content = bagTab === 'gear' ? `<div class="bag-list">${gearMarkup(scene === 'town')}</div>` : bagTab === 'talent' ? talentBagMarkup() : otherBagMarkup()
-  return `<div class="bag-scrim"><section class="bag-dialog"><header><div><small>INVENTORY · ${game.gear.length} 件物品</small><h2>远征背包</h2></div><button data-action="close-bag" aria-label="关闭背包">×</button></header><div class="bag-character"><div class="bag-stats"><span>♥ 生命 ${Math.ceil(game.hp)} / ${s.hp}</span><span>✦ 法力 ${Math.ceil(game.mp)} / ${s.mp}</span><span>⚔ 攻击 ${s.attack}</span><span>▰ 防御 ${s.defense}</span><span>★ 等级 ${game.level ?? 1}</span></div><div class="bag-equipped">${chips}</div></div><div class="bag-tabs">${tabButtons}</div>${content}</section></div>`
+  return `<div class="bag-scrim"><section class="bag-dialog"><header><div><small>INVENTORY · ${game.gear.length} 件物品</small><h2>远征背包</h2></div><button data-action="close-bag" aria-label="关闭背包">×</button></header><div class="bag-character"><div class="bag-stats"><span>♥ 生命 ${displayNumber(game.hp)} / ${displayNumber(s.hp)}</span><span>✦ 法力 ${displayNumber(game.mp)} / ${displayNumber(s.mp)}</span><span>⚔ 攻击 ${displayNumber(s.attack)}</span><span>▰ 防御 ${displayNumber(s.defense)}</span><span>★ 等级 ${game.level ?? 1}</span></div><div class="bag-equipped">${chips}</div></div><div class="bag-tabs">${tabButtons}</div>${content}</section></div>`
 }
 function talentBagMarkup() {
   if (!game) return ''
   const normal = NORMAL_TALENTS.find((talent) => talent.id === game?.normalTalent)
   const advanced = ADVANCED_TALENTS.find((talent) => talent.id === game?.advancedTalent)
-  return `<div class="bag-info-list"><article class="info-row"><span>${itemIcon('fragment')} 天赋币碎片</span><b>${game.talentFragments ?? 0}</b></article><article class="info-row"><span>${itemIcon('coin')} 天赋币</span><b>${game.talentCoins ?? 0}</b></article><article class="info-row"><span>${itemIcon('attribute')} 普通天赋</span><b>${normal?.name ?? '未选择'}</b></article><article class="info-row"><span>${itemIcon('coin')} 高级天赋</span><b>${advanced?.name ?? '未选择'}</b></article></div><p class="bag-note">在同一背包中管理天赋材料；前往小镇商人处合成天赋币并选择天赋。</p>`
+  return `<div class="bag-info-list"><article class="info-row"><span>${itemIcon('fragment')} 天赋币碎片</span><b>${displayCurrency(game.talentFragments ?? 0)}</b></article><article class="info-row"><span>${itemIcon('coin')} 天赋币</span><b>${displayCurrency(game.talentCoins ?? 0)}</b></article><article class="info-row"><span>${itemIcon('attribute')} 普通天赋</span><b>${normal?.name ?? '未选择'}</b></article><article class="info-row"><span>${itemIcon('coin')} 高级天赋</span><b>${advanced?.name ?? '未选择'}</b></article></div><p class="bag-note">在同一背包中管理天赋材料；前往小镇商人处合成天赋币并选择天赋。</p>`
 }
 function otherBagMarkup() {
   if (!game) return ''
-  return `<div class="bag-info-list"><article class="info-row"><span>${itemIcon('soul')} 灵魂</span><b>${game.soul ?? 0}</b></article><article class="info-row"><span>${itemIcon('ticket')} 抽奖机会</span><b>${game.lotteryChances ?? 0}</b></article><article class="info-row"><span>${itemIcon('attribute')} 属性点</span><b>${game.attributePoints ?? 0}</b></article></div><p class="bag-note">灵魂可以在小镇商人处购买装备与材料。</p>`
+  return `<div class="bag-info-list"><article class="info-row"><span>${itemIcon('soul')} 灵魂</span><b>${displayCurrency(game.soul ?? 0)}</b></article><article class="info-row"><span>${itemIcon('ticket')} 抽奖机会</span><b>${displayCurrency(game.lotteryChances ?? 0)}</b></article><article class="info-row"><span>${itemIcon('attribute')} 属性点</span><b>${displayCurrency(game.attributePoints ?? 0)}</b></article></div><p class="bag-note">灵魂可以在小镇商人处购买装备与材料。</p>`
 }
 function npcMarkup() {
   if (!game || !npcOpen) return ''
@@ -991,7 +1013,7 @@ function npcMarkup() {
 }
 function npcMenuMarkup() {
   if (!game) return ''
-  return `<p>“灵魂、天赋、运气——你想要哪一种？”</p><div class="npc-menu"><button data-action="npc-shop"><b>${itemIcon('soul')}</b><span><strong>商城</strong><small>用灵魂购买装备与材料</small></span></button><button data-action="npc-talent"><b>${itemIcon('coin')}</b><span><strong>天赋</strong><small>${talentUnlocked() ? '研究普通与高级天赋' : '角色 5 级后开放'}</small></span></button><button data-action="open-lottery"><b>${itemIcon('ticket')}</b><span><strong>抽奖</strong><small>${game.lotteryChances ?? 0} 次机会</small></span></button></div><div class="npc-currency"><span>${itemIcon('soul')} 灵魂 ${game.soul ?? 0}</span><span>${itemIcon('fragment')} 碎片 ${game.talentFragments ?? 0}</span><span>${itemIcon('coin')} 天赋币 ${game.talentCoins ?? 0}</span></div>`
+  return `<p>“灵魂、天赋、运气——你想要哪一种？”</p><div class="npc-menu"><button data-action="npc-shop"><b>${itemIcon('soul')}</b><span><strong>商城</strong><small>用灵魂购买装备与材料</small></span></button><button data-action="npc-talent"><b>${itemIcon('coin')}</b><span><strong>天赋</strong><small>${talentUnlocked() ? '研究普通与高级天赋' : '角色 5 级后开放'}</small></span></button><button data-action="open-lottery"><b>${itemIcon('ticket')}</b><span><strong>抽奖</strong><small>${game.lotteryChances ?? 0} 次机会</small></span></button></div><div class="npc-currency"><span>${itemIcon('soul')} 灵魂 ${displayCurrency(game.soul ?? 0)}</span><span>${itemIcon('fragment')} 碎片 ${displayCurrency(game.talentFragments ?? 0)}</span><span>${itemIcon('coin')} 天赋币 ${displayCurrency(game.talentCoins ?? 0)}</span></div>`
 }
 function shopMarkup() {
   if (!game) return ''
@@ -1001,19 +1023,27 @@ function shopMarkup() {
     const icon = item.id === 'armor1' ? 'armor' : item.id === 'weapon1' ? 'weapon' : item.id === 'fragments2' ? 'fragment' : 'fashion'
     return `<article class="shop-row"><span class="gear-glyph">${itemIcon(icon)}</span><span class="gear-copy"><b>${item.name}</b><small>${item.desc}</small></span><b class="shop-price">${itemIcon('soul')} ${item.cost}</b><button data-action="shop-buy" data-id="${item.id}" ${canBuy ? '' : 'disabled'}>${soldOut ? '已购买' : '购买'}</button></article>`
   }).join('')
-  return `<div class="npc-currency"><span>${itemIcon('soul')} 灵魂 ${game.soul ?? 0}</span><span>${itemIcon('fragment')} 碎片 ${game.talentFragments ?? 0}</span></div><div class="bag-list shop-list">${rows}</div><button class="secondary npc-back" data-action="npc-menu">返回商人</button>`
+  return `<div class="npc-currency"><span>${itemIcon('soul')} 灵魂 ${displayCurrency(game.soul ?? 0)}</span><span>${itemIcon('fragment')} 碎片 ${displayCurrency(game.talentFragments ?? 0)}</span></div><div class="bag-list shop-list">${rows}</div><button class="secondary npc-back" data-action="npc-menu">返回商人</button>`
 }
 function talentMarkup() {
   if (!game) return ''
   if (!talentUnlocked()) return `<div class="talent-locked"><b>天赋尚未解锁</b><p>角色达到 5 级后可以研究天赋。</p><button class="secondary npc-back" data-action="npc-menu">返回商人</button></div>`
-  const normalRows = NORMAL_TALENTS.map((talent) => `<article class="talent-row ${game!.normalTalent === talent.id ? 'active' : ''}"><span class="gear-glyph">${itemIcon('attribute')}</span><span class="gear-copy"><b>${talent.name}</b><small>${talent.desc}</small></span><button data-action="talent-normal" data-id="${talent.id}">${game!.normalTalent === talent.id ? '已选' : '选择'}</button></article>`).join('')
+  const hasNormal = (game.normalTalent ?? 0) > 0
+  const hasAdvanced = (game.advancedTalent ?? 0) > 0
+  const normalRows = NORMAL_TALENTS.map((talent) => {
+    const active = game!.normalTalent === talent.id
+    const can = active || hasNormal || (game!.talentCoins ?? 0) >= 1
+    const label = active ? '已选' : hasNormal ? '更换' : `选择 ${itemIcon('coin')}1`
+    return `<article class="talent-row ${active ? 'active' : ''}"><span class="gear-glyph">${itemIcon('attribute')}</span><span class="gear-copy"><b>${talent.name}</b><small>${talent.desc}</small></span><button data-action="talent-normal" data-id="${talent.id}" ${can ? '' : 'disabled'}>${label}</button></article>`
+  }).join('')
   const advancedRows = ADVANCED_TALENTS.map((talent) => {
     const active = game!.advancedTalent === talent.id
-    const can = (game!.talentCoins ?? 0) >= ADVANCED_TALENT_COST
-    return `<article class="talent-row ${active ? 'active' : ''}"><span class="gear-glyph">${itemIcon('coin')}</span><span class="gear-copy"><b>${talent.name}</b><small>${talent.desc}</small></span><button data-action="talent-advanced" data-id="${talent.id}" ${active || can ? '' : 'disabled'}>${active ? '已选' : `选择 ${itemIcon('coin')}${ADVANCED_TALENT_COST}`}</button></article>`
+    const can = active || hasAdvanced || (game!.talentCoins ?? 0) >= ADVANCED_TALENT_COST
+    const label = active ? '已选' : hasAdvanced ? '更换' : `选择 ${itemIcon('coin')}${ADVANCED_TALENT_COST}`
+    return `<article class="talent-row ${active ? 'active' : ''}"><span class="gear-glyph">${itemIcon('coin')}</span><span class="gear-copy"><b>${talent.name}</b><small>${talent.desc}</small></span><button data-action="talent-advanced" data-id="${talent.id}" ${can ? '' : 'disabled'}>${label}</button></article>`
   }).join('')
   const canCraft = (game.talentFragments ?? 0) >= TALENT_FRAGMENTS_PER_COIN
-  return `<div class="npc-currency"><span>${itemIcon('fragment')} 碎片 ${game.talentFragments ?? 0}</span><span>${itemIcon('coin')} 天赋币 ${game.talentCoins ?? 0}</span><span>${itemIcon('attribute')} 等级 ${game.level ?? 1}</span></div><section class="talent-block"><h3>普通天赋 <small>只能选择一个，可以重新选择</small></h3>${normalRows}</section><section class="talent-block"><h3>高级天赋 <small>需要 ${itemIcon('coin')}${ADVANCED_TALENT_COST} 天赋币</small></h3>${advancedRows}</section><div class="talent-footer"><button class="secondary" data-action="talent-craft" ${canCraft ? '' : 'disabled'}>${itemIcon('coin')} 合成天赋币（${game.talentFragments ?? 0} / ${TALENT_FRAGMENTS_PER_COIN}）</button><button class="secondary npc-back" data-action="npc-menu">返回商人</button></div><p class="bag-note">同时拥有普通和高级天赋后，Boss 掉落的天赋币碎片将转化为 1000 灵魂。</p>`
+  return `<div class="npc-currency"><span>${itemIcon('fragment')} 碎片 ${displayCurrency(game.talentFragments ?? 0)}</span><span>${itemIcon('coin')} 天赋币 ${displayCurrency(game.talentCoins ?? 0)}</span><span>${itemIcon('attribute')} 等级 ${displayNumber(game.level ?? 1)}</span></div><section class="talent-block"><h3>普通天赋 <small>${hasNormal ? '更换免费' : '首次选择需要 1 天赋币'} · 只能选择一个</small></h3>${normalRows}</section><section class="talent-block"><h3>高级天赋 <small>${hasAdvanced ? '更换免费' : `首次选择需要 ${ADVANCED_TALENT_COST} 天赋币`} · 只能选择一个</small></h3>${advancedRows}</section><div class="talent-footer"><button class="secondary" data-action="talent-craft" ${canCraft ? '' : 'disabled'}>${itemIcon('coin')} 合成天赋币（${displayCurrency(game.talentFragments ?? 0)} / ${TALENT_FRAGMENTS_PER_COIN}）</button><button class="secondary npc-back" data-action="npc-menu">返回商人</button></div><p class="bag-note">同时拥有普通和高级天赋后，Boss 掉落的天赋币碎片将转化为 1000 灵魂。</p>`
 }
 function lotteryMarkup() {
   if (!game || !lotteryOpen) return ''
@@ -1072,7 +1102,7 @@ function applyLotteryPrize(id: string) {
   else if (id === 'coin') game.talentCoins = (game.talentCoins ?? 0) + 1
   else if (id === 'soul') game.soul = (game.soul ?? 0) + 2000
   else if (id === 'fashion') game.gear.unshift(makeFashion(1))
-  else if (id === 'gearHigh') game.gear.unshift(makeGear(Math.random() < .5 ? 'weapon' : 'armor', Math.min(10, stage + 1)))
+  else if (id === 'gearHigh') game.gear.unshift(makeGear(Math.random() < .5 ? 'weapon' : 'armor', stage + 1))
 }
 function startLottery() {
   if (!game || lotterySpinning || (game.lotteryChances ?? 0) <= 0) return
@@ -1113,17 +1143,21 @@ function buyShopItem(id: string) {
 function selectNormalTalent(id: number) {
   if (!game || !talentUnlocked()) return
   if (game.normalTalent === id) { toast('已经选择了这个天赋。'); return }
+  const hasNormal = (game.normalTalent ?? 0) > 0
+  if (!hasNormal && (game.talentCoins ?? 0) < 1) { toast('首次选择普通天赋需要 1 个天赋币。'); return }
+  if (!hasNormal) game.talentCoins = (game.talentCoins ?? 0) - 1
   game.normalTalent = id
   const current = stats(); game.hp = Math.min(game.hp, current.hp); game.mp = Math.min(game.mp, current.mp)
-  save(); npcOpen = true; npcView = 'talent'; renderGame(); toast('普通天赋已更新。')
+  save(); npcOpen = true; npcView = 'talent'; renderGame(); toast(hasNormal ? '普通天赋已更换（更换免费）。' : '普通天赋已选择。')
 }
 function selectAdvancedTalent(id: number) {
   if (!game || !talentUnlocked() || game.advancedTalent === id) return
-  if ((game.talentCoins ?? 0) < ADVANCED_TALENT_COST) { toast(`需要 ${ADVANCED_TALENT_COST} 个天赋币。`); return }
-  game.talentCoins = (game.talentCoins ?? 0) - ADVANCED_TALENT_COST
+  const hasAdvanced = (game.advancedTalent ?? 0) > 0
+  if (!hasAdvanced && (game.talentCoins ?? 0) < ADVANCED_TALENT_COST) { toast(`首次选择高级天赋需要 ${ADVANCED_TALENT_COST} 个天赋币。`); return }
+  if (!hasAdvanced) game.talentCoins = (game.talentCoins ?? 0) - ADVANCED_TALENT_COST
   game.advancedTalent = id
   const current = stats(); game.hp = Math.min(game.hp, current.hp); game.mp = Math.min(game.mp, current.mp)
-  save(); npcOpen = true; npcView = 'talent'; renderGame(); toast('高级天赋已选择。')
+  save(); npcOpen = true; npcView = 'talent'; renderGame(); toast(hasAdvanced ? '高级天赋已更换（更换免费）。' : '高级天赋已选择。')
 }
 function craftTalentCoin() {
   if (!game || (game.talentFragments ?? 0) < TALENT_FRAGMENTS_PER_COIN) return
@@ -1154,14 +1188,15 @@ function renderGame() {
   if (!game) return renderTitle()
   const s = stats()
   const isTown = scene === 'town'
+  const canControl = (scene === 'battle' || scene === 'town') && !paused && !bossVictory
   if (isTown) { heroX = Math.max(TOWN_LEFT, Math.min(TOWN_RIGHT, heroX)); cameraX = 0 }
   const boss = foes.some((foe) => foe.boss)
   setMusicMode(isTown ? 'town' : boss ? 'boss' : 'battle')
   const countText = boss ? '守关者' : `${game.kills} / ${MAX_SMALL_KILLS}`
   const townOverlay = ''
-  const deathOverlay = scene === 'defeat' ? '<div class="overlay death-overlay"><small>EXPEDITION PAUSED</small><h2>你倒在了遗迹深处</h2><p>已获得的装备和关卡进度都会保留。</p><div class="death-actions"><button data-action="respawn-town" class="primary">重生到小镇</button><button data-action="respawn-fight" class="secondary">继续战斗</button></div></div>' : ''
+  const deathOverlay = scene === 'defeat' ? '<div class="overlay death-overlay"><small>EXPEDITION PAUSED</small><h2>你倒在了遗迹深处</h2><p>继续战斗会以半血复活并保留当前进度；重新开始会恢复满状态并从本关第一波重新挑战。</p><div class="death-actions"><button data-action="respawn-fight" class="primary">继续战斗（半血）</button><button data-action="restart-stage" class="secondary">重新开始（满状态）</button></div></div>' : ''
   const endingOverlay = scene === 'ending' ? '<div class="overlay"><small>THE FRONTIER IS YOURS</small><h2>十片遗迹，皆已沉寂</h2><p>你完成了元素远征。</p><button data-action="town" class="primary">返回小镇　↗</button></div>' : ''
-  app.innerHTML = `<main class="game-shell ${isTown ? 'town-mode' : ''}"><header class="game-header"><a data-action="town" class="wordmark"><b>A</b> 冒险王 <i>／</i> ${isTown ? '冒险者小镇' : '元素远征'}</a>${DEMO_MODE ? '<span class="demo-badge">体验版 · 全关卡</span>' : ''}<span class="save-state"><i></i>${isTown ? '小镇安全区' : '进度已自动保存'}</span><span class="soul-badge" title="灵魂">${itemIcon('soul')} ${game.soul ?? 0}</span><button class="bag-button" data-action="bag">${itemIcon('bag')} 背包 <span>${game.gear.length}</span></button><button class="save-button" data-action="save" title="保存进度">▣</button></header><section class="overview"><div><small>${isTown ? '冒险者小镇' : `第 ${String(game.stage).padStart(2, '0')} 章`}</small><h1>${isTown ? '营火集市' : stageNames[game.stage - 1]}</h1><p>${isTown ? '缓冲区 · 整备装备与选择关卡' : `遗迹入口 · 击败 ${MAX_SMALL_KILLS} 只守卫后迎战 Boss`}</p></div><div class="metrics"><div><small>职业</small><b>${roleLabels[game.role]}</b></div><div><small>已击杀</small><b>${isTown ? `开放至第 ${game.unlockedStage} 关` : countText}</b></div><div><small>当前装备</small><b>${item()?.name ?? '无'}</b></div></div></section><section class="game-grid"><div class="battle-column"><div class="arena-label"><span>◆ ${isTown ? '冒险者小镇 · 补给站' : `${stageNames[game.stage - 1]} · 深层区域`}</span><b id="enemy-name">${isTown ? '安全区域' : boss ? '守关者冲刺准备中' : `${foes.length} 只守卫正在逼近`}</b></div><div class="arena-stage"><div class="mobile-rail mobile-move-rail"><button class="mobile-pad" data-move="left" aria-label="向左移动" title="向左移动">←</button><button class="mobile-pad" data-move="right" aria-label="向右移动" title="向右移动">→</button></div><div class="arena"><canvas id="arena" aria-label="横版战斗场景"></canvas><div class="coords"><span>${isTown ? 'TOWN · SAFE ZONE' : `遗迹远征 · ${String(game.stage).padStart(2, '0')}`}</span><span>${boss ? 'BOSS ENCOUNTER' : isTown ? 'REST & PREPARE' : 'WAVE ENCOUNTER'}</span></div>${townOverlay}${deathOverlay}${endingOverlay}${bossVictoryMarkup()}</div><div class="mobile-rail mobile-action-rail"><button class="mobile-pad attack-pad" data-action="attack" aria-label="攻击" title="攻击" ${(scene === 'battle' || scene === 'town') && !bossVictory ? '' : 'disabled'}>⚔</button><button class="mobile-pad jump-pad" data-action="jump" aria-label="跳跃" title="跳跃" ${(scene === 'battle' || scene === 'town') && !bossVictory ? '' : 'disabled'}>↟</button></div></div><div class="foe-health"><div><span>${isTown ? '冒险者状态' : boss ? '守关者' : '本批守卫'}</span><b id="foe-hp">${isTown ? '安全休整' : boss ? `${Math.ceil(foes[0]?.hp ?? 0)} / ${foes[0]?.maxHp ?? 0}` : `${foes.length} 名敌人 · 已击败 ${game.kills} / ${MAX_SMALL_KILLS}`}</b></div><div><i id="foe-fill" style="width:${boss ? `${Math.max(0, foes[0].hp / foes[0].maxHp * 100)}%` : '100%'}"></i></div></div><div class="combat-bar"><button data-action="attack" class="attack" ${(scene === 'battle' || scene === 'town') && !bossVictory ? '' : 'disabled'}><b>${game.role === 'warrior' ? '⚔' : '✦'}</b><span><strong>${game.role === 'warrior' ? '剑刃斩击' : '法杖射击'}</strong><small>J · ${game.role === 'warrior' ? '近战' : '远程'}</small></span></button><button data-action="jump" ${(scene === 'battle' || scene === 'town') && !bossVictory ? '' : 'disabled'}><b>↟</b><span><strong>跳跃</strong><small>K ×2</small></span></button>${skillLabels[game.role].map((label, i) => `<button data-action="skill" data-index="${i}" ${(scene === 'battle' || scene === 'town') && !bossVictory ? '' : 'disabled'}><i>${i + 1}</i><span><strong>${label}</strong><small>${skillSummary(game!.role, i)}</small></span></button>`).join('')}</div><div class="combat-log"><b>✦</b><span>${logText}</span></div></div><aside class="side-column">${isTown ? townPanelMarkup() : ''}<section class="panel status-panel"><header><span>角色状态</span><small>${String(game.stage).padStart(2, '0')}</small></header><div class="hero-card"><b class="avatar ${game.role}">${game.role === 'warrior' ? '刃' : '✦'}</b><span><strong>${roleLabels[game.role]}</strong><small>${game.role === 'warrior' ? '钢铁誓约 · 剑士' : '星辉学派 · 法杖'}</small></span></div><div class="resource-label"><span>生命</span><b id="hp-text">${Math.ceil(game.hp)} <i>/ ${s.hp}</i></b><em>♥</em></div><div class="resource"><i id="hp-fill" style="width:${game.hp / s.hp * 100}%"></i></div><div class="resource-label mana-label"><span>法力</span><b id="mp-text">${Math.ceil(game.mp)} <i>/ ${s.mp}</i></b><em>✦</em></div><div class="resource"><i id="mp-fill" style="width:${game.mp / s.mp * 100}%"></i></div><div class="stats"><div><small>攻击</small><b>${s.attack}</b></div><div><small>防御</small><b>${s.defense}</b></div><div><small>增益</small><b id="buff-stat">${buffTime > 0 ? `${buffTime.toFixed(1)}s` : '—'}</b></div></div></section><section class="panel gear-panel"><header><span>装备栏</span><small>${item()?.name ?? '未装备'}</small></header><div class="gear-summary">${item() ? `生命 +${item()!.hp}　攻击 +${item()!.attack}　防御 +${item()!.defense}` : '装备不会自动穿戴，请在小镇打开背包手动更换。'}</div><button class="open-bag" data-action="bag">打开背包　↗</button><div class="camp-hint">⌂　${isTown ? '安全区内可自由更换装备' : '击败 Boss 后回到小镇整备'}</div></section></aside></section><footer class="game-footer"><span>WASD / ← → 移动　·　J 攻击　·　K 跳跃 / 二段跳　·　1–4 技能</span><b>LOCAL SAVE　●</b></footer>${bagOpen ? bagMarkup() : ''}</main>`
+  app.innerHTML = `<main class="game-shell ${isTown ? 'town-mode' : ''}"><header class="game-header"><a data-action="town" class="wordmark"><b>A</b> 冒险王 <i>／</i> ${isTown ? '冒险者小镇' : '元素远征'}</a>${DEMO_MODE ? '<span class="demo-badge">体验版 · 全关卡</span>' : ''}<span class="save-state"><i></i>${isTown ? '小镇安全区' : '进度已自动保存'}</span><span class="soul-badge" title="灵魂">${itemIcon('soul')} ${displayNumber(game.soul ?? 0)}</span><button class="bag-button" data-action="bag">${itemIcon('bag')} 背包 <span>${game.gear.length}</span></button><button class="save-button" data-action="save" title="保存进度">▣</button></header><section class="overview"><div><small>${isTown ? '冒险者小镇' : `第 ${String(game.stage).padStart(2, '0')} 章`}</small><h1>${isTown ? '营火集市' : stageNames[game.stage - 1]}</h1><p>${isTown ? '缓冲区 · 整备装备与选择关卡' : `遗迹入口 · 击败 ${MAX_SMALL_KILLS} 只守卫后迎战 Boss`}</p></div><div class="metrics"><div><small>职业</small><b>${roleLabels[game.role]}</b></div><div><small>已击杀</small><b>${isTown ? `开放至第 ${game.unlockedStage} 关` : countText}</b></div><div><small>当前装备</small><b>${item()?.name ?? '无'}</b></div></div></section><section class="game-grid"><div class="battle-column"><div class="arena-label"><span>◆ ${isTown ? '冒险者小镇 · 补给站' : `${stageNames[game.stage - 1]} · 深层区域`}</span><b id="enemy-name">${isTown ? '安全区域' : boss ? '守关者冲刺准备中' : `${foes.length} 只守卫正在逼近`}</b></div><div class="arena-stage"><div class="mobile-rail mobile-move-rail"><button class="mobile-pad" data-move="left" aria-label="向左移动" title="向左移动" ${canControl ? '' : 'disabled'}>←</button><button class="mobile-pad" data-move="right" aria-label="向右移动" title="向右移动" ${canControl ? '' : 'disabled'}>→</button></div><div class="arena"><canvas id="arena" aria-label="横版战斗场景"></canvas><div class="coords"><span>${isTown ? 'TOWN · SAFE ZONE' : `遗迹远征 · ${String(game.stage).padStart(2, '0')}`}</span><span>${boss ? 'BOSS ENCOUNTER' : isTown ? 'REST & PREPARE' : 'WAVE ENCOUNTER'}</span></div>${townOverlay}${deathOverlay}${endingOverlay}${bossVictoryMarkup()}</div><div class="mobile-rail mobile-action-rail"><div class="mobile-skills">${[0, 1, 2, 3].map((index) => `<button class="mobile-skill" data-action="skill" data-index="${index}" aria-label="技能 ${index + 1}" ${canControl ? '' : 'disabled'}>${index + 1}</button>`).join('')}</div><button class="mobile-pad attack-pad" data-action="attack" aria-label="攻击" title="攻击" ${canControl ? '' : 'disabled'}>⚔</button><button class="mobile-pad jump-pad" data-action="jump" aria-label="跳跃" title="跳跃" ${canControl ? '' : 'disabled'}>↟</button></div></div><div class="foe-health"><div><span>${isTown ? '冒险者状态' : boss ? '守关者' : '本批守卫'}</span><b id="foe-hp">${isTown ? '安全休整' : boss ? `${Math.ceil(foes[0]?.hp ?? 0)} / ${foes[0]?.maxHp ?? 0}` : `${foes.length} 名敌人 · 已击败 ${game.kills} / ${MAX_SMALL_KILLS}`}</b></div><div><i id="foe-fill" style="width:${boss ? `${Math.max(0, foes[0].hp / foes[0].maxHp * 100)}%` : '100%'}"></i></div></div><div class="combat-bar"><button data-action="attack" class="attack" ${canControl ? '' : 'disabled'}><b>${game.role === 'warrior' ? '⚔' : '✦'}</b><span><strong>${game.role === 'warrior' ? '剑刃斩击' : '法杖射击'}</strong><small>J · ${game.role === 'warrior' ? '近战' : '远程'}</small></span></button><button data-action="jump" ${canControl ? '' : 'disabled'}><b>↟</b><span><strong>跳跃</strong><small>K ×2</small></span></button>${skillLabels[game.role].map((label, i) => `<button data-action="skill" data-index="${i}" ${canControl ? '' : 'disabled'}><i>${i + 1}</i><span><strong>${label}</strong><small>${skillSummary(game!.role, i)}</small></span></button>`).join('')}</div><div class="combat-log"><b>✦</b><span>${logText}</span></div></div><aside class="side-column">${isTown ? townPanelMarkup() : ''}<section class="panel status-panel"><header><span>角色状态</span><small>${String(game.stage).padStart(2, '0')}</small></header><div class="hero-card"><b class="avatar ${game.role}">${game.role === 'warrior' ? '刃' : '✦'}</b><span><strong>${roleLabels[game.role]}</strong><small>${game.role === 'warrior' ? '钢铁誓约 · 剑士' : '星辉学派 · 法杖'}</small></span></div><div class="resource-label"><span>生命</span><b id="hp-text">${displayNumber(game.hp)} <i>/ ${displayNumber(s.hp)}</i></b><em>♥</em></div><div class="resource"><i id="hp-fill" style="width:${game.hp / s.hp * 100}%"></i></div><div class="resource-label mana-label"><span>法力</span><b id="mp-text">${displayNumber(game.mp)} <i>/ ${displayNumber(s.mp)}</i></b><em>✦</em></div><div class="resource"><i id="mp-fill" style="width:${game.mp / s.mp * 100}%"></i></div><div class="stats"><div><small>攻击</small><b>${displayNumber(s.attack)}</b></div><div><small>防御</small><b>${displayNumber(s.defense)}</b></div><div><small>增益</small><b id="buff-stat">${buffTime > 0 ? `${buffTime.toFixed(1)}s` : '—'}</b></div></div></section><section class="panel gear-panel"><header><span>装备栏</span><small>${item()?.name ?? '未装备'}</small></header><div class="gear-summary">${item() ? `生命 +${item()!.hp}　攻击 +${item()!.attack}　防御 +${item()!.defense}` : '装备不会自动穿戴，请在小镇打开背包手动更换。'}</div><button class="open-bag" data-action="bag">打开背包　↗</button><div class="camp-hint">⌂　${isTown ? '安全区内可自由更换装备' : '击败 Boss 后回到小镇整备'}</div></section></aside></section><footer class="game-footer"><span>WASD / ← → 移动　·　J 攻击　·　K 跳跃 / 二段跳　·　1–4 技能</span><b>LOCAL SAVE　●</b></footer>${bagOpen ? bagMarkup() : ''}</main>`
   if (craftingOpen && isTown) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', `<div class="bag-scrim craft-scrim"><section class="bag-dialog craft-dialog"><header><div><small>FORGE · 冒险者小镇</small><h2>合成台</h2></div><button data-action="close-crafting" aria-label="关闭合成台">×</button></header><p>只消耗未穿戴的材料：5 件同类同等级武器/护甲合成高一级装备；3 件一阶时装合成二阶时装。</p><div class="bag-list craft-list">${craftMarkup()}</div></section></div>`)
   if (attributesOpen && isTown) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', attributeMarkup())
   if (npcOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', npcMarkup())
@@ -1195,7 +1230,7 @@ function render() {
   scene === 'title' ? renderTitle() : renderGame()
 }
 function foeHeadTop(foe: Foe) {
-  const offset = (foe.boss ? 242 : 90) + (foe.flying ? (foe.flyHeight ?? 0) : 0)
+  const offset = (foe.boss ? 242 : 90) + foeFlyOffset(foe)
   return `${((world.floor - offset) / world.height) * 100}%`
 }
 function mountBattleHud() {
@@ -1207,7 +1242,7 @@ function mountBattleHud() {
     const s = stats()
     const bars = document.createElement('div')
     bars.className = 'player-resource-bars'
-    bars.innerHTML = `<div class="player-resource"><div><span>生命</span><b id="hp-text">${Math.ceil(game.hp)} / ${s.hp}</b></div><div class="resource"><i id="hp-fill" style="width:${game.hp / s.hp * 100}%"></i></div></div><div class="player-resource mana-resource"><div><span>法力</span><b id="mp-text">${Math.ceil(game.mp)} / ${s.mp}</b></div><div class="resource"><i id="mp-fill" style="width:${game.mp / s.mp * 100}%"></i></div></div>`
+    bars.innerHTML = `<div class="player-resource"><div><span>生命</span><b id="hp-text">${displayNumber(game.hp)} / ${displayNumber(s.hp)}</b></div><div class="resource"><i id="hp-fill" style="width:${game.hp / s.hp * 100}%"></i></div></div><div class="player-resource mana-resource"><div><span>法力</span><b id="mp-text">${displayNumber(game.mp)} / ${displayNumber(s.mp)}</b></div><div class="resource"><i id="mp-fill" style="width:${game.mp / s.mp * 100}%"></i></div></div>`
     battleColumn.insertBefore(bars, foeHealth)
   }
   const arena = document.querySelector<HTMLElement>('.arena')
@@ -1229,9 +1264,10 @@ function mountLevelHud() {
   const level = game.level ?? 1
   const exp = game.exp ?? 0
   const needed = xpToNext(level)
+  const maxed = !Number.isFinite(needed)
   const progress = document.createElement('div')
   progress.className = 'level-progress'
-  progress.innerHTML = `<div><b id="level-label">角色等级 ${level}</b><span id="xp-label">经验 ${exp} / ${needed}</span></div><div class="xp-track"><i id="xp-fill" style="width:${Math.min(100, exp / needed * 100)}%"></i></div>`
+  progress.innerHTML = `<div><b id="level-label">角色等级 ${level}</b><span id="xp-label">${maxed ? '经验 MAX' : `经验 ${displayNumber(exp)} / ${displayNumber(needed)}`}</span></div><div class="xp-track"><i id="xp-fill" style="width:${maxed ? 100 : Math.min(100, exp / needed * 100)}%"></i></div>`
   heroCard.insertAdjacentElement('afterend', progress)
 }
 function mountEquipmentHud() {
@@ -1257,8 +1293,10 @@ function mountTownStageActions() {
   if (!select || !existingButton) return
   const progress = getStageProgress(game.stage)
   const actionHtml = progress.bossDefeated
-    ? `<p class="stage-progress-copy">本关 Boss 已击败</p><div class="town-stage-choices"><button class="secondary" data-action="restart-stage">重新开始</button><button class="primary" data-action="challenge-boss">直接挑战 Boss</button></div>`
-    : `<p class="stage-progress-copy">未通关 · 必须从第一波开始</p><button class="primary town-continue-stage" data-action="restart-stage">从第一波开始</button>`
+    ? `<p class="stage-progress-copy">本关 Boss 已击败</p><div class="town-stage-choices"><button class="secondary" data-action="restart-stage">重新开始（满状态）</button><button class="primary" data-action="challenge-boss">直接挑战 Boss</button></div>`
+    : game.kills > 0
+      ? `<p class="stage-progress-copy">未通关 · 可继续进度或重新开始</p><div class="town-stage-choices"><button class="primary" data-action="continue-progress">继续战斗（半血）</button><button class="secondary" data-action="restart-stage">重新开始（满状态）</button></div>`
+      : `<p class="stage-progress-copy">未通关 · 从第一波开始</p><button class="primary town-continue-stage" data-action="restart-stage">从第一波开始（满状态）</button>`
   const choices = document.createElement('div')
   choices.className = 'town-stage-actions'
   choices.innerHTML = actionHtml
@@ -1279,9 +1317,10 @@ function syncHud() {
   const level = game.level ?? 1
   const exp = game.exp ?? 0
   const needed = xpToNext(level)
+  const maxed = !Number.isFinite(needed)
   if (levelLabel) levelLabel.textContent = `角色等级 ${level}`
-  if (xpLabel) xpLabel.textContent = `经验 ${exp} / ${needed}`
-  if (xpFill) xpFill.style.width = `${Math.min(100, exp / needed * 100)}%`
+  if (xpLabel) xpLabel.textContent = maxed ? '经验 MAX' : `经验 ${displayNumber(exp)} / ${displayNumber(needed)}`
+  if (xpFill) xpFill.style.width = `${maxed ? 100 : Math.min(100, exp / needed * 100)}%`
   const setWidth = (selector: string, percent: number) => { const el = document.querySelector<HTMLElement>(selector); if (el) el.style.width = `${Math.max(0, Math.min(100, percent))}%` }
   setWidth('#hp-fill', game.hp / s.hp * 100); setWidth('#mp-fill', game.mp / s.mp * 100)
   if (foes[0]?.boss) setWidth('#foe-fill', foes[0].hp / foes[0].maxHp * 100)
@@ -1293,11 +1332,11 @@ function syncHud() {
     if (fill) fill.style.width = `${Math.max(0, foe.hp / foe.maxHp * 100)}%`
     if (label) label.textContent = String(Math.ceil(foe.hp))
   }
-  const hp = document.querySelector<HTMLElement>('#hp-text'); if (hp) hp.innerHTML = `${Math.ceil(game.hp)} <i>/ ${s.hp}</i>`
-  const mp = document.querySelector<HTMLElement>('#mp-text'); if (mp) mp.innerHTML = `${Math.ceil(game.mp)} <i>/ ${s.mp}</i>`
+  const hp = document.querySelector<HTMLElement>('#hp-text'); if (hp) hp.innerHTML = `${displayNumber(game.hp)} <i>/ ${displayNumber(s.hp)}</i>`
+  const mp = document.querySelector<HTMLElement>('#mp-text'); if (mp) mp.innerHTML = `${displayNumber(game.mp)} <i>/ ${displayNumber(s.mp)}</i>`
   const coreStats = document.querySelectorAll<HTMLElement>('.stats div b')
-  if (coreStats[0]) coreStats[0].textContent = String(s.attack)
-  if (coreStats[1]) coreStats[1].textContent = String(s.defense)
+  if (coreStats[0]) coreStats[0].textContent = displayNumber(s.attack)
+  if (coreStats[1]) coreStats[1].textContent = displayNumber(s.defense)
   const killMetric = document.querySelector<HTMLElement>('.metrics div:nth-child(2) b')
   if (killMetric && scene === 'battle') killMetric.textContent = foes.some((foe) => foe.boss) ? '守关者' : `${game.kills} / ${MAX_SMALL_KILLS}`
   const foeHp = document.querySelector<HTMLElement>('#foe-hp')
@@ -1366,8 +1405,9 @@ function strike(target: Foe, damage: number, label: string) {
   const dealt = Math.max(1, Math.round(damage))
   target.hp -= dealt; target.flash = .18
   addDamageText(target, dealt)
-  addFx('impact', target.x, world.floor - (target.boss ? 120 : 72), -1, .22)
-  addSparks(target.x, world.floor - (target.boss ? 110 : 62), 4, ['#ffe6a8', '#e8b56f'], 110)
+  const impactY = target.flying ? foeWorldY(target) - 18 : world.floor - (target.boss ? 120 : 72)
+  addFx('impact', target.x, impactY, -1, .22)
+  addSparks(target.x, impactY + 10, 4, ['#ffe6a8', '#e8b56f'], 110)
   if (target.hp <= 0) defeatFoe(target)
   else syncHud()
   setLog(`${label} · 命中${target.boss ? '守关者' : '守卫'}`)
@@ -1384,15 +1424,20 @@ function attack() {
   const nearest = [...foes].sort((a, b) => Math.abs(a.x - heroX) - Math.abs(b.x - heroX))[0]
   if (nearest) facing = Math.sign(nearest.x - heroX) || facing
   if (game.role === 'warrior') {
-    addFx('sword', heroX + facing * 50, world.floor - 75, facing, .35)
-    if (!foes.length) addFx('slash-crescent', heroX + facing * 58, world.floor - 78, facing, .5)
-    addSparks(heroX + facing * 68, world.floor - 70, 5, ['#ffe3a1', '#d8b86a'], 90)
+    const style = weaponStyle()
+    const fxColor = weaponFxColor()
+    const swingY = world.floor - 66 + heroY
+    addFx(`weapon-swing-${style}`, heroX + facing * 52, swingY, facing, .4, fxColor)
+    if (!foes.length) addFx('slash-crescent', heroX + facing * 58, swingY - 3, facing, .5)
+    addSparks(heroX + facing * 68, swingY + 4, style === 'axe' ? 9 : 5, [fxColor, '#fff2c0'], style === 'axe' ? 140 : 90)
+    if (style === 'axe') addShake(3)
     strikeNearby(stats().attack, '剑刃斩击', 138)
   } else {
     const target = targetForFacing(unlockedWidth - MAP_LEFT)
     const projectileDirection = target ? Math.sign(target.x - heroX) || facing : facing
     projectiles.push({ x: heroX + projectileDirection * 25, y: world.floor - 68 + heroY, vx: projectileDirection * 620, life: 1.3, damage: stats().attack, targetId: target?.id ?? -1 })
     addFx('muzzle', heroX + projectileDirection * 25, world.floor - 68 + heroY, projectileDirection, .16)
+    addSparks(heroX + projectileDirection * 25, world.floor - 68 + heroY, 4, [weaponFxColor(), '#e8ffe8'], 80)
     if (!target) setLog('法杖光弹向空地上射出。')
   }
   playSfx(game.role === 'warrior' ? 'slash' : 'magic')
@@ -1428,9 +1473,12 @@ function cast(index: number) {
     if (nearest) facing = Math.sign(nearest.x - heroX) || facing
   }
   if (game.role === 'warrior') {
+    const style = weaponStyle()
+    const fxColor = weaponFxColor()
     if (index === 0) {
-      addFx('slash-crescent', heroX + facing * 46, world.floor - 82, facing, .5)
-      addSparks(heroX + facing * 70, world.floor - 70, 8, ['#ffe3a1', '#f2c46d'])
+      addFx(`weapon-swing-${style}`, heroX + facing * 48, world.floor - 80 + heroY, facing, .48, fxColor)
+      addFx('slash-crescent', heroX + facing * 46, world.floor - 82 + heroY, facing, .5)
+      addSparks(heroX + facing * 70, world.floor - 70 + heroY, 8, [fxColor, '#f2c46d'])
       const target = targetForFacing(165)
       if (!target) setLog(foes.length ? '距离太远，攻击没有命中。' : '剑气划过空气。')
       else {
@@ -1439,19 +1487,20 @@ function cast(index: number) {
         strike(target, power, '前斩')
       }
     } else if (index === 1) {
-      addFx('whirlwind-storm', heroX, world.floor - 82, facing, .8)
-      addSparks(heroX, world.floor - 70, 14, ['#e9d797', '#cfae6a'], 210)
+      addFx('whirlwind-storm', heroX, world.floor - 82 + heroY, facing, .8)
+      addSparks(heroX, world.floor - 70 + heroY, 14, [fxColor, '#e9d797'], 210)
       addShake(5)
       strikeNearby(power, '旋风斩', 205, true)
     } else if (index === 2) {
-      addFx('thrust-dash', heroX + facing * 88, world.floor - 82, facing, .42)
+      addFx('thrust-dash', heroX + facing * 88, world.floor - 82 + heroY, facing, .42)
       const startX = heroX
       const endX = scene === 'town'
         ? Math.max(TOWN_LEFT, Math.min(TOWN_RIGHT, heroX + facing * 150))
         : clampHeroX(heroX + facing * 150)
       const targets = foes.filter((foe) => foe.x >= Math.min(startX, endX) - 38 && foe.x <= Math.max(startX, endX) + 38)
       heroX = endX
-      addSparks(heroX, world.floor - 70, 6, ['#f3efd6', '#d8c07a'], 120)
+      addFx(`weapon-swing-${style}`, heroX + facing * 50, world.floor - 80 + heroY, facing, .45, fxColor)
+      addSparks(heroX, world.floor - 70 + heroY, 6, [fxColor, '#f3efd6'], 120)
       if (targets.length) {
         // 突刺会把非 Boss 目标一起带到落点前方。
         targets.forEach((foe, order) => {
@@ -1460,6 +1509,7 @@ function cast(index: number) {
         })
       } else setLog('突刺穿过前方，未命中目标。')
     } else {
+      addFx(`weapon-swing-${style}`, heroX + facing * 54, world.floor - 78 + heroY, facing, .5, fxColor)
       addFx('ground-break', heroX + facing * 60, world.floor - 70, facing, .75)
       addSparks(heroX + facing * 60, world.floor - 8, 16, ['#d8b96c', '#a98d55'], 240)
       addShake(12)
@@ -1577,8 +1627,7 @@ function finishBossVictory() {
     game.kills = 0
     game.bossDefeated = false
     scene = 'town'; game.town = true; heroX = 480; cameraX = 0; heroY = 0; velocityY = 0; grounded = true; jumpCount = 0
-    game.hp = Math.min(stats().hp, game.hp + Math.round(stats().hp * .35))
-    game.mp = Math.min(stats().mp, game.mp + 180)
+    restoreTownVitals()
   }
   save(); renderGame()
 }
@@ -1751,13 +1800,15 @@ function synthesizeGear(type: GearType, level: number) {
 function continueCurrentProgress() {
   if (!game || scene !== 'town' || game.kills <= 0 || game.bossDefeated) return
   scene = 'battle'; game.town = false; game.dead = false; paused = false
+  game.hp = Math.max(1, Math.round(stats().hp * .5))
   heroX = 480; heroY = 0; velocityY = 0; grounded = true
   projectiles = []; foeShots = []; effects = []; burst = 0; burstTargetId = null; enterBattlefield(); save(); renderGame()
 }
 function retreatToTown() {
   if (!game) return
   paused = false
-  scene = 'town'; game.town = true; game.dead = false; game.hp = Math.max(1, Math.round(stats().hp * .55)); game.mp = stats().mp
+  scene = 'town'; game.town = true; game.dead = false
+  restoreTownVitals()
   heroX = 480; cameraX = 0; heroY = 0; velocityY = 0; grounded = true; jumpCount = 0
   foes = []; projectiles = []; foeShots = []; burst = 0; burstTargetId = null; resetPanels(); save(); renderGame()
 }
@@ -1829,7 +1880,7 @@ function performAction(name: string, target: HTMLElement) {
   }
   if (name === 'continue-progress' && game && scene === 'town') continueCurrentProgress()
   if (name === 'continue-stage' && game && scene === 'town') beginStage(game.stage, 'continue')
-  if (name === 'restart-stage' && game && scene === 'town') beginStage(game.stage, 'restart')
+  if (name === 'restart-stage' && game && (scene === 'town' || scene === 'defeat')) beginStage(game.stage, 'restart')
   if (name === 'challenge-boss' && game && scene === 'town') beginStage(game.stage, 'boss')
   if (name === 'attack') attack()
   if (name === 'jump') jump()
@@ -1863,7 +1914,7 @@ function performAction(name: string, target: HTMLElement) {
   }
   if (name === 'respawn-town') retreatToTown()
   if (name === 'respawn-fight') resumeBattle()
-  if (name === 'town' && game) { scene = 'town'; game.town = true; heroX = 480; cameraX = 0; heroY = 0; velocityY = 0; grounded = true; jumpCount = 0; foes = []; save(); renderGame() }
+  if (name === 'town' && game) retreatToTown()
   if (name === 'save') { save(); toast('远征进度已保存。') }
 }
 app.addEventListener('click', (event) => {
@@ -1989,7 +2040,7 @@ function update(dt: number) {
           addFx(bossFx('dash'), (startX + foe.x) / 2, world.floor - 70, foe.dashDirection ?? directionToHero, .55)
           if (Math.abs(heroX - foe.x) < 105 && (grounded || heroY > -35)) {
             game.hp = Math.max(0, game.hp - foeDamage(foe, true))
-            addFx('hurt', heroX, world.floor - 68, 1, .32)
+            armorHitFx()
             addShake(9)
             playSfx('hurt')
             setLog('守关者冲刺命中 · 提前后退或跳跃可躲避。')
@@ -2026,10 +2077,11 @@ function update(dt: number) {
           playSfx(foe.boss ? 'boss' : 'slash')
           playSfx('hurt')
           const theme = STAGE_THEMES[stageIndex]
-          addFx(foe.boss ? bossFx('melee') : 'enemy-swipe', heroX, world.floor - 65, -directionToHero, .38)
-          addSparks(heroX, world.floor - 60, foe.boss ? 8 : 5, [theme.accent, theme.glow], foe.boss ? 150 : 110)
+          addFx(foe.boss ? bossFx('melee') : 'enemy-swipe', heroX, world.floor - 65 + heroY, -directionToHero, .38)
+          armorHitFx()
+          addSparks(heroX, world.floor - 60 + heroY, foe.boss ? 8 : 5, [theme.accent, theme.glow], foe.boss ? 150 : 110)
           if (foe.flying) addSparks(foe.x, foeWorldY(foe), 6, [theme.light, theme.accent], 100)
-          effects.push({ kind: 'damage-number', x: heroX, y: world.floor - 112, life: .82, duration: .82, text: `-${damage}` })
+          effects.push({ kind: 'damage-number', x: heroX, y: world.floor - 112 + heroY, life: .82, duration: .82, text: `-${displayNumber(damage)}` })
           addShake(foe.boss ? 8 : 3)
           if (game.hp <= 0) { scene = 'defeat'; paused = false; game.dead = true; save(); renderGame(); break }
         }
@@ -2066,8 +2118,8 @@ function update(dt: number) {
       const heroTop = heroBottom - 70
       if (Math.abs(shot.x - heroX) < 24 && shot.y > heroTop && shot.y < heroBottom + 6) {
         game.hp = Math.max(0, game.hp - shot.damage)
-        effects.push({ kind: 'damage-number', x: heroX, y: world.floor - 112, life: .82, duration: .82, text: `-${shot.damage}`, damage: shot.damage })
-        addFx('hurt', heroX, world.floor - 68, 1, .32)
+        effects.push({ kind: 'damage-number', x: heroX, y: world.floor - 112 + heroY, life: .82, duration: .82, text: `-${displayNumber(shot.damage)}`, damage: shot.damage })
+        armorHitFx()
         addShake(7)
         playSfx('hurt')
         foeShots = foeShots.filter((entry) => entry !== shot)
@@ -2275,11 +2327,42 @@ function drawHero(c: CanvasRenderingContext2D) {
   if (game.role === 'warrior') drawWarriorHero(c, now, walk)
   else drawMageHero(c, now, walk)
   c.restore()
+  drawFashionOrbit(c, jumpHeight)
 }
 function equippedLevel(type: GearType) {
   const id = type === 'weapon' ? game?.weaponId : type === 'armor' ? game?.armorId : game?.fashionId
   return game?.gear.find((gear) => gear.id === id)?.level ?? 0
 }
+function equippedWeapon() { return game?.gear.find((gear) => gear.id === game?.weaponId) }
+function weaponStyle(): 'sword' | 'axe' | 'staff' | 'blade' {
+  const name = equippedWeapon()?.name ?? ''
+  if (name.includes('战斧')) return 'axe'
+  if (name.includes('法杖')) return 'staff'
+  if (name.includes('之刃')) return 'blade'
+  return 'sword'
+}
+function weaponFxColor() {
+  const weapon = equippedWeapon()
+  const level = weapon?.level ?? 1
+  const style = weaponStyle()
+  const colors: Record<string, string[]> = {
+    sword: ['#ffe6a8', '#ffd27a', '#f5cf7a', '#ffe9b0', '#ffc46b', '#fff2c8'],
+    axe: ['#ffb066', '#ff9a4d', '#ffc78a', '#ff7a3d', '#ffd6a0', '#ffb066'],
+    staff: ['#c7b3ff', '#9fe8ff', '#ffb3e6', '#b3ffcf', '#fff0a8', '#c7b3ff'],
+    blade: ['#9fe8ff', '#c7b3ff', '#b3ffcf', '#ffd6a0', '#ffb3e6', '#9fe8ff'],
+  }
+  const palette = colors[style] ?? colors.sword
+  return palette[(Math.max(1, level) - 1) % palette.length]
+}
+function armorFxColor() {
+  const armor = game?.gear.find((gear) => gear.id === game?.armorId)
+  if (!armor) return '#cfd8c4'
+  const name = armor.name ?? ''
+  const base = name.includes('赤岩') ? 20 : name.includes('星辉') ? 265 : name.includes('沉钟') ? 187 : name.includes('苔纹') ? 104 : 90
+  const level = Math.max(1, armor.level)
+  return `hsl(${(base + level * 18) % 360}, 58%, 70%)`
+}
+function armorHitFx() { addFx('armor-hit', heroX, world.floor - 68 + heroY, 1, .5, armorFxColor()) }
 function weaponPalette(level: number) {
   const palettes = [
     { light: '#f3f5e8', dark: '#c9d2c4', glow: '' },
@@ -2302,6 +2385,45 @@ function fashionPalette(tier: number) {
   if (tier >= 2) return { top: '#8a5cc2', bottom: '#3b245c', trim: '#f0c9ff' }
   if (tier >= 1) return { top: '#3e8f87', bottom: '#17413f', trim: '#e7d18f' }
   return null
+}
+// 时装环绕特效：阶级越高，环绕粒子越多、轨道越大。
+function drawFashionOrbit(c: CanvasRenderingContext2D, jumpHeight: number) {
+  if (!game) return
+  const tier = equippedLevel('fashion')
+  const palette = fashionPalette(tier)
+  if (!tier || !palette) return
+  const now = performance.now()
+  const centerX = heroX
+  const centerY = world.floor - jumpHeight - 46
+  const count = Math.min(8, 2 + tier)
+  const radiusX = 30 + Math.min(15, tier * 3)
+  const radiusY = 16 + Math.min(10, tier * 2)
+  c.save()
+  c.globalAlpha = .85
+  if (tier >= 2) {
+    c.globalAlpha = .32; c.strokeStyle = palette.trim; c.lineWidth = 1.2
+    c.beginPath(); c.ellipse(centerX, centerY, radiusX + 4, radiusY + 3, 0, 0, Math.PI * 2); c.stroke()
+    if (tier >= 4) {
+      c.globalAlpha = .2
+      c.beginPath(); c.ellipse(centerX, centerY, radiusX + 10, radiusY + 7, 0, 0, Math.PI * 2); c.stroke()
+    }
+  }
+  for (let i = 0; i < count; i++) {
+    const speed = 900 - Math.min(320, tier * 65)
+    const angle = now / speed + (i * Math.PI * 2) / count
+    const x = centerX + Math.cos(angle) * radiusX
+    const y = centerY + Math.sin(angle) * radiusY
+    c.save(); c.translate(x, y); c.rotate(angle)
+    c.shadowColor = palette.trim; c.shadowBlur = 8
+    c.fillStyle = i % 2 ? palette.trim : palette.top
+    if (tier >= 2) {
+      c.beginPath(); c.moveTo(0, -3.5); c.lineTo(2.6, 0); c.lineTo(0, 3.5); c.lineTo(-2.6, 0); c.closePath(); c.fill()
+    } else {
+      c.beginPath(); c.arc(0, 0, 2.4, 0, Math.PI * 2); c.fill()
+    }
+    c.restore()
+  }
+  c.restore()
 }
 function robePalette(level: number) {
   if (level >= 4) return { top: '#7a6bb0', mid: '#4c4178', bottom: '#2b2448' }
@@ -2443,7 +2565,7 @@ function drawFoe(c: CanvasRenderingContext2D, foe: Foe) {
   const scale = foe.boss ? 2.25 : 1
   const dir = heroX <= foe.x ? -1 : 1
   const now = performance.now()
-  const flyHeight = foe.flying ? (foe.flyHeight ?? 0) : 0
+  const flyHeight = foe.flying ? foeFlyOffset(foe) : 0
   const attackPhase = foe.attackAnim > 0 ? Math.min(1, 1 - foe.attackAnim / .5) : 0
   const lunge = Math.sin(attackPhase * Math.PI) * (foe.boss ? 12 : 6)
   const bob = Math.sin(now / (foe.flying ? 240 : 420) + foe.id * 1.7) * (foe.flying ? 4 : foe.boss ? 2 : 1.2)
@@ -2861,6 +2983,52 @@ function drawFx(c: CanvasRenderingContext2D, fx: Fx) {
       c.beginPath(); c.moveTo(fx.x + Math.cos(angle) * inner, centerY + Math.sin(angle) * inner * .55); c.lineTo(fx.x + Math.cos(angle) * outer, centerY + Math.sin(angle) * outer * .55); c.stroke()
     }
     c.fillStyle = 'rgba(255, 236, 176, .22)'; c.beginPath(); c.arc(fx.x, centerY, 18 + progress * 62, 0, Math.PI * 2); c.fill()
+  } else if (fx.kind.startsWith('weapon-swing-')) {
+    const style = fx.kind.slice('weapon-swing-'.length)
+    const dir = fx.direction ?? 1
+    const color = fx.color ?? '#ffe6a8'
+    if (style === 'axe') {
+      c.strokeStyle = color; c.lineWidth = 9
+      c.beginPath(); c.arc(fx.x, fx.y, 32 + progress * 42, dir > 0 ? -1.1 : 2.0, dir > 0 ? .9 : 4.2); c.stroke()
+      c.strokeStyle = '#fff2c8'; c.lineWidth = 3
+      c.beginPath(); c.arc(fx.x, fx.y, 24 + progress * 40, dir > 0 ? -1.2 : 2.0, dir > 0 ? 1.0 : 4.2); c.stroke()
+      c.globalAlpha = alpha * .35; c.fillStyle = color
+      c.beginPath(); c.ellipse(fx.x, fx.y, 40 + progress * 30, 12 + progress * 10, 0, 0, Math.PI * 2); c.fill()
+    } else if (style === 'staff') {
+      c.strokeStyle = color; c.lineWidth = 5
+      c.beginPath(); c.arc(fx.x, fx.y, 22 + progress * 42, dir > 0 ? -1.2 : 2.0, dir > 0 ? 1.1 : 4.3); c.stroke()
+      c.fillStyle = '#ffffff'; c.globalAlpha = alpha * .8
+      for (let i = 0; i < 4; i++) {
+        const angle = (i / 4) * Math.PI * 2 + progress * 3
+        c.beginPath(); c.arc(fx.x + Math.cos(angle) * (18 + progress * 20), fx.y + Math.sin(angle) * (10 + progress * 12), 2.5, 0, Math.PI * 2); c.fill()
+      }
+    } else if (style === 'blade') {
+      c.strokeStyle = color; c.lineWidth = 4
+      for (let layer = 0; layer < 2; layer++) {
+        c.globalAlpha = alpha * (.9 - layer * .3)
+        c.beginPath(); c.arc(fx.x + dir * layer * 6, fx.y, 26 + progress * 50 - layer * 4, dir > 0 ? -1.1 : 2.0, dir > 0 ? 1.0 : 4.2); c.stroke()
+      }
+    } else {
+      c.strokeStyle = color; c.lineWidth = 6
+      c.beginPath(); c.arc(fx.x, fx.y, 24 + progress * 40, dir > 0 ? -.9 : 2.1, dir > 0 ? .95 : 4.0); c.stroke()
+      c.strokeStyle = '#fff2c8'; c.lineWidth = 2
+      c.beginPath(); c.arc(fx.x, fx.y, 18 + progress * 30, dir > 0 ? -1.0 : 2.1, dir > 0 ? .8 : 4.0); c.stroke()
+    }
+  } else if (fx.kind === 'armor-hit') {
+    const color = fx.color ?? '#cfd8c4'
+    c.strokeStyle = color; c.lineWidth = 3
+    for (let ring = 0; ring < 2; ring++) {
+      c.globalAlpha = alpha * (1 - ring * .35)
+      c.beginPath(); c.arc(fx.x, fx.y, 18 + progress * 30 + ring * 12, 0, Math.PI * 2); c.stroke()
+    }
+    c.globalAlpha = alpha; c.fillStyle = color
+    for (let shard = 0; shard < 6; shard++) {
+      const angle = (shard / 6) * Math.PI * 2 + progress
+      const radius = 20 + progress * 22
+      c.beginPath(); c.arc(fx.x + Math.cos(angle) * radius, fx.y + Math.sin(angle) * radius * .7, 2.5, 0, Math.PI * 2); c.fill()
+    }
+    c.globalAlpha = alpha * .6; c.fillStyle = '#ffffff'
+    c.beginPath(); c.arc(fx.x, fx.y, 8 + progress * 10, 0, Math.PI * 2); c.fill()
   } else if (fx.kind === 'enemy-swipe') {
     c.strokeStyle = '#df9b75'; c.lineWidth = 5; c.beginPath(); c.arc(fx.x + (fx.direction ?? 1) * 20, fx.y, 24 + progress * 20, (fx.direction ?? 1) > 0 ? -.7 : 2.3, (fx.direction ?? 1) > 0 ? .9 : 4); c.stroke()
   } else if (fx.kind === 'dust') {
@@ -2901,7 +3069,8 @@ function draw() {
   if (scene === 'town') drawTownNpc(ctx)
   drawHero(ctx)
   for (const projectile of projectiles) {
-    ctx.fillStyle = game?.role === 'mage' ? '#b6e0d0' : '#f2dc9e'; ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 15; ctx.beginPath(); ctx.arc(projectile.x, projectile.y, 7, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0
+    const projectileColor = weaponFxColor()
+    ctx.fillStyle = projectileColor; ctx.shadowColor = projectileColor; ctx.shadowBlur = 15; ctx.beginPath(); ctx.arc(projectile.x, projectile.y, 7, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0
   }
   if (scene === 'battle') {
     for (const shot of foeShots) {

@@ -17,9 +17,9 @@ function ensureContext(): AudioContext | null {
     const Ctor = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
     if (!Ctor) return null
     ctx = new Ctor()
-    master = ctx.createGain(); master.gain.value = enabled ? .7 : 0; master.connect(ctx.destination)
-    musicBus = ctx.createGain(); musicBus.gain.value = .16; musicBus.connect(master)
-    sfxBus = ctx.createGain(); sfxBus.gain.value = .55; sfxBus.connect(master)
+    master = ctx.createGain(); master.gain.value = enabled ? .85 : 0; master.connect(ctx.destination)
+    musicBus = ctx.createGain(); musicBus.gain.value = .3; musicBus.connect(master)
+    sfxBus = ctx.createGain(); sfxBus.gain.value = .7; sfxBus.connect(master)
   }
   if (ctx.state === 'suspended') void ctx.resume()
   return ctx
@@ -45,7 +45,7 @@ export function toggleAudio() {
   enabled = !enabled
   try { localStorage.setItem(STORE_KEY, enabled ? 'on' : 'off') } catch { /* ignore */ }
   const context = ensureContext()
-  if (master && context) master.gain.setTargetAtTime(enabled ? .7 : 0, context.currentTime, .03)
+  if (master && context) master.gain.setTargetAtTime(enabled ? .85 : 0, context.currentTime, .03)
   if (!enabled) stopMusic()
   else void unlockAudio()
   return enabled
