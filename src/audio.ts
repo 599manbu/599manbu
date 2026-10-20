@@ -1,5 +1,5 @@
 type MusicMode = 'title' | 'town' | 'battle' | 'boss'
-export type SfxName = 'slash' | 'magic' | 'hit' | 'jump' | 'double-jump' | 'hurt' | 'boss' | 'potion' | 'level' | 'defeat' | 'ui'
+export type SfxName = 'slash' | 'magic' | 'hit' | 'jump' | 'double-jump' | 'hurt' | 'boss' | 'potion' | 'level' | 'defeat' | 'victory' | 'ui'
 
 const STORE_KEY = 'adventure-audio-enabled'
 let enabled = (() => { try { return localStorage.getItem(STORE_KEY) !== 'off' } catch { return true } })()
@@ -143,6 +143,12 @@ export function playSfx(name: SfxName) {
   else if (name === 'potion') { tone(660, .08, 'sine', .1); tone(880, .12, 'sine', .09) }
   else if (name === 'level') { tone(523, .12, 'triangle', .1); tone(659, .12, 'triangle', .1); tone(784, .2, 'triangle', .1) }
   else if (name === 'defeat') { tone(220, .25, 'sawtooth', .1, 110); noise(.2, .08, 400) }
+  else if (name === 'victory') {
+    tone(523, .2, 'triangle', .11)
+    setTimeout(() => tone(659, .2, 'triangle', .11), 90)
+    setTimeout(() => tone(784, .24, 'triangle', .12), 180)
+    setTimeout(() => { tone(1047, .55, 'sine', .14); noise(.4, .05, 1800) }, 290)
+  }
   else if (name === 'ui') tone(520, .04, 'sine', .04)
 }
 
