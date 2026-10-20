@@ -26,7 +26,7 @@ type BattlePlatform = { x: number; w: number; height: number; kind: 'tree' | 'ro
 const SAVE_KEY = 'elemental-expedition-save-v2'
 const DEMO_MODE = import.meta.env.MODE === 'demo'
 const DEMO_SAVE_KEY = `${SAVE_KEY}:demo`
-const GAME_VERSION = '1.67'
+const GAME_VERSION = '1.68'
 const stageNames = ['苔痕边境', '沉钟矿道', '赤岩峡谷', '风蚀高原', '幽蓝沼泽', '断星回廊', '灰烬王庭', '深渊裂谷', '苍白圣所', '终焉之门']
 const roleLabels: Record<Role, string> = { warrior: '战士', mage: '法师' }
 const skillLabels: Record<Role, string[]> = { warrior: ['前斩', '旋风斩', '突刺', '蓄力重斩'], mage: ['奥术强化', '双生火柱', '闪现', '能量禁锢'] }
@@ -42,6 +42,33 @@ const MAGE_GROWTH_RATE = 0.8
 const SKILL_COSTS: Record<Role, number[]> = { warrior: [20, 30, 20, 50], mage: [40, 30, 10, 50] }
 const SKILL_MULTIPLIERS: Record<Role, number[]> = { warrior: [1.5, 1.5, 1, 2], mage: [0, 1.6, 0, 0] }
 const SKILL_COOLDOWNS = [0, 0, 0, 0]
+// ── 可自定义按键 ─────────────────────────────────────────────
+type BindAction = 'left' | 'right' | 'attack' | 'jump' | 'skill1' | 'skill2' | 'skill3' | 'skill4'
+const BIND_ACTIONS: BindAction[] = ['left', 'right', 'attack', 'jump', 'skill1', 'skill2', 'skill3', 'skill4']
+const BIND_LABELS: Record<BindAction, string> = { left: '向左移动', right: '向右移动', attack: '普通攻击', jump: '跳跃', skill1: '技能 1', skill2: '技能 2', skill3: '技能 3', skill4: '技能 4' }
+const DEFAULT_BINDS: Record<BindAction, string> = { left: 'a', right: 'd', attack: 'j', jump: 'k', skill1: '1', skill2: '2', skill3: '3', skill4: '4' }
+const BIND_STORE_KEY = 'adventure-key-binds-v1'
+const FIXED_KEYS = new Set(['s', 'l', 'p', 'escape', 'arrowleft', 'arrowright', 'arrowup', 'arrowdown', 'enter', ' '])
+function loadKeyBinds(): Record<BindAction, string> {
+  const binds = { ...DEFAULT_BINDS }
+  try {
+    const raw = JSON.parse(localStorage.getItem(BIND_STORE_KEY) ?? '{}') as Partial<Record<BindAction, unknown>>
+    for (const action of BIND_ACTIONS) {
+      if (typeof raw[action] === 'string' && raw[action]) binds[action] = raw[action] as string
+    }
+  } catch { /* ignore */ }
+  return binds
+}
+let keyBinds = loadKeyBinds()
+let listeningBind: BindAction | null = null
+function saveKeyBinds() { try { localStorage.setItem(BIND_STORE_KEY, JSON.stringify(keyBinds)) } catch { /* ignore */ } }
+function keyLabel(key: string) {
+  const labels: Record<string, string> = { arrowleft: '←', arrowright: '→', arrowup: '↑', arrowdown: '↓', ' ': '空格', escape: 'Esc', enter: '回车' }
+  return labels[key] ?? key.toUpperCase()
+}
+function bindSkillIndex(key: string) {
+  return [keyBinds.skill1, keyBinds.skill2, keyBinds.skill3, keyBinds.skill4].indexOf(key)
+}
 const STAGE_CONFIG = [
   { mobHp: 500, mobAtk: 50, bossHp: 4000, bossAtk: 150 },
   { mobHp: 700, mobAtk: 70, bossHp: 9000, bossAtk: 200 },
@@ -250,11 +277,13 @@ let flashColor = '#ffe6a8'
 let shieldActive = false
 let shieldLocked = false
 let bagOpen = false
-let bagTab: 'gear' | 'talent' | 'other' = 'gear'
+let bagTab: 'gear' | 'talent' | 'other' | 'skill' = 'gear'
 let craftingOpen = false
 let attributesOpen = false
 let npcOpen = false
 let stageCircleOpen = false
+let gameMenuOpen = false
+let settingsOpen = false
 let npcView: 'menu' | 'shop' | 'talent' = 'menu'
 let lotteryOpen = false
 let lotterySpinning = false
@@ -270,6 +299,7 @@ let noticeTime = 0
 let lastTime = performance.now()
 let canvas: HTMLCanvasElement | null = null
 let ctx: CanvasRenderingContext2D | null = null
+let viewOffsetY = 0
 let bossVictory: BossVictory | null = null
 let storyState: StoryData | null = null
 let storyIndex = 0
@@ -892,6 +922,7 @@ function updateMirrorFoe(foe: Foe, dt: number, distance: number, direction: numb
 function beginStage(stage: number, mode: 'continue' | 'restart' | 'boss' = 'continue') {
   if (!game) return
   hiddenBattle = false
+  tutorialMode = false; tutorialStep = 0
   const progress = getStageProgress(stage)
   game.stage = stage
   game.kills = mode === 'restart' ? 0 : mode === 'boss' ? MAX_SMALL_KILLS : progress.kills
@@ -1608,9 +1639,9 @@ function bagMarkup() {
     `${itemIcon('armor')} ${armor?.name ?? '无护甲'}`,
     `${itemIcon('fashion')} ${fashion?.name ?? '无时装'}`,
   ].filter(Boolean).map((text) => `<span>${text}</span>`).join('')
-  const tabs = [['gear', `${itemIcon('weapon')} 装备`], ['talent', `${itemIcon('coin')} 天赋币`], ['other', `${itemIcon('soul')} 其他`]] as const
+  const tabs = [['gear', `${itemIcon('weapon')} 装备`], ['talent', `${itemIcon('coin')} 天赋币`], ['other', `${itemIcon('soul')} 其他`], ['skill', '✦ 技能']] as const
   const tabButtons = tabs.map(([id, label]) => `<button class="${bagTab === id ? 'active' : ''}" data-action="bag-tab" data-tab="${id}" type="button">${label}</button>`).join('')
-  const content = bagTab === 'gear' ? `<div class="bag-list">${gearMarkup(scene === 'town')}</div>` : bagTab === 'talent' ? talentBagMarkup() : otherBagMarkup()
+  const content = bagTab === 'gear' ? `<div class="bag-list">${gearMarkup(scene === 'town')}</div>` : bagTab === 'talent' ? talentBagMarkup() : bagTab === 'skill' ? skillBagMarkup() : otherBagMarkup()
   return `<div class="bag-scrim"><section class="bag-dialog"><header><div><small>INVENTORY · ${game.gear.length} 件物品</small><h2>远征背包</h2></div><button data-action="close-bag" aria-label="关闭背包">×</button></header><div class="bag-character"><div class="bag-stats"><span>♥ 生命 ${displayNumber(game.hp)} / ${displayNumber(s.hp)}</span><span>✦ 法力 ${displayNumber(game.mp)} / ${displayNumber(s.mp)}</span><span>⚔ 攻击 ${displayNumber(s.attack)}</span><span>▰ 防御 ${displayNumber(s.defense)}</span><span>★ 等级 ${game.level ?? 1}</span></div><div class="bag-equipped">${chips}</div></div><div class="bag-tabs">${tabButtons}</div>${content}</section></div>`
 }
 function talentBagMarkup() {
@@ -1704,7 +1735,7 @@ function openLottery() {
     })
     return
   }
-  bagOpen = false; craftingOpen = false; attributesOpen = false; npcOpen = false
+  bagOpen = false; craftingOpen = false; attributesOpen = false; npcOpen = false; stageCircleOpen = false; gameMenuOpen = false; settingsOpen = false
   lotteryOpen = true; lotterySpinning = false; lotteryResult = null; lotteryHighlight = -1
   if (lotteryInterval !== null) { window.clearInterval(lotteryInterval); lotteryInterval = null }
   if (lotteryTimeout !== null) { window.clearTimeout(lotteryTimeout); lotteryTimeout = null }
@@ -1719,7 +1750,7 @@ function closeLottery() {
 }
 // 打开任意面板前统一收起其它弹窗，避免多个遮罩叠加。
 function resetPanels() {
-  bagOpen = false; craftingOpen = false; attributesOpen = false; npcOpen = false; lotteryOpen = false; stageCircleOpen = false
+  bagOpen = false; craftingOpen = false; attributesOpen = false; npcOpen = false; lotteryOpen = false; stageCircleOpen = false; gameMenuOpen = false; settingsOpen = false; listeningBind = null
   lotterySpinning = false; lotteryResult = null; lotteryHighlight = -1
   if (lotteryInterval !== null) { window.clearInterval(lotteryInterval); lotteryInterval = null }
   if (lotteryTimeout !== null) { window.clearTimeout(lotteryTimeout); lotteryTimeout = null }
@@ -1986,6 +2017,127 @@ function drawTownNpc(c: CanvasRenderingContext2D) {
   c.restore()
   drawCompanionNameplates(c, TOWN_NPC_NAME, x, near, world.floor - 120 + bob)
 }
+const SKILL_DESCRIPTIONS: Record<Role, string[]> = {
+  warrior: [
+    '向前挥出剑气，造成 150% 攻击伤害，并小幅击退命中的敌人。',
+    '旋转斩击范围内全部敌人，造成 150% 攻击伤害。',
+    '向当前方向突进，对路径上的敌人造成 100% 攻击伤害，并把非 Boss 敌人带到落点前方。',
+    '蓄力后斩出巨型剑气，对范围内全部敌人造成 200% 攻击伤害。',
+  ],
+  mage: [
+    '攻击力 +10%、攻击速度 +10%，持续 7 秒；角色头顶会显示剩余时间。',
+    '在固定前方距离生成双生火柱，造成 160% 攻击伤害，并把范围内的非 Boss 敌人拉向火柱中间。',
+    '向当前方向瞬间移动，不造成伤害，可以用来躲避攻击或调整站位。',
+    '禁锢目标 1 秒，并立刻打出 5 次带命中特效的普通攻击。',
+  ],
+}
+function hudMarkup() {
+  if (!game) return ''
+  const isTown = scene === 'town'
+  const s = stats()
+  const level = game.level ?? 1
+  const exp = game.exp ?? 0
+  const needed = xpToNext(level)
+  const maxed = !Number.isFinite(needed)
+  const areaName = tutorialMode ? '新手试炼场' : hiddenBattle ? '宿敌对决' : stageNames[game.stage - 1]
+  const location = isTown ? '营火集市' : areaName
+  const sub = isTown ? '冒险者小镇' : tutorialMode ? 'NEW PLAYER' : hiddenBattle ? 'SECRET BATTLE' : `第 ${String(game.stage).padStart(2, '0')} 章`
+  const count = isTown ? `开放至第 ${game.unlockedStage} 关` : hiddenBattle ? '宿敌对决 · 没有退路' : tutorialMode ? '完成训练目标' : foes.some((foe) => foe.boss) ? '守关者战斗' : `已击杀 ${game.kills} / ${MAX_SMALL_KILLS}`
+  const boss = foes.find((foe) => foe.boss)
+  const enemyName = isTown ? '' : bossVictory ? '守关者已击败' : tutorialMode ? '训练傀儡' : hiddenBattle ? '宿敌' : boss ? foeLabel(boss) : `${foes.length} 名敌人`
+  return `<div class="hud">
+    <section class="hud-player">
+      <div class="hud-portrait"><canvas id="hud-portrait" width="96" height="96" aria-label="角色头像"></canvas></div>
+      <div class="hud-player-info">
+        <div class="hud-name"><b id="hud-level">Lv.${level}</b><span>${maxed ? 'MAX' : `${displayNumber(exp)} / ${displayNumber(needed)} EXP`}</span></div>
+        <div class="hud-bar hp"><i id="hud-hp-fill" style="width:${Math.max(0, Math.min(100, game.hp / s.hp * 100))}%"></i><span id="hud-hp-text">${displayNumber(game.hp)} / ${displayNumber(s.hp)}</span></div>
+        <div class="hud-bar mp"><i id="hud-mp-fill" style="width:${Math.max(0, Math.min(100, game.mp / s.mp * 100))}%"></i><span id="hud-mp-text">${displayNumber(game.mp)} / ${displayNumber(s.mp)}</span></div>
+        <div class="hud-bar xp"><i id="hud-xp-fill" style="width:${maxed ? 100 : Math.min(100, exp / needed * 100)}%"></i><span id="hud-xp-label">${maxed ? '经验 MAX' : `经验 ${displayNumber(exp)} / ${displayNumber(needed)}`}</span></div>
+      </div>
+    </section>
+    <section class="hud-center">
+      <small>${sub}</small>
+      <h1>${location}</h1>
+      <p id="hud-kills">${count}</p>
+      <div class="hud-enemy" id="hud-enemy" style="display:${isTown ? 'none' : 'grid'}">
+        <span id="hud-enemy-name">${enemyName}</span>
+        <div><i id="hud-foe-fill" style="width:${boss ? Math.max(0, boss.hp / boss.maxHp * 100) : 100}%"></i></div>
+      </div>
+    </section>
+    <section class="hud-tools">
+      <div class="hud-currency"><span>${itemIcon('soul')} <b id="hud-soul">${displayCurrency(game.soul ?? 0)}</b></span><span>${itemIcon('stamp')} <b id="hud-stamp">${game.stamps ?? 0}/${STAMP_UNLOCK}</b></span></div>
+      <div class="hud-buttons">
+        ${scene === 'battle' && !bossVictory ? `<button data-action="pause" title="暂停或继续">${paused ? '▶' : 'Ⅱ'}</button>` : ''}
+        <button data-action="toggle-audio" title="音效与音乐开关">${audioEnabled() ? '♪' : '×'}</button>
+        <button data-action="open-game-menu" title="功能菜单">☰ 功能</button>
+        <button data-action="open-settings" title="设置">⚙ 设置</button>
+      </div>
+    </section>
+    <button class="hud-bag" data-action="bag" title="打开背包">${itemIcon('bag')}<b>背包</b><span id="hud-bag-count">${game.gear.length}</span></button>
+  </div>`
+}
+function gameMenuMarkup() {
+  if (!game || !gameMenuOpen) return ''
+  const isTown = scene === 'town'
+  const items: Array<{ action: string; icon: string; title: string; desc: string; disabled?: boolean }> = [
+    { action: 'bag', icon: itemIcon('bag'), title: '背包', desc: '查看装备、时装与物品' },
+    { action: 'bag-skills', icon: '✦', title: '技能', desc: '查看技能介绍与当前按键' },
+  ]
+  if (isTown) {
+    items.push(
+      { action: 'open-crafting', icon: '⚒', title: '合成台', desc: forgeUnlocked() ? '5 件同类装备 / 3 件同阶时装合成' : '通关第一关后解锁', disabled: !forgeUnlocked() },
+      { action: 'open-attributes', icon: itemIcon('attribute'), title: '属性分配', desc: `${game.attributePoints ?? 0} 点可用属性点` },
+      { action: 'open-lottery', icon: itemIcon('ticket'), title: '抽奖', desc: `${game.lotteryChances ?? 0} 次抽奖机会`, disabled: (game.lotteryChances ?? 0) <= 0 },
+      { action: 'open-npc', icon: itemIcon('npc'), title: `${TOWN_NPC_NAME} · 商人`, desc: npcUnlocked() ? '灵魂商城、天赋研究与抽奖' : '通关第一关后解锁', disabled: !npcUnlocked() },
+      { action: 'open-stage-circle', icon: '◎', title: '远征法阵', desc: '选择已解锁的遗迹关卡' },
+      { action: 'open-hidden', icon: '◈', title: '隐藏关卡', desc: hiddenUnlocked() ? '挑战宿敌' : `集齐 ${STAMP_UNLOCK} 枚王印印章后解锁`, disabled: !hiddenUnlocked() },
+    )
+  }
+  items.push({ action: 'open-settings', icon: '⚙', title: '设置', desc: '角色选择、返回小镇、退出游戏与按键设置' })
+  return `<div class="bag-scrim game-menu-scrim"><section class="bag-dialog game-menu-dialog"><header><div><small>MENU · ${isTown ? '冒险者小镇' : '远征中'}</small><h2>功能菜单</h2></div><button data-action="close-game-menu" aria-label="关闭菜单">×</button></header><div class="game-menu-grid">${items.map((item) => `<button class="game-menu-item" data-action="${item.action}" ${item.disabled ? 'disabled' : ''}><b>${item.icon}</b><span><strong>${item.title}</strong><small>${item.desc}</small></span><i>→</i></button>`).join('')}</div></section></div>`
+}
+function settingsMarkup() {
+  if (!game || !settingsOpen) return ''
+  const rows = BIND_ACTIONS.map((action) => `<button class="bind-row ${listeningBind === action ? 'listening' : ''}" data-action="bind-key" data-bind="${action}" type="button"><span>${BIND_LABELS[action]}</span><b>${listeningBind === action ? '按下新按键…' : keyLabel(keyBinds[action])}</b><i>改键</i></button>`).join('')
+  return `<div class="bag-scrim settings-scrim"><section class="bag-dialog settings-dialog"><header><div><small>SETTINGS · 冒险王</small><h2>设置</h2></div><button data-action="close-settings" aria-label="关闭设置">×</button></header>
+    <section class="settings-block"><h3>游戏</h3><div class="settings-grid">
+      <button data-action="settings-town"><b>⌂</b><span><strong>返回小镇</strong><small>保存进度并回到安全区</small></span></button>
+      <button data-action="settings-role-select"><b>◈</b><span><strong>角色选择</strong><small>返回存档与职业选择页</small></span></button>
+      <button data-action="quit-game"><b>⏻</b><span><strong>退出游戏</strong><small>结束当前远征并返回标题</small></span></button>
+      <button data-action="settings-audio"><b>${audioEnabled() ? '♪' : '×'}</b><span><strong>音效与音乐</strong><small>当前：${audioEnabled() ? '开启' : '关闭'}</small></span></button>
+    </div></section>
+    <section class="settings-block"><h3>按键设置 <small>点击任意一项后按下新按键</small></h3><div class="bind-list">${rows}</div>
+      <div class="settings-footer"><button data-action="reset-binds">恢复默认按键</button><span>固定按键：方向键左右移动 · S 拾取/对话 · L 护盾 · P 暂停</span></div>
+    </section></section></div>`
+}
+function skillBagMarkup() {
+  if (!game) return ''
+  return `<div class="skill-bag">${skillLabels[game.role].map((name, index) => `<article class="skill-card"><header><b>${index + 1}</b><strong>${name}</strong><small>${keyLabel(keyBinds[`skill${index + 1}` as BindAction])}</small></header><p>${SKILL_DESCRIPTIONS[game!.role][index]}</p><footer><span>${skillSummary(game!.role, index)}</span></footer></article>`).join('')}<p class="bag-note">技能按键可以在“设置 · 按键设置”中修改。战士与法师的技能消耗和效果按当前总攻击力计算。</p></div>`
+}
+function paintHudPortrait() {
+  const canvas = document.querySelector<HTMLCanvasElement>('#hud-portrait')
+  if (!canvas || !game) return
+  const context = canvas.getContext('2d')
+  if (!context) return
+  const width = canvas.width
+  const height = canvas.height
+  context.clearRect(0, 0, width, height)
+  context.save()
+  context.beginPath(); context.arc(width / 2, height / 2, width / 2 - 2, 0, Math.PI * 2); context.clip()
+  const bg = context.createLinearGradient(0, 0, 0, height)
+  bg.addColorStop(0, game.role === 'warrior' ? '#2d4540' : '#26314a'); bg.addColorStop(1, '#0d1717')
+  context.fillStyle = bg; context.fillRect(0, 0, width, height)
+  context.translate(width / 2, height * 2.2)
+  context.scale(2, 2)
+  if (game.role === 'warrior') drawWarriorHero(context, performance.now(), 0)
+  else drawMageHero(context, performance.now(), 0)
+  context.restore()
+  context.save()
+  context.strokeStyle = game.role === 'warrior' ? '#d9b96f' : '#9fe8ff'
+  context.lineWidth = 3
+  context.beginPath(); context.arc(width / 2, height / 2, width / 2 - 2, 0, Math.PI * 2); context.stroke()
+  context.restore()
+}
 function renderGame() {
   if (!game) return renderTitle()
   const s = stats()
@@ -2004,9 +2156,12 @@ function renderGame() {
   app.innerHTML = `<main class="game-shell ${isTown ? 'town-mode' : ''}"><header class="game-header"><a data-action="town" class="wordmark"><b>A</b> 冒险王 <i>／</i> ${isTown ? '冒险者小镇' : '元素远征'}</a>${DEMO_MODE ? '<span class="demo-badge">体验版 · 全关卡</span>' : ''}<span class="save-state"><i></i>${isTown ? '小镇安全区' : '进度已自动保存'}</span><span class="soul-badge" title="灵魂">${itemIcon('soul')} ${displayNumber(game.soul ?? 0)}</span><button class="bag-button" data-action="bag">${itemIcon('bag')} 背包 <span>${game.gear.length}</span></button><button class="save-button" data-action="save" title="保存进度">▣</button></header><section class="overview"><div><small>${isTown ? '冒险者小镇' : chapterLabel}</small><h1>${isTown ? '营火集市' : areaName}</h1><p>${isTown ? '缓冲区 · 整备装备与选择关卡' : tutorialMode ? '新手试炼 · 完成引导目标' : hiddenBattle ? '宿敌对决 · 没有退路' : `遗迹入口 · 击败 ${MAX_SMALL_KILLS} 只守卫后迎战 Boss`}</p></div><div class="metrics"><div><small>职业</small><b>${roleLabels[game.role]}</b></div><div><small>已击杀</small><b>${isTown ? `开放至第 ${game.unlockedStage} 关` : countText}</b></div><div><small>当前装备</small><b>${item()?.name ?? '无'}</b></div></div></section><section class="game-grid"><div class="battle-column"><div class="arena-label"><span>◆ ${isTown ? '冒险者小镇 · 补给站' : `${areaName} · 深层区域`}</span><b id="enemy-name">${isTown ? '安全区域' : tutorialMode ? '训练傀儡正在等待' : hiddenBattle ? '宿敌正在等待' : boss ? `${bossLabel}冲刺准备中` : `${foes.length} 只守卫正在逼近`}</b></div><div class="arena-stage"><div class="arena"><canvas id="arena" aria-label="横版战斗场景"></canvas><div class="coords"><span>${isTown ? 'TOWN · SAFE ZONE' : tutorialMode ? 'NEW PLAYER · TRAINING' : hiddenBattle ? 'SECRET · RIVAL' : `遗迹远征 · ${String(game.stage).padStart(2, '0')}`}</span><span>${boss ? 'BOSS ENCOUNTER' : isTown ? 'REST & PREPARE' : 'WAVE ENCOUNTER'}</span></div>${townOverlay}${deathOverlay}${endingOverlay}${bossVictoryMarkup()}${tutorialHintMarkup()}<div class="mobile-control-deck"><div class="mobile-rail mobile-move-rail"><button class="mobile-pad" data-move="left" aria-label="向左移动" title="向左移动" ${canControl ? '' : 'disabled'}>←</button><button class="mobile-pad" data-move="right" aria-label="向右移动" title="向右移动" ${canControl ? '' : 'disabled'}>→</button></div><div class="mobile-rail mobile-action-rail"><div class="mobile-skills">${[2, 3, 0, 1].map((index) => `<button class="mobile-skill" data-action="skill" data-index="${index}" aria-label="技能 ${index + 1}" ${canControl ? '' : 'disabled'}>${index + 1}</button>`).join('')}</div><div class="mobile-utils"><button class="mobile-skill mobile-pickup" data-action="pickup" aria-label="拾取" title="拾取药水 / 与商人对话" ${canControl ? '' : 'disabled'}>S</button><button class="mobile-skill mobile-shield" data-shield aria-label="护盾" title="按住生成护盾" ${canControl ? '' : 'disabled'}>L</button></div><button class="mobile-pad attack-pad" data-action="attack" aria-label="攻击" title="攻击" ${canControl ? '' : 'disabled'}>⚔</button><button class="mobile-pad jump-pad" data-action="jump" aria-label="跳跃" title="跳跃" ${canControl ? '' : 'disabled'}>↟</button></div></div></div></div><div class="foe-health"><div><span>${isTown ? '冒险者状态' : boss ? bossLabel : '本批守卫'}</span><b id="foe-hp">${isTown ? '安全休整' : boss ? `${Math.ceil(foes[0]?.hp ?? 0)} / ${foes[0]?.maxHp ?? 0}` : `${foes.length} 名敌人 · 已击败 ${game.kills} / ${MAX_SMALL_KILLS}`}</b></div><div><i id="foe-fill" style="width:${boss ? `${Math.max(0, foes[0].hp / foes[0].maxHp * 100)}%` : '100%'}"></i></div></div><div class="combat-bar"><button data-action="attack" class="attack" ${canControl ? '' : 'disabled'}><b>${game.role === 'warrior' ? '⚔' : '✦'}</b><span><strong>${game.role === 'warrior' ? '剑刃斩击' : '法杖射击'}</strong><small>J · ${game.role === 'warrior' ? '近战' : '远程'}</small></span></button><button data-action="jump" ${canControl ? '' : 'disabled'}><b>↟</b><span><strong>跳跃</strong><small>K ×2</small></span></button>${skillLabels[game.role].map((label, i) => `<button data-action="skill" data-index="${i}" ${canControl ? '' : 'disabled'}><i>${i + 1}</i><span><strong>${label}</strong><small>${skillSummary(game!.role, i)}</small></span></button>`).join('')}</div><div class="combat-log"><b>✦</b><span>${logText}</span></div></div><aside class="side-column">${isTown ? townPanelMarkup() : ''}<section class="panel status-panel"><header><span>角色状态</span><small>${String(game.stage).padStart(2, '0')}</small></header><div class="hero-card"><b class="avatar ${game.role}">${game.role === 'warrior' ? '刃' : '✦'}</b><span><strong>${roleLabels[game.role]}</strong><small>${game.role === 'warrior' ? '钢铁誓约 · 剑士' : '星辉学派 · 法杖'}</small></span></div><div class="resource-label"><span>生命</span><b id="hp-text">${displayNumber(game.hp)} <i>/ ${displayNumber(s.hp)}</i></b><em>♥</em></div><div class="resource"><i id="hp-fill" style="width:${game.hp / s.hp * 100}%"></i></div><div class="resource-label mana-label"><span>法力</span><b id="mp-text">${displayNumber(game.mp)} <i>/ ${displayNumber(s.mp)}</i></b><em>✦</em></div><div class="resource"><i id="mp-fill" style="width:${game.mp / s.mp * 100}%"></i></div><div class="stats"><div><small>攻击</small><b>${displayNumber(s.attack)}</b></div><div><small>防御</small><b>${displayNumber(s.defense)}</b></div><div><small>增益</small><b id="buff-stat">${buffTime > 0 ? `${buffTime.toFixed(1)}s` : '—'}</b></div></div></section><section class="panel gear-panel"><header><span>装备栏</span><small>${item()?.name ?? '未装备'}</small></header><div class="gear-summary">${item() ? `生命 +${item()!.hp}　攻击 +${item()!.attack}　防御 +${item()!.defense}` : '装备不会自动穿戴，请在小镇打开背包手动更换。'}</div><button class="open-bag" data-action="bag">打开背包　↗</button><div class="camp-hint">⌂　${isTown ? '安全区内可自由更换装备' : '击败 Boss 后回到小镇整备'}</div></section></aside></section><footer class="game-footer"><span>WASD / ← → 移动　·　J 攻击　·　K 跳跃 / 二段跳　·　1–4 技能　·　L 护盾</span><b>LOCAL SAVE　●</b></footer>${bagOpen ? bagMarkup() : ''}</main>`
   if (craftingOpen && isTown) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', `<div class="bag-scrim craft-scrim"><section class="bag-dialog craft-dialog"><header><div><small>FORGE · 冒险者小镇</small><h2>合成台</h2></div><button data-action="close-crafting" aria-label="关闭合成台">×</button></header><p>只消耗未穿戴的材料：5 件同类同等级武器/护甲合成高一级装备；3 件一阶时装合成二阶时装。</p><div class="bag-list craft-list">${craftMarkup()}</div></section></div>`)
   if (attributesOpen && isTown) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', attributeMarkup())
+  document.querySelector('.arena')?.insertAdjacentHTML('beforeend', hudMarkup())
   if (npcOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', npcMarkup())
   if (stageCircleOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', stageCircleMarkup())
   if (lotteryOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', lotteryMarkup())
+  if (gameMenuOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', gameMenuMarkup())
+  if (settingsOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', settingsMarkup())
   if (storyState) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', storyMarkup())
   mountBattleHud()
   mountLevelHud()
@@ -2029,6 +2184,7 @@ function renderGame() {
   const controls = document.querySelector<HTMLElement>('.game-footer span')
   if (controls) controls.textContent = 'WASD / ← → 移动　·　J 攻击　·　K 跳跃 / 二段跳　·　1–4 技能　·　L 按住护盾（防御 ×10，耗蓝 3/秒）　·　S 拾取药水　·　P 暂停'
   setupCanvas()
+  paintHudPortrait()
   syncHud()
 }
 function render() {
@@ -2039,7 +2195,8 @@ function render() {
 function foeLabel(foe: Foe) { return foe.tutorial ? '训练傀儡' : foe.mirror ? '宿敌' : foe.boss ? '守关者' : '遗迹守卫' }
 function foeHeadTop(foe: Foe) {
   const offset = (foe.tutorial ? 270 : foe.mirror ? 118 : foe.boss ? 242 : 72) + foeFlyOffset(foe)
-  return `${((world.floor - offset) / world.height) * 100}%`
+  const height = canvas?.height ?? world.height
+  return `${((viewOffsetY + world.floor - offset) / height) * 100}%`
 }
 function mountBattleHud() {
   const statusPanel = document.querySelector('.status-panel')
@@ -2152,6 +2309,27 @@ function syncHud() {
   const buff = document.querySelector<HTMLElement>('#buff-stat'); if (buff) buff.textContent = buffTime > 0 ? `${buffTime.toFixed(1)}s` : '—'
   const enemyName = document.querySelector<HTMLElement>('#enemy-name')
   if (enemyName && scene === 'battle') enemyName.textContent = bossVictory ? '守关者已击败 · 远征记录更新' : tutorialMode ? '训练傀儡正在等待' : hiddenBattle ? '宿敌正在等待' : foes[0]?.boss ? `${foeLabel(foes[0])}冲刺准备中` : foes.length ? `${foes.length} 只守卫正在逼近` : waveReady ? '继续向右推进，解锁新的区域' : '区域已清空'
+  // 沉浸式 HUD
+  const hudHpText = document.querySelector<HTMLElement>('#hud-hp-text'); if (hudHpText) hudHpText.textContent = `${displayNumber(game.hp)} / ${displayNumber(s.hp)}`
+  const hudMpText = document.querySelector<HTMLElement>('#hud-mp-text'); if (hudMpText) hudMpText.textContent = `${displayNumber(game.mp)} / ${displayNumber(s.mp)}`
+  const hudLevel = document.querySelector<HTMLElement>('#hud-level'); if (hudLevel) hudLevel.textContent = `Lv.${level}`
+  const hudSoul = document.querySelector<HTMLElement>('#hud-soul'); if (hudSoul) hudSoul.textContent = displayCurrency(game.soul ?? 0)
+  const hudStamp = document.querySelector<HTMLElement>('#hud-stamp'); if (hudStamp) hudStamp.textContent = `${game.stamps ?? 0} / ${STAMP_UNLOCK}`
+  const hudBagCount = document.querySelector<HTMLElement>('#hud-bag-count'); if (hudBagCount) hudBagCount.textContent = String(game.gear.length)
+  const hudKills = document.querySelector<HTMLElement>('#hud-kills')
+  if (hudKills) hudKills.textContent = scene === 'town' ? `开放至第 ${game.unlockedStage} 关` : hiddenBattle ? '宿敌对决 · 没有退路' : tutorialMode ? '完成训练目标' : foes.some((foe) => foe.boss) ? '守关者战斗' : `已击杀 ${game.kills} / ${MAX_SMALL_KILLS}`
+  const hudEnemy = document.querySelector<HTMLElement>('#hud-enemy')
+  if (hudEnemy) hudEnemy.style.display = scene === 'town' ? 'none' : 'grid'
+  const hudEnemyName = document.querySelector<HTMLElement>('#hud-enemy-name')
+  if (hudEnemyName && scene !== 'town') {
+    const bossFoe = foes.find((foe) => foe.boss)
+    hudEnemyName.textContent = bossVictory ? '守关者已击败' : tutorialMode ? '训练傀儡' : hiddenBattle ? '宿敌' : bossFoe ? foeLabel(bossFoe) : `${foes.length} 名敌人`
+  }
+  const hudFoeFill = document.querySelector<HTMLElement>('#hud-foe-fill')
+  if (hudFoeFill && scene !== 'town') {
+    const bossFoe = foes.find((foe) => foe.boss)
+    hudFoeFill.style.width = `${bossFoe ? Math.max(0, Math.min(100, bossFoe.hp / bossFoe.maxHp * 100)) : 100}%`
+  }
 }
 function syncFoeHeads() {
   const arena = document.querySelector<HTMLElement>('.arena')
@@ -2280,8 +2458,8 @@ function cast(index: number) {
   const power = skillPower(index)
   // 技能 3：按 A + 3 向左、D + 3 向右；没按方向键时沿当前视角方向。
   if (index === 2) {
-    const left = keys.has('a') || keys.has('arrowleft')
-    const right = keys.has('d') || keys.has('arrowright')
+    const left = keys.has(keyBinds.left) || keys.has('arrowleft')
+    const right = keys.has(keyBinds.right) || keys.has('arrowright')
     if (left !== right) facing = right ? 1 : -1
   } else if (!(game.role === 'mage' && index === 1)) {
     // 法师双生火柱固定在当前朝向前方，不再自动转向最近的敌人。
@@ -2671,6 +2849,7 @@ function retreatToTown() {
   if (!game) return
   paused = false
   hiddenBattle = false
+  if (tutorialMode) { tutorialMode = false; tutorialStep = 0; game.tutorialDone = true }
   scene = 'town'; game.town = true; game.dead = false
   restoreTownVitals()
   heroX = 480; cameraX = 0; heroY = 0; velocityY = 0; grounded = true; heroSupportTop = world.floor; jumpCount = 0
@@ -2783,7 +2962,7 @@ function performAction(name: string, target: HTMLElement) {
   if (name === 'close-bag') { bagOpen = false; renderGame() }
   if (name === 'bag-tab' && target.dataset.tab) {
     const tab = target.dataset.tab
-    if (tab === 'gear' || tab === 'talent' || tab === 'other') { bagTab = tab; bagOpen = true; renderGame() }
+    if (tab === 'gear' || tab === 'talent' || tab === 'other' || tab === 'skill') { bagTab = tab; bagOpen = true; renderGame() }
   }
   if (name === 'equip' && target.dataset.id) equip(target.dataset.id)
   if (name === 'equip-main' && target.dataset.id) equipSlot(target.dataset.id, 'main')
@@ -2794,6 +2973,43 @@ function performAction(name: string, target: HTMLElement) {
   if (name === 'circle-enter-stage' && game && target.dataset.stage) {
     stageCircleOpen = false
     beginStage(Math.max(1, Math.min(game.unlockedStage, Number(target.dataset.stage))))
+  }
+  if (name === 'open-game-menu') { resetPanels(); gameMenuOpen = true; renderGame() }
+  if (name === 'close-game-menu') { gameMenuOpen = false; renderGame() }
+  if (name === 'open-settings') { resetPanels(); settingsOpen = true; renderGame() }
+  if (name === 'close-settings') { settingsOpen = false; listeningBind = null; renderGame() }
+  if (name === 'bag-skills') { resetPanels(); bagTab = 'skill'; bagOpen = true; renderGame() }
+  if (name === 'bind-key' && target.dataset.bind && BIND_ACTIONS.includes(target.dataset.bind as BindAction)) {
+    listeningBind = target.dataset.bind as BindAction
+    renderGame()
+  }
+  if (name === 'reset-binds') {
+    keyBinds = { ...DEFAULT_BINDS }
+    saveKeyBinds()
+    listeningBind = null
+    toast('已恢复默认按键。')
+    renderGame()
+  }
+  if (name === 'settings-town') {
+    if (scene === 'town') { settingsOpen = false; renderGame(); toast('已经在小镇中。') }
+    else retreatToTown()
+  }
+  if (name === 'settings-role-select') {
+    settingsOpen = false; listeningBind = null
+    performAction('role-select', target)
+  }
+  if (name === 'settings-audio') {
+    const on = toggleAudio()
+    toast(on ? '音效与音乐已开启。' : '音效与音乐已关闭。')
+    renderGame()
+  }
+  if (name === 'quit-game') {
+    save()
+    resetPanels()
+    scene = 'title'; paused = false; pendingRole = null; foes = []; projectiles = []; foeShots = []
+    saveSlots = readSaves()
+    renderTitle()
+    setTimeout(() => { try { window.close() } catch { /* ignore */ } }, 80)
   }
   if (name === 'npc-menu') { npcView = 'menu'; renderGame() }
   if (name === 'npc-shop') { npcView = 'shop'; renderGame() }
@@ -2883,14 +3099,30 @@ window.addEventListener('pointerup', releaseTouchPointer)
 window.addEventListener('pointercancel', releaseTouchPointer)
 window.addEventListener('keydown', (event) => {
   const key = event.key.toLowerCase()
+  if (listeningBind) {
+    event.preventDefault()
+    if (key === 'escape') { listeningBind = null; renderGame(); return }
+    if (['shift', 'control', 'alt', 'meta', 'capslock', 'tab'].includes(key)) return
+    if (FIXED_KEYS.has(key)) { toast('该按键为固定功能键，请换一个。'); return }
+    const conflict = BIND_ACTIONS.find((action) => action !== listeningBind && keyBinds[action] === key)
+    if (conflict) { toast(`该按键已被“${BIND_LABELS[conflict]}”占用。`); return }
+    keyBinds[listeningBind] = key
+    listeningBind = null
+    saveKeyBinds()
+    toast('按键已更新。')
+    renderGame()
+    return
+  }
   if (pendingDeleteId && key === 'escape') { pendingDeleteId = null; document.querySelector('.delete-confirm')?.remove(); return }
   if (lotteryOpen && key === 'escape') { closeLottery(); return }
+  if (settingsOpen && key === 'escape') { settingsOpen = false; listeningBind = null; renderGame(); return }
+  if (gameMenuOpen && key === 'escape') { gameMenuOpen = false; renderGame(); return }
   if (stageCircleOpen && key === 'escape') { stageCircleOpen = false; renderGame(); return }
   if (npcOpen && key === 'escape') { npcOpen = false; renderGame(); return }
   if (bagOpen && key === 'escape') { bagOpen = false; renderGame(); return }
   if (attributesOpen && key === 'escape') { attributesOpen = false; renderGame(); return }
   if (craftingOpen && key === 'escape') { craftingOpen = false; renderGame(); return }
-  if (bagOpen || craftingOpen || attributesOpen || npcOpen || lotteryOpen || stageCircleOpen) return
+  if (bagOpen || craftingOpen || attributesOpen || npcOpen || lotteryOpen || stageCircleOpen || settingsOpen || gameMenuOpen) return
   if (bossVictory) {
     if (key === ' ' || key === 'enter') event.preventDefault()
     if (key === 'enter' || key === ' ' || key === 'escape') finishBossVictory()
@@ -2905,10 +3137,10 @@ window.addEventListener('keydown', (event) => {
   if (paused) return
   keys.add(key)
   if (event.repeat) return
-  if (key === 'j') attack()
+  if (key === keyBinds.attack) attack()
   if (key === 's') pickupDrop()
-  if (key === 'k') jump()
-  const index = ['1', '2', '3', '4'].indexOf(key); if (index >= 0) cast(index)
+  if (key === keyBinds.jump) jump()
+  const index = bindSkillIndex(key); if (index >= 0) cast(index)
 })
 window.addEventListener('keyup', (event) => {
   const key = event.key.toLowerCase()
@@ -2919,7 +3151,13 @@ window.addEventListener('blur', () => { keys.clear(); touchPointers.clear(); shi
 function setupCanvas() {
   canvas = document.querySelector<HTMLCanvasElement>('#arena')
   if (!canvas) return
-  canvas.width = world.width; canvas.height = world.height; ctx = canvas.getContext('2d')
+  const rect = canvas.getBoundingClientRect()
+  const ratio = rect.width > 1 ? rect.height / rect.width : world.height / world.width
+  const viewHeight = Math.max(world.height, Math.min(2600, Math.round(world.width * ratio)))
+  canvas.width = world.width
+  canvas.height = viewHeight
+  viewOffsetY = Math.round((viewHeight - world.height) / 2)
+  ctx = canvas.getContext('2d')
 }
 function update(dt: number) {
   shake = Math.max(0, shake - dt * 30)
@@ -2931,14 +3169,14 @@ function update(dt: number) {
   attackWait = Math.max(0, attackWait - dt); attackSwing = Math.max(0, attackSwing - dt); buffTime = Math.max(0, buffTime - dt)
   skillWait = skillWait.map((time) => Math.max(0, time - dt))
   if (scene === 'town' && game) {
-    const left = keys.has('a') || keys.has('arrowleft')
-    const right = keys.has('d') || keys.has('arrowright')
+    const left = keys.has(keyBinds.left) || keys.has('arrowleft')
+    const right = keys.has(keyBinds.right) || keys.has('arrowright')
     if (left !== right) {
       const direction = right ? 1 : -1
       heroX = Math.max(TOWN_LEFT, Math.min(TOWN_RIGHT, heroX + direction * 220 * dt))
       facing = direction
     }
-    if (keys.has('j') && attackWait <= 0) attack()
+    if (keys.has(keyBinds.attack) && attackWait <= 0) attack()
     if (!grounded) {
       heroY += velocityY * dt; velocityY += 1450 * dt
       if (heroY >= 0) { heroY = 0; velocityY = 0; grounded = true; jumpCount = 0 }
@@ -2970,10 +3208,10 @@ function update(dt: number) {
       }
     }
     if (!shieldActive) game.mp = Math.min(stats().mp, game.mp + dt * 4)
-    const left = keys.has('a') || keys.has('arrowleft'); const right = keys.has('d') || keys.has('arrowright')
+    const left = keys.has(keyBinds.left) || keys.has('arrowleft'); const right = keys.has(keyBinds.right) || keys.has('arrowright')
     if (left !== right) { const d = right ? 1 : -1; heroX = clampHeroX(heroX + d * 245 * dt); facing = d }
     if (tutorialMode && tutorialStep === 0 && left !== right) advanceTutorialStep(1)
-    if (keys.has('j') && attackWait <= 0) attack()
+    if (keys.has(keyBinds.attack) && attackWait <= 0) attack()
     if (grounded && heroSupportTop < world.floor) {
       const support = platformsForStage().find((platform) => heroX >= platform.x && heroX <= platform.x + platform.w && world.floor - platform.height === heroSupportTop)
       if (!support) { grounded = false; velocityY = 0 }
@@ -3211,10 +3449,36 @@ function update(dt: number) {
   effects = effects.filter((fx) => (fx.life -= dt) > 0)
   noticeTime = Math.max(0, noticeTime - dt)
 }
+function sceneBackground() {
+  const stageIndex = Math.max(0, Math.min(9, (game?.stage ?? 1) - 1))
+  return scene === 'town' ? TOWN_BACKGROUND : STAGE_BACKGROUNDS[stageIndex]
+}
+// 全屏竖屏时在游戏世界上下补足天空与地面，避免拉伸画面。
+function fillExtendedBackdrop(c: CanvasRenderingContext2D) {
+  const bg = sceneBackground()
+  const height = canvas?.height ?? world.height
+  if (viewOffsetY > 0) {
+    c.fillStyle = bg.skyTop
+    c.fillRect(0, 0, world.width, viewOffsetY)
+    c.fillStyle = 'rgba(230, 225, 255, .16)'
+    for (let i = 0; i < 46; i++) {
+      const x = (i * 137 + 41) % world.width
+      const y = (i * 89 + 23) % Math.max(1, viewOffsetY)
+      c.fillRect(x, y, 1.5, 1.5)
+    }
+  }
+  const bottomStart = viewOffsetY + world.height
+  if (height > bottomStart) {
+    const ground = c.createLinearGradient(0, bottomStart, 0, height)
+    ground.addColorStop(0, bg.ground); ground.addColorStop(1, '#081110')
+    c.fillStyle = ground
+    c.fillRect(0, bottomStart, world.width, height - bottomStart)
+  }
+}
 function drawBackground(c: CanvasRenderingContext2D) {
   const town = scene === 'town'
   const stageIndex = Math.max(0, Math.min(9, (game?.stage ?? 1) - 1))
-  const bg = town ? TOWN_BACKGROUND : STAGE_BACKGROUNDS[stageIndex]
+  const bg = sceneBackground()
   const gradient = c.createLinearGradient(0, 0, 0, world.height)
   gradient.addColorStop(0, bg.skyTop); gradient.addColorStop(.58, bg.skyMid); gradient.addColorStop(1, bg.skyLow)
   c.fillStyle = gradient; c.fillRect(0, 0, world.width, world.height)
@@ -3443,7 +3707,7 @@ function drawHero(c: CanvasRenderingContext2D) {
   const jumpHeight = Math.max(0, -heroY)
   const now = performance.now()
   const sway = Math.sin(now / 150) * (grounded ? 1.2 : 0)
-  const walking = grounded && (keys.has('a') || keys.has('d') || keys.has('arrowleft') || keys.has('arrowright'))
+  const walking = grounded && (keys.has(keyBinds.left) || keys.has(keyBinds.right) || keys.has('arrowleft') || keys.has('arrowright'))
   const walk = walking ? Math.sin(now / 90) : 0
   c.fillStyle = 'rgba(8, 17, 17, .36)'; c.beginPath(); c.ellipse(heroX, (grounded ? heroSupportTop : world.floor) + 2, Math.max(11, 24 - jumpHeight * .036), 6, 0, 0, Math.PI * 2); c.fill()
   const auraColor = game.role === 'warrior'
@@ -4566,7 +4830,11 @@ function drawPotionDrops(c: CanvasRenderingContext2D) {
 }
 function draw() {
   if (!ctx) return
-  ctx.clearRect(0, 0, world.width, world.height); drawBackground(ctx)
+  ctx.clearRect(0, 0, canvas?.width ?? world.width, canvas?.height ?? world.height)
+  fillExtendedBackdrop(ctx)
+  ctx.save()
+  ctx.translate(0, viewOffsetY)
+  drawBackground(ctx)
   ctx.save()
   if (shake > 0) ctx.translate((Math.random() - .5) * shake, (Math.random() - .5) * shake)
   if (scene === 'battle') ctx.translate(-cameraX, 0)
@@ -4601,17 +4869,23 @@ function draw() {
     ctx.fillText(`强化 ${buffTime.toFixed(1)}s`, heroX, buffY)
   }
   ctx.restore()
+  ctx.restore()
   if (flashTime > 0) {
     ctx.save()
     ctx.globalAlpha = Math.min(.42, flashTime * .9)
     ctx.fillStyle = flashColor
-    ctx.fillRect(0, 0, world.width, world.height)
+    ctx.fillRect(0, 0, canvas?.width ?? world.width, canvas?.height ?? world.height)
     ctx.restore()
   }
-  if (noticeTime > 0) { ctx.fillStyle = 'rgba(13, 28, 28, .86)'; ctx.fillRect(310, 24, 340, 38); ctx.fillStyle = '#e6d5a2'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(notice, 480, 48, 320) }
+  if (noticeTime > 0) {
+    const noticeY = Math.max(84, viewOffsetY + 24)
+    ctx.fillStyle = 'rgba(13, 28, 28, .86)'; ctx.fillRect(310, noticeY, 340, 38)
+    ctx.fillStyle = '#e6d5a2'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(notice, 480, noticeY + 24, 320)
+  }
 }
 function frame(now: number) { const dt = Math.min((now - lastTime) / 1000, .045); lastTime = now; update(dt); draw(); requestAnimationFrame(frame) }
 document.querySelector('#rotate-lock')?.addEventListener('click', () => { void enterLandscape() })
+window.addEventListener('resize', () => { if (canvas && scene !== 'title') { setupCanvas(); paintHudPortrait() } })
 window.addEventListener('pointerdown', () => document.querySelector('#rotate-hint')?.classList.add('dismissed'), { once: true })
 document.querySelector('#rotate-dismiss')?.addEventListener('click', () => document.querySelector('#rotate-hint')?.classList.add('dismissed'))
 void boot(); requestAnimationFrame(frame)
