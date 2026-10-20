@@ -26,7 +26,7 @@ type BattlePlatform = { x: number; w: number; height: number; kind: 'tree' | 'ro
 const SAVE_KEY = 'elemental-expedition-save-v2'
 const DEMO_MODE = import.meta.env.MODE === 'demo'
 const DEMO_SAVE_KEY = `${SAVE_KEY}:demo`
-const GAME_VERSION = '1.65'
+const GAME_VERSION = '1.66'
 const stageNames = ['苔痕边境', '沉钟矿道', '赤岩峡谷', '风蚀高原', '幽蓝沼泽', '断星回廊', '灰烬王庭', '深渊裂谷', '苍白圣所', '终焉之门']
 const roleLabels: Record<Role, string> = { warrior: '战士', mage: '法师' }
 const skillLabels: Record<Role, string[]> = { warrior: ['前斩', '旋风斩', '突刺', '蓄力重斩'], mage: ['奥术强化', '双生火柱', '闪现', '能量禁锢'] }
@@ -62,6 +62,7 @@ const HIDDEN_CONFIG = { bossHp: 99000, bossAtk: 2900, mp: 1000 }
 const TALENT_FRAGMENTS_PER_COIN = 10
 const ADVANCED_TALENT_COST = 3
 const TOWN_NPC_X = 560
+const TOWN_NPC_NAME = '阿岩'
 const NORMAL_TALENTS = [
   { id: 1, name: '生命祝福', desc: '生命上限 +10%' },
   { id: 2, name: '锋锐', desc: '攻击力 +10%' },
@@ -1328,12 +1329,12 @@ function townPanelMarkup() {
     ? '<button class="secondary" data-action="open-crafting">⚒ 合成台</button>'
     : '<button class="secondary" disabled title="通关第一关后解锁">⚒ 合成台 · 第1关解锁</button>'
   const npcButton = npcUnlocked()
-    ? `<button class="secondary town-npc" data-action="open-npc">${itemIcon('npc')} 神秘商人 · S</button>`
-    : '<button class="secondary" disabled title="通关第一关后解锁">神秘商人 · 第1关解锁</button>'
+    ? `<button class="secondary town-npc" data-action="open-npc">${itemIcon('npc')} ${TOWN_NPC_NAME} · 商人 · S</button>`
+    : '<button class="secondary" disabled title="通关第一关后解锁">阿岩 · 第1关解锁</button>'
   const hiddenButton = (current.stamps ?? 0) >= STAMP_UNLOCK
     ? `<button class="secondary town-hidden" data-action="open-hidden">${itemIcon('stamp')} 王印试炼 · 挑战宿敌</button>`
     : ''
-  return `<section class="panel town-panel"><header><span>冒险者小镇</span><small>SAFE HAVEN</small></header><p>在镇内自由走动整备；可以跳跃、攻击和练习技能，不消耗法力。准备好后选择关卡进入遗迹。</p><div class="town-shortcuts">${forgeButton}<button class="secondary" data-action="open-attributes">✦ 属性分配 · ${current.attributePoints ?? 0} 点</button><button class="secondary town-lottery" data-action="open-lottery" ${(current.lotteryChances ?? 0) > 0 ? '' : 'disabled'}>🎟 抽奖 · ${current.lotteryChances ?? 0} 次</button>${npcButton}${hiddenButton}</div><div class="town-currency"><span>${itemIcon('soul')} 灵魂 ${displayCurrency(current.soul ?? 0)}</span><span>${itemIcon('fragment')} 碎片 ${displayCurrency(current.talentFragments ?? 0)}</span><span>${itemIcon('coin')} 天赋币 ${displayCurrency(current.talentCoins ?? 0)}</span><span>${itemIcon('stamp')} 印章 ${displayCurrency(current.stamps ?? 0)} / ${STAMP_UNLOCK}</span></div>${npcUnlocked() ? '<p class="npc-hint">商人已经出现在镇上：走到她面前按 S 对话。</p>' : '<p class="npc-hint">通关第一关后，镇上会出现一位商人。</p>'}${current.completed ? `<p class="stage-progress-copy">十片遗迹皆已沉寂</p><button class="primary" data-action="role-select">返回角色选择</button>` : `<label class="stage-picker"><span>选择关卡</span><select id="stage-select">${options}</select></label><button class="primary" data-action="enter-stage">进入遗迹　→</button>`}</section>`
+  return `<section class="panel town-panel"><header><span>冒险者小镇</span><small>SAFE HAVEN</small></header><p>在镇内自由走动整备；可以跳跃、攻击和练习技能，不消耗法力。准备好后选择关卡进入遗迹。</p><div class="town-shortcuts">${forgeButton}<button class="secondary" data-action="open-attributes">✦ 属性分配 · ${current.attributePoints ?? 0} 点</button><button class="secondary town-lottery" data-action="open-lottery" ${(current.lotteryChances ?? 0) > 0 ? '' : 'disabled'}>🎟 抽奖 · ${current.lotteryChances ?? 0} 次</button>${npcButton}${hiddenButton}</div><div class="town-currency"><span>${itemIcon('soul')} 灵魂 ${displayCurrency(current.soul ?? 0)}</span><span>${itemIcon('fragment')} 碎片 ${displayCurrency(current.talentFragments ?? 0)}</span><span>${itemIcon('coin')} 天赋币 ${displayCurrency(current.talentCoins ?? 0)}</span><span>${itemIcon('stamp')} 印章 ${displayCurrency(current.stamps ?? 0)} / ${STAMP_UNLOCK}</span></div>${npcUnlocked() ? `<p class="npc-hint">${TOWN_NPC_NAME}已经回到镇上：走到他面前按 S 对话。</p>` : '<p class="npc-hint">通关第一关后，阿岩会出现在镇上。</p>'}${current.completed ? `<p class="stage-progress-copy">十片遗迹皆已沉寂</p><button class="primary" data-action="role-select">返回角色选择</button>` : `<label class="stage-picker"><span>选择关卡</span><select id="stage-select">${options}</select></label><button class="primary" data-action="enter-stage">进入遗迹　→</button>`}</section>`
 }
 function stageOneCleared() {
   return Boolean(game && (game.unlockedStage > 1 || game.stageProgress?.['1']?.bossDefeated))
@@ -1373,6 +1374,8 @@ function startStory(data: StoryData, onComplete?: (choice?: string) => void) {
   storyState = data
   storyIndex = 0
   storyOnComplete = onComplete ?? null
+  // 剧情会占据屏幕底部，先收起横屏提示，避免遮挡对话按钮。
+  document.querySelector('#rotate-hint')?.classList.add('dismissed')
   renderGame()
 }
 function storyMarkup() {
@@ -1380,7 +1383,7 @@ function storyMarkup() {
   const line = storyState.lines[Math.min(storyIndex, storyState.lines.length - 1)]
   const isLast = storyIndex >= storyState.lines.length - 1
   const choices = isLast ? (storyState.choices ?? []).filter((choice) => !choice.requires || choice.requires()) : []
-  return `<div class="bag-scrim story-scrim"><section class="bag-dialog story-dialog"><header><div><small>STORY · ${storyState.title ?? '远征记录'}</small><h2>剧情</h2></div></header><div class="story-body"><b class="story-speaker">${line.speaker}</b><p class="story-text">${line.text}</p><div class="story-progress">${storyIndex + 1} / ${storyState.lines.length}</div></div><div class="story-actions">${choices.length ? choices.map((choice) => `<button class="secondary" data-action="story-choice" data-value="${choice.value}">${choice.label}</button>`).join('') : `<button class="primary" data-action="story-next">${isLast ? '结束' : '继续'}</button>`}</div></section></div>`
+  return `<div class="bag-scrim story-scrim"><section class="bag-dialog story-dialog"><header><div><small>STORY · 远征记录</small><h2>${storyState.title ?? '剧情'}</h2></div></header><div class="story-body"><b class="story-speaker">${line.speaker}</b><p class="story-text">${line.text}</p><div class="story-progress">${storyIndex + 1} / ${storyState.lines.length}</div></div><div class="story-actions">${choices.length ? choices.map((choice) => `<button class="secondary" data-action="story-choice" data-value="${choice.value}">${choice.label}</button>`).join('') : `<button class="primary" data-action="story-next">${isLast ? '结束' : '继续'}</button>`}</div></section></div>`
 }
 function advanceStory() {
   if (!storyState) return
@@ -1428,7 +1431,8 @@ function stageStoryData(stage: number): StoryData | null {
       { speaker: '宿敌', text: '救他，机关暴走；不救，机关平稳。你选。' },
       { speaker: '主角', text: '那就让它炸。冒险王不是靠扔下活人当上的。' },
       { speaker: '阿岩', text: '我叫阿岩。左边第三个齿轮！灰冠改过顺序，我记住了！打胸口！' },
-      { speaker: '旁白', text: '你救出阿岩。他留在第三关修复机关，约定“以后还你一次”。' },
+      { speaker: '阿岩', text: '等我修完这台机关就回小镇。营火集市，我在那儿支个摊——以后你救的命，我拿一辈子还。' },
+      { speaker: '旁白', text: '你救出阿岩。他回到小镇常驻，成为营火集市的商人。' },
     ] }
     case 4: return { id: 'stage-story-4', title: '第四关 · 洞察印', lines: [
       { speaker: '旁白', text: `第四关没有门。你走进去时，四周变成了你最熟悉的地方。${relation}` },
@@ -1554,7 +1558,7 @@ function townIntroStoryData(): StoryData {
     { speaker: '旁白', text: '你已经完成了新手指引。这里是冒险者小镇，安全区内不会生成敌人，生命和法力会自动回满。' },
     { speaker: '旁白', text: '背包：点击顶栏“背包”，查看装备、时装、天赋币和其他物品；装备需要手动穿戴。' },
     { speaker: '旁白', text: '属性：击杀小怪获得属性点，在小镇的属性面板中分配，立即生效。' },
-    { speaker: '旁白', text: '合成台与商人：通关第一关后解锁。合成台可用 5 件同类同级装备或 3 件同阶时装合成；商人使用灵魂交易。' },
+    { speaker: '旁白', text: '合成台与阿岩：通关第一关后解锁。合成台可用 5 件同类同级装备或 3 件同阶时装合成；阿岩在营火集市用灵魂交易。' },
     { speaker: '旁白', text: '抽奖：首次通关关卡获得抽奖机会。击败 50 只小怪后挑战 Boss，祝你好运。' },
   ] }
 }
@@ -1578,9 +1582,9 @@ function forgeIntroStoryData(): StoryData {
   ] }
 }
 function shopIntroStoryData(): StoryData {
-  return { id: 'shop-intro', title: '功能介绍 · 商人', lines: [
-    { speaker: '旁白', text: '商人使用灵魂交易。灵魂来自击杀小怪和 Boss，可以在商城购买装备、天赋币碎片和时装。' },
-    { speaker: '旁白', text: '第一关通关后，商人会出现在小镇地图上。走到她面前按 S 对话。' },
+  return { id: 'shop-intro', title: '功能介绍 · 阿岩', lines: [
+    { speaker: '旁白', text: '阿岩使用灵魂交易。灵魂来自击杀小怪和 Boss，可以在商城购买装备、天赋币碎片和时装。' },
+    { speaker: '旁白', text: '第一关通关后，阿岩会出现在小镇地图上。走到他面前按 S 对话。' },
   ] }
 }
 function lotteryIntroStoryData(): StoryData {
@@ -1619,13 +1623,13 @@ function otherBagMarkup() {
 }
 function npcMarkup() {
   if (!game || !npcOpen) return ''
-  const title = npcView === 'shop' ? '灵魂商城' : npcView === 'talent' ? '天赋研究' : '神秘商人'
+  const title = npcView === 'shop' ? '灵魂商城' : npcView === 'talent' ? '天赋研究' : `${TOWN_NPC_NAME} · 商人`
   const content = npcView === 'shop' ? shopMarkup() : npcView === 'talent' ? talentMarkup() : npcMenuMarkup()
   return `<div class="bag-scrim npc-scrim"><section class="bag-dialog npc-dialog"><header><div><small>MERCHANT · 冒险者小镇</small><h2>${title}</h2></div><button data-action="close-npc">×</button></header>${content}</section></div>`
 }
 function npcMenuMarkup() {
   if (!game) return ''
-  return `<p>“灵魂、天赋、运气——你想要哪一种？”</p><div class="npc-menu"><button data-action="npc-shop"><b>${itemIcon('soul')}</b><span><strong>商城</strong><small>用灵魂购买装备与材料</small></span></button><button data-action="npc-talent"><b>${itemIcon('coin')}</b><span><strong>天赋</strong><small>${talentUnlocked() ? '研究普通与高级天赋' : '角色 5 级后开放'}</small></span></button><button data-action="open-lottery"><b>${itemIcon('ticket')}</b><span><strong>抽奖</strong><small>${game.lotteryChances ?? 0} 次机会</small></span></button></div><div class="npc-currency"><span>${itemIcon('soul')} 灵魂 ${displayCurrency(game.soul ?? 0)}</span><span>${itemIcon('fragment')} 碎片 ${displayCurrency(game.talentFragments ?? 0)}</span><span>${itemIcon('coin')} 天赋币 ${displayCurrency(game.talentCoins ?? 0)}</span></div>`
+  return `<p>“谢谢你把我从第三关拉出来。灵魂、天赋、运气——你想要哪一种？”</p><div class="npc-menu"><button data-action="npc-shop"><b>${itemIcon('soul')}</b><span><strong>商城</strong><small>用灵魂购买装备与材料</small></span></button><button data-action="npc-talent"><b>${itemIcon('coin')}</b><span><strong>天赋</strong><small>${talentUnlocked() ? '研究普通与高级天赋' : '角色 5 级后开放'}</small></span></button><button data-action="open-lottery"><b>${itemIcon('ticket')}</b><span><strong>抽奖</strong><small>${game.lotteryChances ?? 0} 次机会</small></span></button></div><div class="npc-currency"><span>${itemIcon('soul')} 灵魂 ${displayCurrency(game.soul ?? 0)}</span><span>${itemIcon('fragment')} 碎片 ${displayCurrency(game.talentFragments ?? 0)}</span><span>${itemIcon('coin')} 天赋币 ${displayCurrency(game.talentCoins ?? 0)}</span></div>`
 }
 function shopMarkup() {
   if (!game) return ''
@@ -1800,24 +1804,118 @@ function craftTalentCoin() {
   game.talentCoins = (game.talentCoins ?? 0) + 1
   save(); npcOpen = true; npcView = 'talent'; renderGame(); toast('合成成功：天赋币 ×1。')
 }
+type TownCompanion = { id: 'xiaoman' | 'zhou'; name: string; x: number }
+// 第 5、7 关救下的同伴会回到小镇；未救出时不会出现。
+function townCompanions(): TownCompanion[] {
+  if (!game) return []
+  const list: TownCompanion[] = []
+  if (game.rescuedXiaoman) list.push({ id: 'xiaoman', name: '小满', x: 340 })
+  if (game.rescuedZhou) list.push({ id: 'zhou', name: '老周', x: 720 })
+  return list
+}
+function companionThanksStoryData(id: TownCompanion['id']): StoryData {
+  if (id === 'xiaoman') return { id: 'thanks-xiaoman', title: '小满 · 谢谢', lines: [
+    { speaker: '小满', text: '谢谢你，冒险王。时间回放里我死过很多次，这一次你把我拉了回来。' },
+    { speaker: '小满', text: '以后我就在小镇帮你看着时间。出发前记得回来看看。' },
+  ] }
+  return { id: 'thanks-zhou', title: '老周 · 谢谢', lines: [
+    { speaker: '老周', text: '谢谢你，小子。我在记忆里困了一百年，第一次有人对我说“够了”。' },
+    { speaker: '老周', text: '这条命是你拽回来的。小镇的营火，我给你留着。' },
+  ] }
+}
+function drawCompanionNameplates(c: CanvasRenderingContext2D, name: string, x: number, near: boolean, top: number) {
+  c.save()
+  c.textAlign = 'center'
+  c.fillStyle = 'rgba(12, 24, 24, .88)'
+  c.fillRect(x - 30, top - 22, 60, 19)
+  c.strokeStyle = 'rgba(201, 178, 115, .45)'; c.lineWidth = 1; c.strokeRect(x - 30, top - 22, 60, 19)
+  c.fillStyle = '#e8d7a0'; c.font = "700 11px 'Microsoft YaHei', sans-serif"
+  c.fillText(name, x, top - 8)
+  if (near) { c.fillStyle = '#b9e0d2'; c.font = '10px sans-serif'; c.fillText('S 对话', x, top + 13) }
+  c.restore()
+}
+function drawTownCompanions(c: CanvasRenderingContext2D) {
+  if (!game || scene !== 'town') return
+  const now = performance.now()
+  for (const companion of townCompanions()) {
+    const x = companion.x
+    const bob = Math.sin(now / 420 + x) * 1.2
+    const near = Math.abs(heroX - x) <= 70
+    c.save()
+    c.fillStyle = 'rgba(8, 17, 17, .3)'; c.beginPath(); c.ellipse(x, world.floor + 2, 18, 5.5, 0, 0, Math.PI * 2); c.fill()
+    c.translate(x, world.floor + bob)
+    if (companion.id === 'xiaoman') {
+      // 小满：时间记录者，青蓝色长裙与悬浮沙漏。
+      const dress = c.createLinearGradient(0, -70, 0, -4)
+      dress.addColorStop(0, '#83c9d6'); dress.addColorStop(.55, '#3d7f93'); dress.addColorStop(1, '#1d3f52')
+      c.fillStyle = dress; c.beginPath(); c.moveTo(-13, -58); c.lineTo(13, -58); c.lineTo(21, -5); c.lineTo(-21, -5); c.closePath(); c.fill()
+      c.strokeStyle = 'rgba(8, 24, 30, .6)'; c.lineWidth = 1.2; c.stroke()
+      c.fillStyle = '#e8d7a0'; c.fillRect(-15, -33, 30, 3)
+      c.fillStyle = '#d9f2f6'; c.beginPath(); c.arc(0, -70, 10, 0, Math.PI * 2); c.fill()
+      c.fillStyle = '#4a3543'; c.beginPath(); c.moveTo(-11, -70); c.quadraticCurveTo(-12, -86, 0, -88); c.quadraticCurveTo(12, -86, 11, -70); c.lineTo(7, -76); c.lineTo(-7, -76); c.closePath(); c.fill()
+      glint(c, -4, -71, 1.8, '#bff2df'); glint(c, 4, -71, 1.8, '#bff2df')
+      c.save(); c.translate(0, -94); c.rotate(now / 900)
+      c.strokeStyle = '#bfeaf1'; c.lineWidth = 1.4; c.beginPath(); c.arc(0, 0, 9, 0, Math.PI * 2); c.stroke()
+      c.fillStyle = '#e8f8ff'; c.beginPath(); c.moveTo(0, -9); c.lineTo(3, 0); c.lineTo(0, 9); c.lineTo(-3, 0); c.closePath(); c.fill()
+      c.restore()
+      c.save(); c.translate(20, -46); c.shadowColor = '#9fe8ff'; c.shadowBlur = 9
+      c.fillStyle = '#bfeaf1'; c.beginPath(); c.moveTo(0, -9); c.lineTo(6, 0); c.lineTo(0, 9); c.lineTo(-6, 0); c.closePath(); c.fill(); c.restore()
+    } else {
+      // 老周：记忆守望者，灰褐长袍、白须与灵魂灯火。
+      const robe = c.createLinearGradient(0, -72, 0, -4)
+      robe.addColorStop(0, '#b6a687'); robe.addColorStop(.55, '#75654f'); robe.addColorStop(1, '#3a3128')
+      c.fillStyle = robe; c.beginPath(); c.moveTo(-15, -62); c.lineTo(15, -62); c.lineTo(23, -5); c.lineTo(-23, -5); c.closePath(); c.fill()
+      c.strokeStyle = 'rgba(20, 16, 12, .6)'; c.lineWidth = 1.2; c.stroke()
+      c.fillStyle = '#8d7a5b'; c.fillRect(-17, -36, 34, 4)
+      c.fillStyle = '#d8bd98'; c.beginPath(); c.arc(0, -72, 10, 0, Math.PI * 2); c.fill()
+      c.fillStyle = '#efe6d3'; c.beginPath(); c.moveTo(-8, -66); c.quadraticCurveTo(0, -50, 8, -66); c.quadraticCurveTo(0, -59, -8, -66); c.fill()
+      c.strokeStyle = '#efe6d3'; c.lineWidth = 2; c.beginPath(); c.moveTo(-6, -74); c.lineTo(-12, -67); c.moveTo(6, -74); c.lineTo(12, -67); c.stroke()
+      glint(c, -4, -73, 1.4, '#ffe6a8'); glint(c, 4, -73, 1.4, '#ffe6a8')
+      c.strokeStyle = '#7a5a35'; c.lineWidth = 3; c.beginPath(); c.moveTo(20, -4); c.lineTo(24, -66); c.stroke()
+      c.save(); c.shadowColor = '#ffd27a'; c.shadowBlur = 12
+      c.fillStyle = '#ffe6a8'; c.beginPath(); c.arc(24, -71, 4.5 + Math.sin(now / 300) * .8, 0, Math.PI * 2); c.fill(); c.restore()
+    }
+    c.restore()
+    drawCompanionNameplates(c, companion.name, x, near, world.floor - 108 + bob)
+  }
+}
 function drawTownNpc(c: CanvasRenderingContext2D) {
   if (!game || scene !== 'town' || !npcUnlocked()) return
   const x = TOWN_NPC_X
+  const now = performance.now()
+  const bob = Math.sin(now / 460) * 1.1
+  const near = Math.abs(heroX - x) <= 80
   c.save()
   c.fillStyle = 'rgba(8, 17, 17, .3)'; c.beginPath(); c.ellipse(x, world.floor + 2, 20, 6, 0, 0, Math.PI * 2); c.fill()
-  const robe = c.createLinearGradient(0, world.floor - 70, 0, world.floor); robe.addColorStop(0, '#6e4e8e'); robe.addColorStop(1, '#35263f')
-  c.fillStyle = robe; c.beginPath(); c.moveTo(x - 16, world.floor - 6); c.lineTo(x - 12, world.floor - 54); c.lineTo(x + 12, world.floor - 54); c.lineTo(x + 16, world.floor - 6); c.closePath(); c.fill()
-  c.fillStyle = '#d4b876'; c.fillRect(x - 14, world.floor - 22, 28, 4)
-  c.fillStyle = '#1d2b2a'; c.beginPath(); c.arc(x, world.floor - 63, 11, 0, Math.PI * 2); c.fill()
-  c.fillStyle = '#8d6aa6'; c.beginPath(); c.moveTo(x - 12, world.floor - 55); c.quadraticCurveTo(x, world.floor - 82, x + 12, world.floor - 55); c.closePath(); c.fill()
-  glint(c, x - 4, world.floor - 64, 1.8, '#e8ddff'); glint(c, x + 4, world.floor - 64, 1.8, '#e8ddff')
-  c.strokeStyle = '#c9b273'; c.lineWidth = 3; c.beginPath(); c.moveTo(x + 15, world.floor - 8); c.lineTo(x + 20, world.floor - 58); c.stroke()
-  c.fillStyle = '#e8d7a0'; c.beginPath(); c.arc(x + 21, world.floor - 62, 5, 0, Math.PI * 2); c.fill()
+  c.translate(x, world.floor + bob)
+  // 阿岩：从第三关救出的年轻冒险者，如今在营火集市摆摊。
+  const coat = c.createLinearGradient(0, -66, 0, -4)
+  coat.addColorStop(0, '#6fb2a1'); coat.addColorStop(.55, '#3f7568'); coat.addColorStop(1, '#1f3f3a')
+  c.fillStyle = coat; c.beginPath(); c.moveTo(-15, -60); c.lineTo(15, -60); c.lineTo(19, -6); c.lineTo(-19, -6); c.closePath(); c.fill()
+  c.strokeStyle = 'rgba(8, 24, 22, .6)'; c.lineWidth = 1.2; c.stroke()
+  c.fillStyle = '#c9b273'; c.fillRect(-16, -34, 32, 4)
+  // 皮革斜挎带与钱袋
+  c.strokeStyle = '#8a5f3a'; c.lineWidth = 4; c.beginPath(); c.moveTo(-13, -55); c.lineTo(13, -22); c.stroke()
+  c.fillStyle = '#a9753f'; c.beginPath(); c.ellipse(13, -20, 6, 5, -.3, 0, Math.PI * 2); c.fill()
+  c.fillStyle = '#e0c07a'; c.beginPath(); c.arc(13, -20, 2, 0, Math.PI * 2); c.fill()
+  // 手臂与护腕
+  c.fillStyle = '#3f7568'; c.fillRect(-21, -56, 7, 22); c.fillRect(14, -56, 7, 21)
+  c.fillStyle = '#b98d58'; c.fillRect(-22, -38, 9, 4); c.fillRect(13, -39, 9, 4)
+  // 头部、短发与护目镜
+  c.fillStyle = '#d8b48a'; c.beginPath(); c.arc(0, -71, 10, 0, Math.PI * 2); c.fill()
+  c.fillStyle = '#2b2620'; c.beginPath(); c.moveTo(-11, -74); c.quadraticCurveTo(0, -86, 11, -74); c.lineTo(9, -78); c.lineTo(-9, -78); c.closePath(); c.fill()
+  c.fillStyle = '#c9b273'; c.fillRect(-9, -75, 18, 3)
+  glint(c, -4, -70, 1.7, '#ffe6a8'); glint(c, 4, -70, 1.7, '#ffe6a8')
+  // 肩上的旅商木箱
+  c.fillStyle = '#7a5230'; c.fillRect(14, -96, 16, 20)
+  c.strokeStyle = '#4e341f'; c.lineWidth = 1.2; c.strokeRect(14, -96, 16, 20)
+  c.fillStyle = '#c9b273'; c.fillRect(14, -88, 16, 2)
+  // 招牌灯
+  c.strokeStyle = '#8a5f3a'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(-20, -8); c.lineTo(-26, -66); c.stroke()
+  c.save(); c.shadowColor = '#ffd27a'; c.shadowBlur = 13
+  c.fillStyle = '#ffe6a8'; c.beginPath(); c.arc(-26, -70, 4.6 + Math.sin(now / 260) * .7, 0, Math.PI * 2); c.fill(); c.restore()
   c.restore()
-  if (Math.abs(heroX - x) <= 80) {
-    c.fillStyle = 'rgba(16, 27, 27, .86)'; c.fillRect(x - 34, world.floor - 118, 68, 24)
-    c.fillStyle = '#e6d7a4'; c.font = '11px sans-serif'; c.textAlign = 'center'; c.fillText('S 对话', x, world.floor - 101)
-  }
+  drawCompanionNameplates(c, TOWN_NPC_NAME, x, near, world.floor - 120 + bob)
 }
 function renderGame() {
   if (!game) return renderTitle()
@@ -1834,7 +1932,7 @@ function renderGame() {
   const townOverlay = ''
   const deathOverlay = scene === 'defeat' ? '<div class="overlay death-overlay"><small>EXPEDITION PAUSED</small><h2>你倒在了遗迹深处</h2><p>继续战斗会以半血复活并保留当前进度；重新开始会恢复满状态并从本关第一波重新挑战；回到小镇会恢复满状态。</p><div class="death-actions"><button data-action="respawn-fight" class="primary">继续战斗（半血）</button><button data-action="restart-stage" class="secondary">重新开始（满状态）</button><button data-action="respawn-town" class="secondary">回到小镇</button></div></div>' : ''
   const endingOverlay = scene === 'ending' ? '<div class="overlay"><small>THE FRONTIER IS YOURS</small><h2>十片遗迹，皆已沉寂</h2><p>你完成了元素远征。</p><button data-action="town" class="primary">返回小镇　↗</button></div>' : ''
-  app.innerHTML = `<main class="game-shell ${isTown ? 'town-mode' : ''}"><header class="game-header"><a data-action="town" class="wordmark"><b>A</b> 冒险王 <i>／</i> ${isTown ? '冒险者小镇' : '元素远征'}</a>${DEMO_MODE ? '<span class="demo-badge">体验版 · 全关卡</span>' : ''}<span class="save-state"><i></i>${isTown ? '小镇安全区' : '进度已自动保存'}</span><span class="soul-badge" title="灵魂">${itemIcon('soul')} ${displayNumber(game.soul ?? 0)}</span><button class="bag-button" data-action="bag">${itemIcon('bag')} 背包 <span>${game.gear.length}</span></button><button class="save-button" data-action="save" title="保存进度">▣</button></header><section class="overview"><div><small>${isTown ? '冒险者小镇' : chapterLabel}</small><h1>${isTown ? '营火集市' : areaName}</h1><p>${isTown ? '缓冲区 · 整备装备与选择关卡' : tutorialMode ? '新手试炼 · 完成引导目标' : hiddenBattle ? '宿敌对决 · 没有退路' : `遗迹入口 · 击败 ${MAX_SMALL_KILLS} 只守卫后迎战 Boss`}</p></div><div class="metrics"><div><small>职业</small><b>${roleLabels[game.role]}</b></div><div><small>已击杀</small><b>${isTown ? `开放至第 ${game.unlockedStage} 关` : countText}</b></div><div><small>当前装备</small><b>${item()?.name ?? '无'}</b></div></div></section><section class="game-grid"><div class="battle-column"><div class="arena-label"><span>◆ ${isTown ? '冒险者小镇 · 补给站' : `${areaName} · 深层区域`}</span><b id="enemy-name">${isTown ? '安全区域' : tutorialMode ? '训练傀儡正在等待' : hiddenBattle ? '宿敌正在等待' : boss ? `${bossLabel}冲刺准备中` : `${foes.length} 只守卫正在逼近`}</b></div><div class="arena-stage"><div class="arena"><canvas id="arena" aria-label="横版战斗场景"></canvas><div class="coords"><span>${isTown ? 'TOWN · SAFE ZONE' : tutorialMode ? 'NEW PLAYER · TRAINING' : hiddenBattle ? 'SECRET · RIVAL' : `遗迹远征 · ${String(game.stage).padStart(2, '0')}`}</span><span>${boss ? 'BOSS ENCOUNTER' : isTown ? 'REST & PREPARE' : 'WAVE ENCOUNTER'}</span></div>${townOverlay}${deathOverlay}${endingOverlay}${bossVictoryMarkup()}${tutorialHintMarkup()}</div><div class="mobile-control-deck"><div class="mobile-rail mobile-move-rail"><button class="mobile-pad" data-move="left" aria-label="向左移动" title="向左移动" ${canControl ? '' : 'disabled'}>←</button><button class="mobile-pad" data-move="right" aria-label="向右移动" title="向右移动" ${canControl ? '' : 'disabled'}>→</button></div><div class="mobile-rail mobile-action-rail"><div class="mobile-skills">${[0, 1, 2, 3].map((index) => `<button class="mobile-skill" data-action="skill" data-index="${index}" aria-label="技能 ${index + 1}" ${canControl ? '' : 'disabled'}>${index + 1}</button>`).join('')}</div><div class="mobile-utils"><button class="mobile-skill mobile-pickup" data-action="pickup" aria-label="拾取" title="拾取药水 / 与商人对话" ${canControl ? '' : 'disabled'}>S</button><button class="mobile-skill mobile-shield" data-shield aria-label="护盾" title="按住生成护盾" ${canControl ? '' : 'disabled'}>L</button></div><button class="mobile-pad attack-pad" data-action="attack" aria-label="攻击" title="攻击" ${canControl ? '' : 'disabled'}>⚔</button><button class="mobile-pad jump-pad" data-action="jump" aria-label="跳跃" title="跳跃" ${canControl ? '' : 'disabled'}>↟</button></div></div></div><div class="foe-health"><div><span>${isTown ? '冒险者状态' : boss ? bossLabel : '本批守卫'}</span><b id="foe-hp">${isTown ? '安全休整' : boss ? `${Math.ceil(foes[0]?.hp ?? 0)} / ${foes[0]?.maxHp ?? 0}` : `${foes.length} 名敌人 · 已击败 ${game.kills} / ${MAX_SMALL_KILLS}`}</b></div><div><i id="foe-fill" style="width:${boss ? `${Math.max(0, foes[0].hp / foes[0].maxHp * 100)}%` : '100%'}"></i></div></div><div class="combat-bar"><button data-action="attack" class="attack" ${canControl ? '' : 'disabled'}><b>${game.role === 'warrior' ? '⚔' : '✦'}</b><span><strong>${game.role === 'warrior' ? '剑刃斩击' : '法杖射击'}</strong><small>J · ${game.role === 'warrior' ? '近战' : '远程'}</small></span></button><button data-action="jump" ${canControl ? '' : 'disabled'}><b>↟</b><span><strong>跳跃</strong><small>K ×2</small></span></button>${skillLabels[game.role].map((label, i) => `<button data-action="skill" data-index="${i}" ${canControl ? '' : 'disabled'}><i>${i + 1}</i><span><strong>${label}</strong><small>${skillSummary(game!.role, i)}</small></span></button>`).join('')}</div><div class="combat-log"><b>✦</b><span>${logText}</span></div></div><aside class="side-column">${isTown ? townPanelMarkup() : ''}<section class="panel status-panel"><header><span>角色状态</span><small>${String(game.stage).padStart(2, '0')}</small></header><div class="hero-card"><b class="avatar ${game.role}">${game.role === 'warrior' ? '刃' : '✦'}</b><span><strong>${roleLabels[game.role]}</strong><small>${game.role === 'warrior' ? '钢铁誓约 · 剑士' : '星辉学派 · 法杖'}</small></span></div><div class="resource-label"><span>生命</span><b id="hp-text">${displayNumber(game.hp)} <i>/ ${displayNumber(s.hp)}</i></b><em>♥</em></div><div class="resource"><i id="hp-fill" style="width:${game.hp / s.hp * 100}%"></i></div><div class="resource-label mana-label"><span>法力</span><b id="mp-text">${displayNumber(game.mp)} <i>/ ${displayNumber(s.mp)}</i></b><em>✦</em></div><div class="resource"><i id="mp-fill" style="width:${game.mp / s.mp * 100}%"></i></div><div class="stats"><div><small>攻击</small><b>${displayNumber(s.attack)}</b></div><div><small>防御</small><b>${displayNumber(s.defense)}</b></div><div><small>增益</small><b id="buff-stat">${buffTime > 0 ? `${buffTime.toFixed(1)}s` : '—'}</b></div></div></section><section class="panel gear-panel"><header><span>装备栏</span><small>${item()?.name ?? '未装备'}</small></header><div class="gear-summary">${item() ? `生命 +${item()!.hp}　攻击 +${item()!.attack}　防御 +${item()!.defense}` : '装备不会自动穿戴，请在小镇打开背包手动更换。'}</div><button class="open-bag" data-action="bag">打开背包　↗</button><div class="camp-hint">⌂　${isTown ? '安全区内可自由更换装备' : '击败 Boss 后回到小镇整备'}</div></section></aside></section><footer class="game-footer"><span>WASD / ← → 移动　·　J 攻击　·　K 跳跃 / 二段跳　·　1–4 技能　·　L 护盾</span><b>LOCAL SAVE　●</b></footer>${bagOpen ? bagMarkup() : ''}</main>`
+  app.innerHTML = `<main class="game-shell ${isTown ? 'town-mode' : ''}"><header class="game-header"><a data-action="town" class="wordmark"><b>A</b> 冒险王 <i>／</i> ${isTown ? '冒险者小镇' : '元素远征'}</a>${DEMO_MODE ? '<span class="demo-badge">体验版 · 全关卡</span>' : ''}<span class="save-state"><i></i>${isTown ? '小镇安全区' : '进度已自动保存'}</span><span class="soul-badge" title="灵魂">${itemIcon('soul')} ${displayNumber(game.soul ?? 0)}</span><button class="bag-button" data-action="bag">${itemIcon('bag')} 背包 <span>${game.gear.length}</span></button><button class="save-button" data-action="save" title="保存进度">▣</button></header><section class="overview"><div><small>${isTown ? '冒险者小镇' : chapterLabel}</small><h1>${isTown ? '营火集市' : areaName}</h1><p>${isTown ? '缓冲区 · 整备装备与选择关卡' : tutorialMode ? '新手试炼 · 完成引导目标' : hiddenBattle ? '宿敌对决 · 没有退路' : `遗迹入口 · 击败 ${MAX_SMALL_KILLS} 只守卫后迎战 Boss`}</p></div><div class="metrics"><div><small>职业</small><b>${roleLabels[game.role]}</b></div><div><small>已击杀</small><b>${isTown ? `开放至第 ${game.unlockedStage} 关` : countText}</b></div><div><small>当前装备</small><b>${item()?.name ?? '无'}</b></div></div></section><section class="game-grid"><div class="battle-column"><div class="arena-label"><span>◆ ${isTown ? '冒险者小镇 · 补给站' : `${areaName} · 深层区域`}</span><b id="enemy-name">${isTown ? '安全区域' : tutorialMode ? '训练傀儡正在等待' : hiddenBattle ? '宿敌正在等待' : boss ? `${bossLabel}冲刺准备中` : `${foes.length} 只守卫正在逼近`}</b></div><div class="arena-stage"><div class="arena"><canvas id="arena" aria-label="横版战斗场景"></canvas><div class="coords"><span>${isTown ? 'TOWN · SAFE ZONE' : tutorialMode ? 'NEW PLAYER · TRAINING' : hiddenBattle ? 'SECRET · RIVAL' : `遗迹远征 · ${String(game.stage).padStart(2, '0')}`}</span><span>${boss ? 'BOSS ENCOUNTER' : isTown ? 'REST & PREPARE' : 'WAVE ENCOUNTER'}</span></div>${townOverlay}${deathOverlay}${endingOverlay}${bossVictoryMarkup()}${tutorialHintMarkup()}</div><div class="mobile-control-deck"><div class="mobile-rail mobile-move-rail"><button class="mobile-pad" data-move="left" aria-label="向左移动" title="向左移动" ${canControl ? '' : 'disabled'}>←</button><button class="mobile-pad" data-move="right" aria-label="向右移动" title="向右移动" ${canControl ? '' : 'disabled'}>→</button></div><div class="mobile-rail mobile-action-rail"><div class="mobile-skills">${[2, 3, 0, 1].map((index) => `<button class="mobile-skill" data-action="skill" data-index="${index}" aria-label="技能 ${index + 1}" ${canControl ? '' : 'disabled'}>${index + 1}</button>`).join('')}</div><div class="mobile-utils"><button class="mobile-skill mobile-pickup" data-action="pickup" aria-label="拾取" title="拾取药水 / 与商人对话" ${canControl ? '' : 'disabled'}>S</button><button class="mobile-skill mobile-shield" data-shield aria-label="护盾" title="按住生成护盾" ${canControl ? '' : 'disabled'}>L</button></div><button class="mobile-pad attack-pad" data-action="attack" aria-label="攻击" title="攻击" ${canControl ? '' : 'disabled'}>⚔</button><button class="mobile-pad jump-pad" data-action="jump" aria-label="跳跃" title="跳跃" ${canControl ? '' : 'disabled'}>↟</button></div></div></div><div class="foe-health"><div><span>${isTown ? '冒险者状态' : boss ? bossLabel : '本批守卫'}</span><b id="foe-hp">${isTown ? '安全休整' : boss ? `${Math.ceil(foes[0]?.hp ?? 0)} / ${foes[0]?.maxHp ?? 0}` : `${foes.length} 名敌人 · 已击败 ${game.kills} / ${MAX_SMALL_KILLS}`}</b></div><div><i id="foe-fill" style="width:${boss ? `${Math.max(0, foes[0].hp / foes[0].maxHp * 100)}%` : '100%'}"></i></div></div><div class="combat-bar"><button data-action="attack" class="attack" ${canControl ? '' : 'disabled'}><b>${game.role === 'warrior' ? '⚔' : '✦'}</b><span><strong>${game.role === 'warrior' ? '剑刃斩击' : '法杖射击'}</strong><small>J · ${game.role === 'warrior' ? '近战' : '远程'}</small></span></button><button data-action="jump" ${canControl ? '' : 'disabled'}><b>↟</b><span><strong>跳跃</strong><small>K ×2</small></span></button>${skillLabels[game.role].map((label, i) => `<button data-action="skill" data-index="${i}" ${canControl ? '' : 'disabled'}><i>${i + 1}</i><span><strong>${label}</strong><small>${skillSummary(game!.role, i)}</small></span></button>`).join('')}</div><div class="combat-log"><b>✦</b><span>${logText}</span></div></div><aside class="side-column">${isTown ? townPanelMarkup() : ''}<section class="panel status-panel"><header><span>角色状态</span><small>${String(game.stage).padStart(2, '0')}</small></header><div class="hero-card"><b class="avatar ${game.role}">${game.role === 'warrior' ? '刃' : '✦'}</b><span><strong>${roleLabels[game.role]}</strong><small>${game.role === 'warrior' ? '钢铁誓约 · 剑士' : '星辉学派 · 法杖'}</small></span></div><div class="resource-label"><span>生命</span><b id="hp-text">${displayNumber(game.hp)} <i>/ ${displayNumber(s.hp)}</i></b><em>♥</em></div><div class="resource"><i id="hp-fill" style="width:${game.hp / s.hp * 100}%"></i></div><div class="resource-label mana-label"><span>法力</span><b id="mp-text">${displayNumber(game.mp)} <i>/ ${displayNumber(s.mp)}</i></b><em>✦</em></div><div class="resource"><i id="mp-fill" style="width:${game.mp / s.mp * 100}%"></i></div><div class="stats"><div><small>攻击</small><b>${displayNumber(s.attack)}</b></div><div><small>防御</small><b>${displayNumber(s.defense)}</b></div><div><small>增益</small><b id="buff-stat">${buffTime > 0 ? `${buffTime.toFixed(1)}s` : '—'}</b></div></div></section><section class="panel gear-panel"><header><span>装备栏</span><small>${item()?.name ?? '未装备'}</small></header><div class="gear-summary">${item() ? `生命 +${item()!.hp}　攻击 +${item()!.attack}　防御 +${item()!.defense}` : '装备不会自动穿戴，请在小镇打开背包手动更换。'}</div><button class="open-bag" data-action="bag">打开背包　↗</button><div class="camp-hint">⌂　${isTown ? '安全区内可自由更换装备' : '击败 Boss 后回到小镇整备'}</div></section></aside></section><footer class="game-footer"><span>WASD / ← → 移动　·　J 攻击　·　K 跳跃 / 二段跳　·　1–4 技能　·　L 护盾</span><b>LOCAL SAVE　●</b></footer>${bagOpen ? bagMarkup() : ''}</main>`
   if (craftingOpen && isTown) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', `<div class="bag-scrim craft-scrim"><section class="bag-dialog craft-dialog"><header><div><small>FORGE · 冒险者小镇</small><h2>合成台</h2></div><button data-action="close-crafting" aria-label="关闭合成台">×</button></header><p>只消耗未穿戴的材料：5 件同类同等级武器/护甲合成高一级装备；3 件一阶时装合成二阶时装。</p><div class="bag-list craft-list">${craftMarkup()}</div></section></div>`)
   if (attributesOpen && isTown) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', attributeMarkup())
   if (npcOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', npcMarkup())
@@ -2401,6 +2499,8 @@ function dropPotions(x: number) {
 function pickupDrop() {
   if (!game) return
   if (scene === 'town') {
+    const companion = townCompanions().find((entry) => Math.abs(heroX - entry.x) <= 70)
+    if (companion) { startStory(companionThanksStoryData(companion.id)); return }
     if (npcUnlocked() && Math.abs(heroX - TOWN_NPC_X) <= 80) openNpcMenu()
     return
   }
@@ -2642,6 +2742,8 @@ function performAction(name: string, target: HTMLElement) {
 app.addEventListener('click', (event) => {
   const target = event.target instanceof HTMLElement ? event.target.closest<HTMLElement>('[data-action]') : null
   if (target && !target.hasAttribute('disabled')) {
+    // 手机战斗按键在 pointerdown 时立即响应，避免多指触控时 click 丢失或重复触发。
+    if (target.closest('.mobile-control-deck')) return
     playSfx('ui')
     performAction(target.dataset.action ?? '', target)
   }
@@ -2653,17 +2755,29 @@ app.addEventListener('submit', (event) => {
   event.preventDefault()
   void submitAuth()
 })
+// 每个触控点单独记录按下的虚拟键，松开一根手指时不会影响另一根手指的移动或护盾。
+const touchPointers = new Map<number, 'arrowleft' | 'arrowright' | 'l'>()
 app.addEventListener('pointerdown', (event) => {
   if (!(event.target instanceof HTMLElement)) return
   const moveButton = event.target.closest<HTMLElement>('[data-move]')
   if (moveButton?.dataset.move) {
     event.preventDefault()
-    keys.add(moveButton.dataset.move === 'left' ? 'arrowleft' : 'arrowright')
+    const key = moveButton.dataset.move === 'left' ? 'arrowleft' : 'arrowright'
+    keys.add(key)
+    touchPointers.set(event.pointerId, key)
   }
   const shieldButton = event.target.closest<HTMLButtonElement>('[data-shield]')
   if (shieldButton && !shieldButton.disabled) {
     event.preventDefault()
     keys.add('l')
+    touchPointers.set(event.pointerId, 'l')
+  }
+  // 手机端攻击、跳跃、技能与 S：在按下瞬间执行，支持一边移动一边攻击/跳跃。
+  const actionButton = event.target.closest<HTMLElement>('.mobile-control-deck [data-action]')
+  if (actionButton && !actionButton.hasAttribute('disabled')) {
+    event.preventDefault()
+    playSfx('ui')
+    performAction(actionButton.dataset.action ?? '', actionButton)
   }
 })
 app.addEventListener('contextmenu', (event) => {
@@ -2678,12 +2792,19 @@ app.addEventListener('change', (event) => {
     save(); renderGame()
   }
 })
-function releaseTouchControls() {
-  keys.delete('arrowleft'); keys.delete('arrowright'); keys.delete('l')
-  shieldLocked = false
+function releaseTouchPointer(event: PointerEvent) {
+  const key = touchPointers.get(event.pointerId)
+  if (!key) return
+  touchPointers.delete(event.pointerId)
+  const stillHeld = Array.from(touchPointers.values()).includes(key)
+  if (!stillHeld) {
+    keys.delete(key)
+    if (key === 'l') shieldLocked = false
+  }
 }
-window.addEventListener('pointerup', releaseTouchControls)
-window.addEventListener('pointercancel', releaseTouchControls)
+// 窗口失焦或指针被系统取消时，只清理没有其它手指按住的键。
+window.addEventListener('pointerup', releaseTouchPointer)
+window.addEventListener('pointercancel', releaseTouchPointer)
 window.addEventListener('keydown', (event) => {
   const key = event.key.toLowerCase()
   if (pendingDeleteId && key === 'escape') { pendingDeleteId = null; document.querySelector('.delete-confirm')?.remove(); return }
@@ -2717,7 +2838,7 @@ window.addEventListener('keyup', (event) => {
   keys.delete(key)
   if (key === 'l') shieldLocked = false
 })
-window.addEventListener('blur', () => { keys.clear(); shieldActive = false; shieldLocked = false })
+window.addEventListener('blur', () => { keys.clear(); touchPointers.clear(); shieldActive = false; shieldLocked = false })
 function setupCanvas() {
   canvas = document.querySelector<HTMLCanvasElement>('#arena')
   if (!canvas) return
@@ -3242,15 +3363,22 @@ function strokeShape(c: CanvasRenderingContext2D) {
 }
 function drawHero(c: CanvasRenderingContext2D) {
   if (!game) return
-  const jumpHeight = Math.max(0, Math.min(175, -heroY))
+  const jumpHeight = Math.max(0, -heroY)
   const now = performance.now()
   const sway = Math.sin(now / 150) * (grounded ? 1.2 : 0)
   const walking = grounded && (keys.has('a') || keys.has('d') || keys.has('arrowleft') || keys.has('arrowright'))
   const walk = walking ? Math.sin(now / 90) : 0
   c.fillStyle = 'rgba(8, 17, 17, .36)'; c.beginPath(); c.ellipse(heroX, (grounded ? heroSupportTop : world.floor) + 2, Math.max(11, 24 - jumpHeight * .036), 6, 0, 0, Math.PI * 2); c.fill()
+  const auraColor = game.role === 'warrior'
+    ? (fashionPalette(equippedLevel('fashion'))?.trim ?? '#ffd27a')
+    : orbColor(equippedLevel('weapon'))
+  c.save(); c.globalAlpha = .22; c.strokeStyle = auraColor; c.lineWidth = 1.4
+  c.beginPath(); c.ellipse(heroX, world.floor + 2, 31, 8, 0, 0, Math.PI * 2); c.stroke(); c.restore()
   c.save(); c.translate(heroX, world.floor - jumpHeight + sway); c.scale(facing * .8, .8); c.rotate(walk * .022)
+  c.save(); c.shadowColor = auraColor; c.shadowBlur = 7
   if (game.role === 'warrior') drawWarriorHero(c, now, walk)
   else drawMageHero(c, now, walk)
+  c.restore()
   c.restore()
   drawFashionOrbit(c, jumpHeight)
 }
@@ -3401,6 +3529,8 @@ function drawWarriorHero(c: CanvasRenderingContext2D, now: number, walk: number)
   const cape = c.createLinearGradient(0, -64, 0, -6)
   cape.addColorStop(0, fashion?.top ?? '#a9433a'); cape.addColorStop(1, fashion?.bottom ?? '#5f211f')
   c.fillStyle = cape; c.beginPath(); c.moveTo(-12, -62); c.quadraticCurveTo(-36, -40, -30 + capeWave, -6); c.lineTo(-10, -12); c.lineTo(8, -8); c.lineTo(12, -60); c.closePath(); c.fill()
+  c.strokeStyle = 'rgba(24, 12, 10, .62)'; c.lineWidth = 1.3; c.stroke()
+  c.fillStyle = 'rgba(255, 232, 176, .14)'; c.beginPath(); c.moveTo(-10, -58); c.quadraticCurveTo(-24, -34, -21 + capeWave, -12); c.lineTo(-13, -16); c.closePath(); c.fill()
   if (fashion) { c.strokeStyle = fashion.trim; c.globalAlpha = .7; c.lineWidth = 1; c.stroke(); c.globalAlpha = 1 }
   // 双持专精：背后的副武器
   if (game?.advancedTalent === 3 && game.weapon2Id) {
@@ -3414,11 +3544,15 @@ function drawWarriorHero(c: CanvasRenderingContext2D, now: number, walk: number)
   const legSwing = walk * 3
   c.fillStyle = '#263531'; c.fillRect(-13, -28, 10, 24 + legSwing); c.fillRect(3, -28, 10, 24 - legSwing)
   c.fillStyle = '#c3b893'; c.fillRect(-16, -6 + legSwing, 16, 6); c.fillRect(1, -6 - legSwing, 16, 6)
+  c.fillStyle = plate.light; c.fillRect(-14, -24 + legSwing, 7, 4); c.fillRect(7, -24 - legSwing, 7, 4)
   // 胸甲
   const armor = c.createLinearGradient(0, -64, 0, -28); armor.addColorStop(0, plate.light); armor.addColorStop(.55, plate.mid); armor.addColorStop(1, plate.dark)
   c.fillStyle = armor; c.beginPath(); c.moveTo(-15, -62); c.lineTo(15, -62); c.lineTo(13, -30); c.lineTo(-13, -30); c.closePath(); c.fill()
   c.strokeStyle = 'rgba(12, 22, 20, .55)'; c.lineWidth = 1.2; c.stroke()
   c.fillStyle = 'rgba(232, 236, 211, .22)'; c.beginPath(); c.moveTo(-9, -59); c.lineTo(2, -59); c.lineTo(-1, -34); c.lineTo(-10, -38); c.closePath(); c.fill()
+  c.strokeStyle = fashion?.trim ?? '#d6bd7c'; c.lineWidth = 1.3
+  c.beginPath(); c.moveTo(-12, -56); c.lineTo(-10, -34); c.moveTo(12, -56); c.lineTo(10, -34); c.stroke()
+  c.fillStyle = fashion?.trim ?? '#e3c985'; c.beginPath(); c.moveTo(0, -56); c.lineTo(3.6, -51.5); c.lineTo(0, -47); c.lineTo(-3.6, -51.5); c.closePath(); c.fill()
   if (armorLevel > 0) {
     c.save(); c.translate(0, -47); c.rotate(Math.PI / 4)
     c.fillStyle = bladeTint.glow || fashion?.trim || '#e7cf8e'; c.fillRect(-3, -3, 6, 6); c.restore()
@@ -3428,6 +3562,10 @@ function drawWarriorHero(c: CanvasRenderingContext2D, now: number, walk: number)
   // 肩甲
   c.fillStyle = plate.light; c.beginPath(); c.ellipse(-15, -58, 8, 6, -.25, 0, Math.PI * 2); c.fill(); c.beginPath(); c.ellipse(15, -58, 8, 6, .25, 0, Math.PI * 2); c.fill()
   c.strokeStyle = 'rgba(12, 22, 20, .5)'; c.lineWidth = 1.2; c.stroke()
+  c.fillStyle = plate.light
+  c.beginPath(); c.moveTo(-23, -60); c.lineTo(-31, -71); c.lineTo(-16, -64); c.closePath(); c.fill()
+  c.beginPath(); c.moveTo(23, -60); c.lineTo(31, -71); c.lineTo(16, -64); c.closePath(); c.fill()
+  c.strokeStyle = 'rgba(12, 22, 20, .5)'; c.stroke()
   // 手臂
   c.fillStyle = plate.mid; c.fillRect(-21, -54, 7, 22); c.fillRect(14, -54, 7, 20)
   // 头部与头盔
@@ -3436,17 +3574,33 @@ function drawWarriorHero(c: CanvasRenderingContext2D, now: number, walk: number)
   c.fillStyle = helm; c.beginPath(); c.moveTo(-13, -72); c.lineTo(-13, -86); c.quadraticCurveTo(0, -96, 13, -86); c.lineTo(13, -72); c.lineTo(8, -72); c.lineTo(8, -80); c.lineTo(-8, -80); c.lineTo(-8, -72); c.closePath(); c.fill()
   c.strokeStyle = 'rgba(12, 22, 20, .55)'; c.lineWidth = 1.2; c.stroke()
   c.fillStyle = plate.mid; c.fillRect(-2, -84, 4, 12)
-  c.fillStyle = '#26332e'; c.fillRect(-7, -78, 4, 2); c.fillRect(3, -78, 4, 2)
+  c.fillStyle = plate.dark
+  c.beginPath(); c.moveTo(-13, -81); c.lineTo(-8, -74); c.lineTo(-11, -70); c.lineTo(-16, -79); c.closePath(); c.fill()
+  c.beginPath(); c.moveTo(13, -81); c.lineTo(8, -74); c.lineTo(11, -70); c.lineTo(16, -79); c.closePath(); c.fill()
+  c.fillStyle = '#ffd67a'; c.shadowColor = '#ffb347'; c.shadowBlur = 6
+  c.fillRect(-7, -78, 5, 2.4); c.fillRect(2, -78, 5, 2.4); c.shadowBlur = 0
   c.fillStyle = '#a9433a'; c.beginPath(); c.moveTo(-4, -94); c.quadraticCurveTo(0, -104, 6, -95); c.quadraticCurveTo(2, -99, -4, -94); c.fill()
+  c.fillStyle = '#7e2f2a'; c.beginPath(); c.moveTo(-8, -93); c.quadraticCurveTo(-10, -103, -2, -100); c.quadraticCurveTo(-4, -97, -8, -93); c.fill()
+  c.fillStyle = '#d4543f'; c.beginPath(); c.moveTo(4, -96); c.quadraticCurveTo(10, -105, 12, -97); c.quadraticCurveTo(8, -99, 4, -96); c.fill()
+  c.fillStyle = '#e3c985'; c.fillRect(-13, -88, 26, 2)
   // 剑
   c.save(); c.translate(15, -54); if (attackSwing > 0) c.rotate(-.8)
-  c.fillStyle = '#d1b06a'; c.fillRect(-2, -4, 5, 12)
+  if (attackSwing > 0) {
+    c.save(); c.globalAlpha = .28; c.fillStyle = bladeTint.glow || '#ffe6a8'
+    c.beginPath(); c.moveTo(-6, -3); c.lineTo(38, -16); c.lineTo(48, -5); c.lineTo(2, 4); c.closePath(); c.fill(); c.restore()
+  }
+  c.fillStyle = '#d1b06a'; c.fillRect(-2, -4, 5, 13)
+  c.fillStyle = bladeTint.glow || '#e7cf8e'; c.beginPath(); c.arc(.5, 9.5, 2.5, 0, Math.PI * 2); c.fill()
   c.fillStyle = '#c6a967'; c.fillRect(-7, -6, 14, 4)
+  c.beginPath(); c.moveTo(-7, -6); c.lineTo(-13, -10); c.lineTo(-8, -2); c.closePath(); c.fill()
+  c.beginPath(); c.moveTo(7, -6); c.lineTo(13, -10); c.lineTo(8, -2); c.closePath(); c.fill()
   const blade = c.createLinearGradient(0, -8, 48, -8); blade.addColorStop(0, bladeTint.light); blade.addColorStop(.5, bladeTint.dark); blade.addColorStop(1, bladeTint.light)
-  if (weaponLevel >= 3 && bladeTint.glow) { c.shadowColor = bladeTint.glow; c.shadowBlur = 10 }
+  c.shadowColor = bladeTint.glow || '#ffe6a8'; c.shadowBlur = weaponLevel >= 3 ? 12 : 7
   c.fillStyle = blade; c.beginPath(); c.moveTo(2, -5); c.lineTo(44, -2); c.lineTo(49, 0); c.lineTo(44, 3); c.lineTo(2, 4); c.closePath(); c.fill()
   c.shadowBlur = 0
-  c.fillStyle = 'rgba(255, 255, 255, .65)'; c.fillRect(6, -2, 32, 1.5)
+  c.fillStyle = 'rgba(255, 255, 255, .72)'; c.fillRect(6, -2, 32, 1.5)
+  c.fillStyle = `${bladeTint.glow || '#ffd27a'}aa`
+  for (const x of [13, 21, 29, 37]) c.fillRect(x, -1, 4, 1)
   c.restore()
 }
 function drawMageHero(c: CanvasRenderingContext2D, now: number, walk: number) {
@@ -3467,6 +3621,8 @@ function drawMageHero(c: CanvasRenderingContext2D, now: number, walk: number) {
   const cape = c.createLinearGradient(0, -64, 0, -4)
   cape.addColorStop(0, fashion?.top ?? '#2f6b60'); cape.addColorStop(1, fashion?.bottom ?? '#183a35')
   c.fillStyle = cape; c.beginPath(); c.moveTo(-12, -62); c.quadraticCurveTo(-30, -36, -26 + wave, -6); c.lineTo(-4, -12); c.lineTo(10, -8); c.lineTo(12, -60); c.closePath(); c.fill()
+  c.strokeStyle = 'rgba(8, 20, 18, .62)'; c.lineWidth = 1.3; c.stroke()
+  c.fillStyle = 'rgba(197, 255, 232, .12)'; c.beginPath(); c.moveTo(-10, -58); c.quadraticCurveTo(-21, -32, -19 + wave, -12); c.lineTo(-11, -16); c.closePath(); c.fill()
   if (fashion) { c.strokeStyle = fashion.trim; c.globalAlpha = .7; c.lineWidth = 1; c.stroke(); c.globalAlpha = 1 }
   // 双持专精：背后的副法杖
   if (game?.advancedTalent === 3 && game.weapon2Id) {
@@ -3482,28 +3638,62 @@ function drawMageHero(c: CanvasRenderingContext2D, now: number, walk: number) {
   c.strokeStyle = trim; c.lineWidth = 2; c.beginPath(); c.moveTo(-18, -10); c.lineTo(18, -10); c.stroke()
   c.fillStyle = 'rgba(201, 229, 213, .18)'; c.beginPath(); c.moveTo(-5, -58); c.lineTo(6, -58); c.lineTo(10, -14); c.lineTo(-8, -14); c.closePath(); c.fill()
   c.fillStyle = trim; c.fillRect(-14, -38, 28, 4)
-  if (armorLevel > 0) { c.save(); c.translate(0, -47); c.rotate(Math.PI / 4); c.fillStyle = gem; c.fillRect(-3, -3, 6, 6); c.restore() }
+  // 肩部披肩与下摆符文
+  c.fillStyle = robeTint.top; c.beginPath(); c.moveTo(-17, -59); c.quadraticCurveTo(0, -52, 17, -59); c.lineTo(13, -48); c.quadraticCurveTo(0, -43, -13, -48); c.closePath(); c.fill()
+  c.strokeStyle = trim; c.lineWidth = 1.3; c.stroke()
+  c.strokeStyle = trim; c.globalAlpha = .8; c.lineWidth = 1.4
+  c.beginPath(); c.moveTo(-16, -13); c.lineTo(-10, -17); c.lineTo(-5, -12); c.lineTo(0, -17); c.lineTo(5, -12); c.lineTo(10, -17); c.lineTo(16, -13); c.stroke(); c.globalAlpha = 1
+  if (armorLevel > 0) {
+    c.save(); c.translate(0, -47); c.rotate(now / 1400)
+    c.strokeStyle = trim; c.globalAlpha = .85; c.lineWidth = 1.2; c.beginPath(); c.arc(0, 0, 6, 0, Math.PI * 2); c.stroke(); c.globalAlpha = 1
+    c.rotate(Math.PI / 4); c.fillStyle = gem; c.fillRect(-3, -3, 6, 6); c.restore()
+  }
   // 脚
   c.fillStyle = '#2a2f2a'; c.fillRect(-12 + walk * 2, -6, 10, 6); c.fillRect(3 - walk * 2, -6, 10, 6)
   // 兜帽
   const hood = c.createLinearGradient(0, -94, 0, -62); hood.addColorStop(0, robeTint.top); hood.addColorStop(1, robeTint.bottom)
   c.fillStyle = hood; c.beginPath(); c.moveTo(-14, -62); c.quadraticCurveTo(-16, -88, 0, -96); c.quadraticCurveTo(16, -88, 14, -62); c.closePath(); c.fill()
   c.strokeStyle = 'rgba(10, 24, 21, .55)'; c.lineWidth = 1.2; c.stroke()
+  c.strokeStyle = trim; c.globalAlpha = .85; c.lineWidth = 1.3
+  c.beginPath(); c.moveTo(-13, -63); c.quadraticCurveTo(-14, -85, 0, -93); c.quadraticCurveTo(14, -85, 13, -63); c.stroke(); c.globalAlpha = 1
   c.fillStyle = '#162925'; c.beginPath(); c.ellipse(0, -73, 9, 11, 0, 0, Math.PI * 2); c.fill()
-  glint(c, -4, -74, 1.8, '#bff2df'); glint(c, 4, -74, 1.8, '#bff2df')
+  glint(c, -4, -74, 2.2, gem); glint(c, 4, -74, 2.2, gem)
   c.fillStyle = trim; c.beginPath(); c.moveTo(0, -63); c.lineTo(3, -58); c.lineTo(0, -53); c.lineTo(-3, -58); c.closePath(); c.fill()
+  // 兜帽上的悬浮秘法冠环
+  c.save(); c.translate(0, -104); c.rotate(now / 1800)
+  c.strokeStyle = `${gem}cc`; c.lineWidth = 1.2; c.beginPath(); c.arc(0, 0, 8, 0, Math.PI * 2); c.stroke()
+  c.fillStyle = gem; c.beginPath(); c.moveTo(0, -9); c.lineTo(2.4, 0); c.lineTo(0, 9); c.lineTo(-2.4, 0); c.closePath(); c.fill()
+  c.restore()
   // 法杖（攻击/施法时整体挥动）
   c.save(); c.translate(18, -8)
   if (attackSwing > 0) c.rotate(-.42)
-  c.strokeStyle = '#7a5a35'; c.lineWidth = 3.5; c.beginPath(); c.moveTo(0, 0); c.lineTo(5, -54); c.stroke()
+  const shaft = c.createLinearGradient(0, 0, 6, -56)
+  shaft.addColorStop(0, '#5a3f26'); shaft.addColorStop(.5, '#8a633c'); shaft.addColorStop(1, '#c39a62')
+  c.strokeStyle = shaft; c.lineWidth = 3.5; c.beginPath(); c.moveTo(0, 0); c.lineTo(5, -54); c.stroke()
   c.fillStyle = trim; c.fillRect(1, -22, 6, 3); c.fillRect(3, -42, 6, 3)
+  // 法杖飘带
+  c.strokeStyle = `${gem}88`; c.lineWidth = 1.6
+  c.beginPath(); c.moveTo(2, -32); c.quadraticCurveTo(-8, -22, -4 + Math.sin(now / 320) * 3, -10); c.stroke()
   const orbX = 6; const orbY = -60
-  c.save(); c.shadowColor = gem; c.shadowBlur = 12 + (buffTime > 0 ? 10 : 0) + pulse * 4
+  c.save(); c.shadowColor = gem; c.shadowBlur = 15 + (buffTime > 0 ? 12 : 0) + pulse * 5
   c.fillStyle = buffTime > 0 ? '#f2fff8' : gem; c.beginPath(); c.arc(orbX, orbY, 6 + pulse, 0, Math.PI * 2); c.fill()
-  c.fillStyle = 'rgba(255, 255, 255, .8)'; c.beginPath(); c.arc(orbX - 2, orbY - 2, 2, 0, Math.PI * 2); c.fill(); c.restore()
-  c.fillStyle = `${gem}99`
-  for (let i = 0; i < 3; i++) { const angle = now / 900 + (i * Math.PI * 2) / 3; c.beginPath(); c.arc(orbX + Math.cos(angle) * 13, orbY + Math.sin(angle) * 8, 1.6, 0, Math.PI * 2); c.fill() }
+  c.fillStyle = 'rgba(255, 255, 255, .85)'; c.beginPath(); c.arc(orbX - 2, orbY - 2, 2, 0, Math.PI * 2); c.fill(); c.restore()
+  // 秘法环与环绕棱晶
+  c.strokeStyle = `${gem}bb`; c.lineWidth = 1.3; c.beginPath(); c.arc(orbX, orbY, 11 + pulse * 2, 0, Math.PI * 2); c.stroke()
+  for (let i = 0; i < 3; i++) {
+    const angle = now / 900 + (i * Math.PI * 2) / 3
+    c.save(); c.translate(orbX + Math.cos(angle) * 15, orbY + Math.sin(angle) * 10); c.rotate(angle)
+    c.fillStyle = i % 2 ? trim : gem; c.beginPath(); c.moveTo(0, -4); c.lineTo(2.4, 0); c.lineTo(0, 4); c.lineTo(-2.4, 0); c.closePath(); c.fill()
+    c.restore()
+  }
   c.restore()
+  // 悬浮的秘法符文
+  c.fillStyle = `${gem}aa`
+  for (let i = 0; i < 2; i++) {
+    const angle = now / 1200 + i * Math.PI
+    c.save(); c.translate(-22 + Math.cos(angle) * 5, -46 + Math.sin(angle) * 8); c.rotate(angle)
+    c.beginPath(); c.moveTo(0, -3.5); c.lineTo(2.2, 0); c.lineTo(0, 3.5); c.lineTo(-2.2, 0); c.closePath(); c.fill(); c.restore()
+  }
 }
 function drawFoe(c: CanvasRenderingContext2D, foe: Foe) {
   const theme = currentStageTheme()
@@ -3529,6 +3719,7 @@ function drawFoe(c: CanvasRenderingContext2D, foe: Foe) {
   }
   c.save(); c.translate(foe.x + lunge * dir, world.floor - flyHeight + bob); c.rotate(sway); c.scale(scale * dir, scale)
   if (foe.flash > 0) c.filter = 'brightness(2)'
+  else { c.shadowColor = theme.glow; c.shadowBlur = foe.boss ? 14 : 6 }
   if (foe.tutorial) drawTutorialBossModel(c)
   else if (foe.mirror) {
     c.save()
@@ -3539,6 +3730,18 @@ function drawFoe(c: CanvasRenderingContext2D, foe: Foe) {
   } else if (foe.boss) drawBossModel(c, index, theme)
   else drawMobModel(c, index, theme)
   c.restore()
+  // Boss 周身浮动的能量碎晶，强化压迫感。
+  if (foe.boss && !foe.tutorial) {
+    c.save(); c.fillStyle = theme.glow; c.shadowColor = theme.glow; c.shadowBlur = 8
+    for (let i = 0; i < 5; i++) {
+      const angle = now / 1000 + (i * Math.PI * 2) / 5
+      const px = foe.x + Math.cos(angle) * (46 + Math.sin(now / 700 + i) * 6)
+      const py = world.floor - 78 - flyHeight + Math.sin(angle) * 30 - Math.cos(now / 900 + i) * 10
+      c.globalAlpha = .35 + .35 * Math.sin(now / 500 + i)
+      c.beginPath(); c.moveTo(px, py - 3.5); c.lineTo(px + 2, py); c.lineTo(px, py + 3.5); c.lineTo(px - 2, py); c.closePath(); c.fill()
+    }
+    c.restore()
+  }
   if ((foe.stunTimer ?? 0) > 0) {
     const orbitY = world.floor - (foe.boss ? 214 : 104) - flyHeight
     c.save(); c.strokeStyle = '#c7f0de'; c.lineWidth = 2
@@ -4294,7 +4497,7 @@ function draw() {
   drawPlatforms(ctx)
   drawPotionDrops(ctx)
   for (const foe of foes) drawFoe(ctx, foe)
-  if (scene === 'town') drawTownNpc(ctx)
+  if (scene === 'town') { drawTownNpc(ctx); drawTownCompanions(ctx) }
   drawHero(ctx)
   drawShield(ctx)
   for (const projectile of projectiles) {
