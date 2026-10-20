@@ -956,4 +956,76 @@ body { background: #0d1717; }
   .title-copy h1 { font-size: 42px; }
   .title-copy .intro { font-size: 12px; }
 }
+/* ── 1.71 宝箱 / 新合成台 / 属性加减 ───────────────── */
+.loot-overlay { z-index: 7; background: radial-gradient(circle at 50% 42%, rgba(255, 226, 150, .22), rgba(9, 16, 16, .86) 62%); }
+.loot-overlay .victory-rewards { min-width: min(340px, 82%); margin: 10px 0 14px; }
+.loot-overlay .primary { min-height: 42px; padding: 0 22px; }
+.attr-dialog { width: min(92vw, 900px); }
+.attr-actions { display: flex; gap: 6px; }
+.attr-row button { width: 40px; height: 40px; font-size: 18px; }
+.attr-row .attr-minus { color: #f0b39d; border-color: rgba(220, 130, 103, .42); background: rgba(111, 55, 47, .25); }
+.attr-row .attr-minus:hover:not(:disabled) { border-color: #ffb9a3; background: rgba(140, 70, 58, .42); }
+.craft-dialog { width: min(96vw, 1100px); max-height: 96dvh; padding: 22px; overflow-y: auto; }
+.forge-tabs { display: flex; gap: 6px; margin: 10px 0 12px; }
+.forge-tabs button { flex: 1; min-height: 34px; border: 1px solid rgba(191, 202, 169, .22); background: rgba(20, 35, 35, .6); color: #9ba79d; font-size: 11px; cursor: default; }
+.forge-tabs button.active { border-color: rgba(201, 178, 115, .55); background: rgba(201, 178, 115, .14); color: #e7d7a6; }
+.forge-tabs button:disabled { opacity: .5; }
+.forge-layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(280px, .85fr); gap: 14px; min-height: 0; }
+.forge-workbench { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px; border: 1px solid rgba(226, 197, 126, .32); background: radial-gradient(circle at 50% 32%, rgba(126, 82, 44, .55), rgba(51, 31, 17, .92)), #3a2414; }
+.forge-workbench h3, .forge-bag h3 { margin: 0; color: #f0d9a4; font-size: 14px; font-weight: 500; }
+.forge-slots { width: 100%; display: grid; grid-template-columns: repeat(var(--slots, 5), minmax(0, 1fr)); gap: 8px; }
+.forge-slot { min-height: 86px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 6px; border: 2px solid #c9a35a; border-radius: 3px; background: linear-gradient(#6b421f, #3d2210); color: #f0dfb2; text-align: center; cursor: pointer; }
+.forge-slot.empty { border-style: dashed; border-color: rgba(226, 197, 126, .42); background: rgba(35, 21, 11, .5); color: #a98c5c; cursor: default; }
+.forge-slot.filled:hover { border-color: #ffe2a0; }
+.forge-slot .gear-glyph { width: 32px; height: 32px; display: grid; place-items: center; border: 1px solid rgba(240, 217, 164, .4); background: rgba(20, 12, 7, .3); }
+.forge-slot .gear-glyph .item-icon { width: 20px; height: 20px; color: #f0d9a4; }
+.forge-slot b { overflow: hidden; max-width: 100%; color: #f4e6c4; font-size: 10px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+.forge-slot small { color: #c6ad7e; font-size: 8px; }
+.forge-slot i { color: #ffdda0; font-size: 8px; font-style: normal; }
+.forge-slot.empty b { color: #c9a35a; font-size: 24px; font-weight: 400; }
+.forge-arrow { color: #f0cf87; font-size: 22px; line-height: 1; }
+.forge-result { width: min(240px, 70%); min-height: 78px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 2px solid rgba(226, 197, 126, .42); background: rgba(35, 21, 11, .6); }
+.forge-result.ready { border-color: #ffe2a0; box-shadow: 0 0 22px rgba(255, 214, 130, .28) inset; }
+.forge-result b { color: #f4e6c4; font-size: 13px; font-weight: 500; font-family: 'STKaiti', 'KaiTi', serif; }
+.forge-result small { color: #c6ad7e; font-size: 9px; }
+.forge-meta { display: flex; width: 100%; justify-content: space-between; color: #d9c49a; font-size: 10px; }
+.forge-meta b { color: #ffe2a0; font-weight: 500; }
+.forge-combine { width: min(320px, 82%); min-height: 46px; border: 2px solid #e7c57a; border-radius: 4px; background: linear-gradient(#d9a24e, #9c6428); color: #2a1808; font-family: 'STKaiti', 'KaiTi', serif; font-size: 20px; font-weight: 700; letter-spacing: .16em; cursor: pointer; }
+.forge-combine:hover:not(:disabled) { background: linear-gradient(#efbd69, #b57a34); }
+.forge-combine:disabled { opacity: .4; cursor: not-allowed; }
+.forge-bag { display: flex; flex-direction: column; min-height: 0; padding: 14px; border: 1px solid rgba(226, 197, 126, .26); background: rgba(54, 34, 19, .92); }
+.forge-bag > header { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.forge-bag > header small { color: #c6ad7e; font-size: 9px; }
+.forge-bag-list { display: grid; gap: 6px; overflow-y: auto; max-height: 46vh; padding-right: 2px; }
+.forge-item { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 8px; border: 1px solid rgba(226, 197, 126, .18); background: rgba(28, 18, 10, .45); }
+.forge-item.in-slot { border-color: rgba(226, 197, 126, .42); background: rgba(90, 64, 32, .35); }
+.forge-item .gear-glyph { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid rgba(226, 197, 126, .32); }
+.forge-item .gear-glyph .item-icon { width: 18px; height: 18px; color: #f0d9a4; }
+.forge-item .gear-copy { min-width: 0; display: grid; gap: 3px; }
+.forge-item .gear-copy b { overflow: hidden; color: #f0dfb2; font-size: 11px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+.forge-item .gear-copy small { color: #c6ad7e; font-size: 9px; }
+.forge-item button { min-width: 56px; min-height: 32px; border: 1px solid #c9a35a; border-radius: 2px; background: rgba(90, 64, 32, .5); color: #f4e6c4; font-size: 10px; cursor: pointer; }
+.forge-item button:hover:not(:disabled) { background: rgba(126, 88, 42, .7); }
+.forge-item button:disabled { opacity: .4; cursor: not-allowed; }
+.forge-placed { color: #ffdda0; font-size: 9px; font-style: normal; }
+@media (max-width: 760px) {
+  .forge-layout { grid-template-columns: 1fr; }
+  .forge-slots { gap: 6px; }
+  .forge-slot { min-height: 74px; }
+  .forge-bag-list { max-height: 28vh; }
+  .attr-row button { width: 38px; height: 38px; }
+}
+/* 手机端左右移动键放大一倍，背包/合成台缩小一点；桌面端不变。 */
+@media (max-width: 760px) and (pointer: coarse) {
+  .mobile-move-rail .mobile-pad { width: clamp(84px, 24vw, 104px); height: clamp(84px, 24vw, 104px); font-size: 26px; }
+  .hud-fabs { gap: 8px; }
+  .hud-bag, .hud-forge { width: 84px; min-height: 72px; padding: 7px 5px; }
+  .hud-bag b, .hud-forge b { font-size: 12px; }
+  .hud-bag .item-icon, .hud-forge .item-icon { width: 22px; height: 22px; }
+}
+@media (max-width: 400px) and (pointer: coarse) {
+  .mobile-move-rail .mobile-pad { width: clamp(76px, 23vw, 92px); height: clamp(76px, 23vw, 92px); font-size: 24px; }
+  .hud-bag, .hud-forge { width: 76px; min-height: 66px; }
+  .hud-bag b, .hud-forge b { font-size: 11px; }
+}
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
