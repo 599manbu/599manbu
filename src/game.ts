@@ -11,14 +11,14 @@ type WorldDrop = { id: string; type: 'hp-potion' | 'mp-potion'; x: number }
 type AttributeStat = 'hp' | 'attack' | 'mp' | 'defense'
 type AttributeAllocation = Record<AttributeStat, number>
 type StageProgress = { kills: number; bossDefeated: boolean; pointsClaimed?: number }
-type Save = { role: Role; stage: number; unlockedStage: number; kills: number; stageProgress?: Record<string, StageProgress>; hp: number; mp: number; gear: Gear[]; equipped: string | null; weaponId?: string | null; weapon2Id?: string | null; armorId?: string | null; fashionId?: string | null; level?: number; exp?: number; drops?: WorldDrop[]; bossDefeated?: boolean; attributePoints?: number; attributeAllocation?: AttributeAllocation; soul?: number; normalTalent?: number; advancedTalent?: number; talentFragments?: number; talentCoins?: number; lotteryChances?: number; shopFashionBought?: boolean; stamps?: number; tutorialDone?: boolean; hiddenCleared?: boolean; rivalTrust?: boolean; stage8Choice?: 'save' | 'chase' | 'together' | null; rescuedRock?: boolean; rescuedXiaoman?: boolean; rescuedZhou?: boolean; seenStories?: string[]; forgeIntroSeen?: boolean; shopIntroSeen?: boolean; lotteryIntroSeen?: boolean; townIntroSeen?: boolean; town: boolean; completed: boolean; dead: boolean }
+type Save = { role: Role; stage: number; unlockedStage: number; kills: number; stageProgress?: Record<string, StageProgress>; hp: number; mp: number; gear: Gear[]; equipped: string | null; weaponId?: string | null; weapon2Id?: string | null; armorId?: string | null; fashionId?: string | null; level?: number; exp?: number; drops?: WorldDrop[]; bossDefeated?: boolean; attributePoints?: number; attributeAllocation?: AttributeAllocation; soul?: number; normalTalent?: number; normalTalentLevels?: number[]; advancedTalent?: number; advancedTalentLevel?: number; talentFragments?: number; talentCoins?: number; lotteryChances?: number; shopFashionBought?: boolean; reviveCoins?: number; reviveUsed?: boolean; fragmentBuyDay?: string; reviveBuyAt?: number; stamps?: number; tutorialDone?: boolean; hiddenCleared?: boolean; rivalTrust?: boolean; stage8Choice?: 'save' | 'chase' | 'together' | null; rescuedRock?: boolean; rescuedXiaoman?: boolean; rescuedZhou?: boolean; seenStories?: string[]; forgeIntroSeen?: boolean; shopIntroSeen?: boolean; lotteryIntroSeen?: boolean; townIntroSeen?: boolean; town: boolean; completed: boolean; dead: boolean }
 type SaveSlot = { id: string; label: string; data: Save; updatedAt: number }
 type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; flyPhase?: number; flyAmplitude?: number; flySpeed?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number; specialTimer?: number; specialWindup?: number; specialKind?: 'pierce' | 'exclusive'; specialNext?: 'pierce' | 'exclusive'; mobSkillTimer?: number; skillWindup?: number; skillKind?: 'lunge' | 'slam'; tutorial?: boolean; mirror?: boolean; mirrorRole?: Role; mp?: number; mirrorSkillTimer?: number; mirrorWindup?: number; mirrorSkill?: number; mirrorBuffTimer?: number; mirrorBurst?: number; mirrorBurstWait?: number }
 type Fx = { x: number; y: number; life: number; kind: string; direction?: number; text?: string; damage?: number; duration?: number; vx?: number; vy?: number; color?: string; radius?: number }
 type Projectile = { x: number; y: number; vx: number; life: number; damage: number; targetId: number }
 type FoeShot = { x: number; y: number; vx: number; vy: number; damage: number; radius: number; color: string; life: number }
 type BossVictory = { stage: number; bossX: number; rewards: string[]; time: number; ending: boolean }
-type BossChestLoot = { soul: number; gear: Gear[]; stamps: number; lottery: number; fragments: number; convertedSoul: number; rewards: string[] }
+type BossChestLoot = { soul: number; gear: Gear[]; stamps: number; lottery: number; fragments: number; rewards: string[] }
 type BossChest = { x: number; stage: number; ending: boolean; loot: BossChestLoot; opened: boolean; opening: number }
 type LootReveal = { rewards: string[]; stage: number; ending: boolean }
 type StoryLine = { speaker: string; text: string }
@@ -29,7 +29,7 @@ type BattlePlatform = { x: number; w: number; height: number; kind: 'tree' | 'ro
 const SAVE_KEY = 'elemental-expedition-save-v2'
 const DEMO_MODE = import.meta.env.MODE === 'demo'
 const DEMO_SAVE_KEY = `${SAVE_KEY}:demo`
-const GAME_VERSION = '1.71'
+const GAME_VERSION = '1.72'
 const stageNames = ['苔痕边境', '沉钟矿道', '赤岩峡谷', '风蚀高原', '幽蓝沼泽', '断星回廊', '灰烬王庭', '深渊裂谷', '苍白圣所', '终焉之门']
 const roleLabels: Record<Role, string> = { warrior: '战士', mage: '法师' }
 const skillLabels: Record<Role, string[]> = { warrior: ['前斩', '旋风斩', '突刺', '蓄力重斩'], mage: ['奥术强化', '双生火柱', '闪现', '能量禁锢'] }
@@ -94,17 +94,46 @@ const ADVANCED_TALENT_COST = 3
 const TOWN_NPC_X = 620
 const TOWN_CIRCLE_X = 430
 const TOWN_NPC_NAME = '阿岩'
-const NORMAL_TALENTS = [
-  { id: 1, name: '生命祝福', desc: '生命上限 +10%' },
-  { id: 2, name: '锋锐', desc: '攻击力 +10%' },
-  { id: 3, name: '守护', desc: '防御力 +20%' },
-  { id: 4, name: '灵泉', desc: '法力上限 +5%' },
+type NormalTalentKind = 'hp' | 'attack' | 'defense' | 'mp'
+const NORMAL_TALENTS: Array<{ id: number; name: string; kind: NormalTalentKind; step: number }> = [
+  { id: 1, name: '生命祝福', kind: 'hp', step: .02 },
+  { id: 2, name: '锋锐', kind: 'attack', step: .02 },
+  { id: 3, name: '守护', kind: 'defense', step: .05 },
+  { id: 4, name: '灵泉', kind: 'mp', step: .02 },
 ]
 const ADVANCED_TALENTS = [
-  { id: 1, name: '奥术精通', desc: '法力上限 +5%，技能伤害 +10%，所有技能蓝耗 +5%' },
+  { id: 1, name: '奥术精通', desc: '法力上限 +5%，技能伤害 +10%' },
   { id: 2, name: '生命转换', desc: '将生命上限的 1% 转化为法力上限' },
   { id: 3, name: '双持专精', desc: '可以额外装备一把武器' },
 ]
+function normalTalentLevels(): number[] {
+  return game?.normalTalentLevels?.length === 4 ? game.normalTalentLevels : [0, 0, 0, 0]
+}
+function normalTalentLevel(id: number) { return normalTalentLevels()[id - 1] ?? 0 }
+function normalTalentUpgradeCost(level: number) { return Math.max(1, level) }
+function normalTalentRefund(level: number) { return level > 0 ? Math.max(1, level - 1) : 0 }
+function normalTalentEffect(id: number, level = normalTalentLevel(id)) {
+  const talent = NORMAL_TALENTS.find((entry) => entry.id === id)
+  if (!talent) return ''
+  const label = talent.kind === 'hp' ? '生命上限' : talent.kind === 'attack' ? '攻击力' : talent.kind === 'defense' ? '防御力' : '法力上限'
+  return `${label} +${Math.round(talent.step * level * 100)}%`
+}
+function advancedTalentLevel() { return Math.max(0, game?.advancedTalentLevel ?? 0) }
+function advancedTalentUpgradeCost(level: number) { return 2 * level + 1 }
+function advancedTalentSpent(level: number) { return level > 0 ? level * level + 2 : 0 }
+function advancedTalentRefund(level: number) { return level <= 0 ? 0 : level === 1 ? 3 : 2 * level - 1 }
+function advancedSkillDamagePct(level: number) { return (2 * level + 8) / 100 }
+function advancedMpPct(level: number) { return (2 * level + 3) / 100 }
+function advancedConvertPct(level: number) { return (level + 1) * .005 }
+function advancedEquipPct(level: number) { return level >= 2 ? .02 * (level - 1) : 0 }
+function dualWieldUnlocked() { return game?.advancedTalent === 3 && advancedTalentLevel() >= 1 }
+function advancedEffectText(id: number, level: number) {
+  if (level <= 0) return ''
+  if (id === 1) return `法力上限 +${Math.round(advancedMpPct(level) * 100)}%，技能伤害 +${Math.round(advancedSkillDamagePct(level) * 100)}%`
+  if (id === 2) return `生命上限的 ${(advancedConvertPct(level) * 100).toFixed(1)}% 转化为法力上限（生命不减少）`
+  if (level <= 1) return '可额外装备一把武器（升级后提高装备属性）'
+  return `可额外装备一把武器，装备属性 +${Math.round(advancedEquipPct(level) * 100)}%`
+}
 // 时装阶级可无限向上合成：每阶生命/攻击/蓝量各 +5%，防御额外多 5%。
 function fashionTierStats(tier: number) {
   const level = Math.max(1, Math.floor(tier))
@@ -125,7 +154,8 @@ function fashionTierName(tier: number) {
 const SHOP_ITEMS = [
   { id: 'armor1', name: '一阶护甲 ×1', cost: 1000, desc: '随机一件 1 级护甲' },
   { id: 'weapon1', name: '一阶武器 ×1', cost: 1000, desc: '随机一件 1 级武器' },
-  { id: 'fragments2', name: '天赋币碎片 ×2', cost: 2000, desc: '用于合成天赋币' },
+  { id: 'fragments1', name: '天赋币碎片 ×1', cost: 2000, desc: '每日限购一次' },
+  { id: 'revive1', name: '复活币 ×1', cost: 2000, desc: '每 3 天限购一次；战斗中死亡可满状态复活' },
   { id: 'fashion1', name: '一阶时装 ×1', cost: 10000, desc: '限购一份；小怪与 Boss 不会掉落', unique: true },
 ]
 const LOTTERY_PRIZES = [
@@ -364,6 +394,18 @@ function normalizeSave(data: Save): Save {
   data.soul ??= 0
   data.normalTalent ??= 0
   data.advancedTalent ??= 0
+  if (!Array.isArray(data.normalTalentLevels) || data.normalTalentLevels.length < 4) {
+    const levels = [0, 0, 0, 0]
+    if ((data.normalTalent ?? 0) >= 1 && (data.normalTalent ?? 0) <= 4) levels[(data.normalTalent ?? 1) - 1] = 1
+    data.normalTalentLevels = levels
+  } else {
+    data.normalTalentLevels = data.normalTalentLevels.slice(0, 4).map((level) => Math.max(0, Math.floor(Number(level) || 0)))
+  }
+  data.advancedTalentLevel = Math.max(0, Math.floor(Number(data.advancedTalentLevel ?? ((data.advancedTalent ?? 0) > 0 ? 1 : 0))))
+  data.reviveCoins = Math.max(0, Math.floor(Number(data.reviveCoins ?? 0)))
+  data.reviveUsed = Boolean(data.reviveUsed)
+  data.fragmentBuyDay ??= ''
+  data.reviveBuyAt ??= 0
   data.talentFragments ??= 0
   data.talentCoins ??= 0
   data.lotteryChances ??= 0
@@ -417,7 +459,7 @@ function displayNumber(value: number) { return DEMO_MODE ? compactNumber(value) 
 function displayCurrency(value: number) { return DEMO_MODE ? Math.round(value).toLocaleString('zh-CN') : String(Math.round(value)) }
 function item(): Gear | undefined {
   return game?.gear.find((gear) => gear.id === game?.weaponId)
-    ?? game?.gear.find((gear) => gear.id === game?.weapon2Id && game?.advancedTalent === 3)
+    ?? game?.gear.find((gear) => gear.id === game?.weapon2Id && dualWieldUnlocked())
     ?? game?.gear.find((gear) => gear.id === game?.armorId)
     ?? game?.gear.find((gear) => gear.id === game?.fashionId)
     ?? game?.gear.find((gear) => gear.id === game?.equipped)
@@ -426,7 +468,7 @@ function equippedGear() {
   if (!game) return []
   return game.gear.filter((gear) =>
     gear.id === game?.weaponId
-    || (game?.advancedTalent === 3 && gear.id === game?.weapon2Id)
+    || (dualWieldUnlocked() && gear.id === game?.weapon2Id)
     || gear.id === game?.armorId
     || gear.id === game?.fashionId
     || (!gear.type && gear.id === game?.equipped)
@@ -464,32 +506,44 @@ function stats() {
   const gear = equippedGear()
   const legacy = gear.find((entry) => !entry.type)
   const mainWeapon = gear.find((entry) => entry.type === 'weapon' && entry.id === game?.weaponId)
-  const offWeapon = game?.advancedTalent === 3 ? gear.find((entry) => entry.type === 'weapon' && entry.id === game?.weapon2Id) : undefined
+  const offWeapon = dualWieldUnlocked() ? gear.find((entry) => entry.type === 'weapon' && entry.id === game?.weapon2Id) : undefined
   const armor = gear.find((entry) => entry.type === 'armor')
   const fashion = gear.find((entry) => entry.type === 'fashion')
   const gearMultiplier = roleGearMultiplier(role)
   const allocation = game?.attributeAllocation ?? { hp: 0, attack: 0, mp: 0, defense: 0 }
-  let hp = base.hp + growth.hp + Math.round((armor?.hp ?? legacy?.hp ?? 0) * gearMultiplier) + allocation.hp * ATTRIBUTE_STEP.hp
-  let mp = base.mp + growth.mp + Math.round(((mainWeapon?.mp ?? 0) + (offWeapon?.mp ?? 0)) * gearMultiplier) + allocation.mp * ATTRIBUTE_STEP.mp
-  let attack = base.attack + growth.attack + Math.round(((mainWeapon?.attack ?? 0) + (offWeapon?.attack ?? 0) + (legacy?.attack ?? 0)) * gearMultiplier) + allocation.attack * ATTRIBUTE_STEP.attack
-  let defense = base.defense + growth.defense + Math.round((armor?.defense ?? legacy?.defense ?? 0) * gearMultiplier) + allocation.defense * ATTRIBUTE_STEP.defense
+  const gearHp = Math.round((armor?.hp ?? legacy?.hp ?? 0) * gearMultiplier)
+  const gearMp = Math.round(((mainWeapon?.mp ?? 0) + (offWeapon?.mp ?? 0)) * gearMultiplier)
+  const gearAttack = Math.round(((mainWeapon?.attack ?? 0) + (offWeapon?.attack ?? 0) + (legacy?.attack ?? 0)) * gearMultiplier)
+  const gearDefense = Math.round((armor?.defense ?? legacy?.defense ?? 0) * gearMultiplier)
+  let hp = base.hp + growth.hp + allocation.hp * ATTRIBUTE_STEP.hp + gearHp
+  let mp = base.mp + growth.mp + allocation.mp * ATTRIBUTE_STEP.mp + gearMp
+  let attack = base.attack + growth.attack + allocation.attack * ATTRIBUTE_STEP.attack + gearAttack
+  let defense = base.defense + growth.defense + allocation.defense * ATTRIBUTE_STEP.defense + gearDefense
+  let equipHp = gearHp, equipMp = gearMp, equipAttack = gearAttack, equipDefense = gearDefense
   const fashionStats = fashion ? fashionTierStats(fashion.level) : undefined
   if (fashionStats) {
-    hp += Math.round(hp * fashionStats.hpPct)
-    mp += fashionStats.mpFlat + Math.round(mp * fashionStats.mpPct)
-    attack += fashionStats.atkFlat + Math.round(attack * fashionStats.atkPct)
-    defense += fashionStats.defFlat + Math.round(defense * fashionStats.defPct)
+    const fHp = Math.round(hp * fashionStats.hpPct)
+    const fMp = fashionStats.mpFlat + Math.round(mp * fashionStats.mpPct)
+    const fAttack = fashionStats.atkFlat + Math.round(attack * fashionStats.atkPct)
+    const fDefense = fashionStats.defFlat + Math.round(defense * fashionStats.defPct)
+    hp += fHp; mp += fMp; attack += fAttack; defense += fDefense
+    equipHp += fHp; equipMp += fMp; equipAttack += fAttack; equipDefense += fDefense
   }
-  if (game?.normalTalent === 1) hp = Math.round(hp * 1.10)
-  else if (game?.normalTalent === 2) attack = Math.round(attack * 1.10)
-  else if (game?.normalTalent === 3) defense = Math.round(defense * 1.20)
-  else if (game?.normalTalent === 4) mp = Math.round(mp * 1.05)
-  if (game?.advancedTalent === 1) mp = Math.round(mp * 1.05)
-  if (game?.advancedTalent === 2) {
-    const converted = Math.round(hp * .01)
-    hp = Math.max(1, hp - converted)
-    mp += converted
+  // 双持专精升级：提高装备提供的属性。
+  const equipBonus = game?.advancedTalent === 3 ? advancedEquipPct(advancedTalentLevel()) : 0
+  if (equipBonus > 0) {
+    hp += Math.round(equipHp * equipBonus); mp += Math.round(equipMp * equipBonus)
+    attack += Math.round(equipAttack * equipBonus); defense += Math.round(equipDefense * equipBonus)
   }
+  // 普通天赋可以同时生效，等级越高加成越高。
+  const levels = normalTalentLevels()
+  if (levels[0]) hp = Math.round(hp * (1 + .02 * levels[0]))
+  if (levels[1]) attack = Math.round(attack * (1 + .02 * levels[1]))
+  if (levels[2]) defense = Math.round(defense * (1 + .05 * levels[2]))
+  if (levels[3]) mp = Math.round(mp * (1 + .02 * levels[3]))
+  const advLevel = advancedTalentLevel()
+  if (game?.advancedTalent === 1 && advLevel) mp = Math.round(mp * (1 + advancedMpPct(advLevel)))
+  if (game?.advancedTalent === 2 && advLevel) mp += Math.round(hp * advancedConvertPct(advLevel))
   const buffMultiplier = role === 'mage' && buffTime > 0 ? 1.1 : 1
   attack = Math.round(attack * buffMultiplier)
   return { hp: Math.round(hp), mp: Math.round(mp), attack: Math.round(attack), defense: Math.round(defense) }
@@ -783,6 +837,7 @@ function beginTutorial() {
   tutorialStep = 0
   hiddenBattle = false
   bossChest = null; lootReveal = null
+  if (game) game.reviveUsed = false
   scene = 'battle'
   game.town = false; game.dead = false; game.completed = false
   paused = false
@@ -809,6 +864,7 @@ function beginHiddenBattle() {
   hiddenBattle = true
   tutorialMode = false
   bossChest = null; lootReveal = null
+  if (game) game.reviveUsed = false
   scene = 'battle'
   game.town = true; game.dead = false
   paused = false
@@ -936,6 +992,7 @@ function beginStage(stage: number, mode: 'continue' | 'restart' | 'boss' = 'cont
   if (!game) return
   hiddenBattle = false
   bossChest = null; lootReveal = null
+  game.reviveUsed = false
   tutorialMode = false; tutorialStep = 0
   const progress = getStageProgress(stage)
   game.stage = stage
@@ -984,7 +1041,7 @@ function start(role: Role, previous?: Save) {
 }
 function freshSave(role: Role): Save {
   const base = ROLE_BASE[role]
-  return { role, stage: 1, unlockedStage: 1, kills: 0, hp: base.hp, mp: base.mp, gear: [], equipped: null, weaponId: null, weapon2Id: null, armorId: null, fashionId: null, level: 1, exp: 0, drops: [], bossDefeated: false, attributePoints: 0, attributeAllocation: { hp: 0, attack: 0, mp: 0, defense: 0 }, soul: 0, normalTalent: 0, advancedTalent: 0, talentFragments: 0, talentCoins: 0, lotteryChances: 0, shopFashionBought: false, stamps: 0, tutorialDone: false, hiddenCleared: false, rivalTrust: false, stage8Choice: null, rescuedRock: false, rescuedXiaoman: false, rescuedZhou: false, seenStories: [], forgeIntroSeen: false, shopIntroSeen: false, lotteryIntroSeen: false, townIntroSeen: false, town: true, completed: false, dead: false }
+  return { role, stage: 1, unlockedStage: 1, kills: 0, hp: base.hp, mp: base.mp, gear: [], equipped: null, weaponId: null, weapon2Id: null, armorId: null, fashionId: null, level: 1, exp: 0, drops: [], bossDefeated: false, attributePoints: 0, attributeAllocation: { hp: 0, attack: 0, mp: 0, defense: 0 }, soul: 0, normalTalent: 0, normalTalentLevels: [0, 0, 0, 0], advancedTalent: 0, advancedTalentLevel: 0, talentFragments: 0, talentCoins: 0, lotteryChances: 0, shopFashionBought: false, reviveCoins: 0, reviveUsed: false, fragmentBuyDay: '', reviveBuyAt: 0, stamps: 0, tutorialDone: false, hiddenCleared: false, rivalTrust: false, stage8Choice: null, rescuedRock: false, rescuedXiaoman: false, rescuedZhou: false, seenStories: [], forgeIntroSeen: false, shopIntroSeen: false, lotteryIntroSeen: false, townIntroSeen: false, town: true, completed: false, dead: false }
 }
 function awardExperience(amount: number) {
   if (!game) return
@@ -1311,7 +1368,7 @@ function gearMarkup(canEquip: boolean) {
   if (!game) return ''
   if (!game.gear.length) return '<div class="empty-gear">背包里还没有装备<small>击败遗迹守卫，寻找装备</small></div>'
   const worn = new Set([game.weaponId, game.armorId, game.fashionId])
-  if (game.advancedTalent === 3 && game.weapon2Id) worn.add(game.weapon2Id)
+  if (dualWieldUnlocked() && game.weapon2Id) worn.add(game.weapon2Id)
   const multiplier = roleGearMultiplier(game.role)
   const scaled = (value: number | undefined) => Math.round((value ?? 0) * multiplier)
   return game.gear.map((gear) => {
@@ -1326,7 +1383,7 @@ function gearMarkup(canEquip: boolean) {
           ? `生命 +${scaled(gear.hp)} · 防御 +${scaled(gear.defense)}`
           : `生命 +${scaled(gear.hp)} · 攻击 +${scaled(gear.attack)} · 防御 +${scaled(gear.defense)}`
     let actions = ''
-    if (gear.type === 'weapon' && game!.advancedTalent === 3) {
+    if (gear.type === 'weapon' && dualWieldUnlocked()) {
       const isMain = gear.id === game!.weaponId
       const isOff = gear.id === game!.weapon2Id
       actions = `${isMain ? '<i class="equipped">主手</i>' : `<button data-action="equip-main" data-id="${gear.id}" ${canEquip ? '' : 'disabled'}>主手</button>`}${isOff ? '<i class="equipped">副手</i>' : `<button data-action="equip-off" data-id="${gear.id}" ${canEquip ? '' : 'disabled'}>副手</button>`}`
@@ -1467,6 +1524,7 @@ const ITEM_ICON_PATHS: Record<string, string> = {
   npc: '<path d="M12 2a4 4 0 0 1 4 4h2a3 3 0 0 1 3 3v3l-2 1v6H5v-6l-2-1V9a3 3 0 0 1 3-3h2a4 4 0 0 1 4-4Zm-1 4a1 1 0 0 0 2 0V5a1 1 0 0 0-2 0v1Zm-3 4a1 1 0 0 0-1 1v2h10v-2a1 1 0 0 0-1-1H8Zm-3 6 2 1h10l2-1v2H5v-2Z"/>',
   stamp: '<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16Zm-2 4h4v4h-4V8Zm-1 6h6v2H9v-2Z"/>',
   legacy: '<path d="m12 2 3 7h7l-5.7 4.4 2.2 7L12 16l-6.5 4.4 2.2-7L2 9h7l3-7Z"/>',
+  revive: '<path d="M12 21c-4.4-3.2-8-6.2-8-10.2A4.8 4.8 0 0 1 12 7a4.8 4.8 0 0 1 8 3.8c0 4-3.6 7-8 10.2Zm0-12.3a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/>',
 }
 function itemIcon(name: string, className = '') {
   const path = ITEM_ICON_PATHS[name] ?? ITEM_ICON_PATHS.coin
@@ -1706,7 +1764,7 @@ function bagMarkup() {
   if (!game) return ''
   const s = stats()
   const main = game.gear.find((gear) => gear.id === game?.weaponId)
-  const off = game.advancedTalent === 3 ? game.gear.find((gear) => gear.id === game?.weapon2Id) : undefined
+  const off = dualWieldUnlocked() ? game.gear.find((gear) => gear.id === game?.weapon2Id) : undefined
   const armor = game.gear.find((gear) => gear.id === game?.armorId)
   const fashion = game.gear.find((gear) => gear.id === game?.fashionId)
   const chips = [
@@ -1722,13 +1780,15 @@ function bagMarkup() {
 }
 function talentBagMarkup() {
   if (!game) return ''
-  const normal = NORMAL_TALENTS.find((talent) => talent.id === game?.normalTalent)
+  const levels = normalTalentLevels()
+  const normalText = NORMAL_TALENTS.filter((talent) => (levels[talent.id - 1] ?? 0) > 0).map((talent) => `${talent.name} Lv.${levels[talent.id - 1]}`).join('、') || '未激活'
   const advanced = ADVANCED_TALENTS.find((talent) => talent.id === game?.advancedTalent)
-  return `<div class="bag-info-list"><article class="info-row"><span>${itemIcon('fragment')} 天赋币碎片</span><b>${displayCurrency(game.talentFragments ?? 0)}</b></article><article class="info-row"><span>${itemIcon('coin')} 天赋币</span><b>${displayCurrency(game.talentCoins ?? 0)}</b></article><article class="info-row"><span>${itemIcon('attribute')} 普通天赋</span><b>${normal?.name ?? '未选择'}</b></article><article class="info-row"><span>${itemIcon('coin')} 高级天赋</span><b>${advanced?.name ?? '未选择'}</b></article></div><p class="bag-note">在同一背包中管理天赋材料；前往小镇商人处合成天赋币并选择天赋。</p>`
+  const advancedText = advanced ? `${advanced.name} Lv.${advancedTalentLevel()}` : '未激活'
+  return `<div class="bag-info-list"><article class="info-row"><span>${itemIcon('fragment')} 天赋币碎片</span><b>${displayCurrency(game.talentFragments ?? 0)}</b></article><article class="info-row"><span>${itemIcon('coin')} 天赋币</span><b>${displayCurrency(game.talentCoins ?? 0)}</b></article><article class="info-row"><span>${itemIcon('attribute')} 普通天赋</span><b>${normalText}</b></article><article class="info-row"><span>${itemIcon('coin')} 高级天赋</span><b>${advancedText}</b></article></div><p class="bag-note">普通天赋可以全部激活并分别升级；高级天赋只能激活一个。前往小镇商人处研究、升级或撤销天赋。</p>`
 }
 function otherBagMarkup() {
   if (!game) return ''
-  return `<div class="bag-info-list"><article class="info-row"><span>${itemIcon('soul')} 灵魂</span><b>${displayCurrency(game.soul ?? 0)}</b></article><article class="info-row"><span>${itemIcon('stamp')} 王印印章</span><b>${displayCurrency(game.stamps ?? 0)} / ${STAMP_UNLOCK}</b></article><article class="info-row"><span>${itemIcon('ticket')} 抽奖机会</span><b>${displayCurrency(game.lotteryChances ?? 0)}</b></article><article class="info-row"><span>${itemIcon('attribute')} 属性点</span><b>${displayCurrency(game.attributePoints ?? 0)}</b></article></div><p class="bag-note">灵魂可以在小镇商人处购买装备与材料；集齐 ${STAMP_UNLOCK} 枚王印印章可开启隐藏关卡。</p>`
+  return `<div class="bag-info-list"><article class="info-row"><span>${itemIcon('soul')} 灵魂</span><b>${displayCurrency(game.soul ?? 0)}</b></article><article class="info-row"><span>${itemIcon('revive')} 复活币</span><b>${displayCurrency(game.reviveCoins ?? 0)}</b></article><article class="info-row"><span>${itemIcon('stamp')} 王印印章</span><b>${displayCurrency(game.stamps ?? 0)} / ${STAMP_UNLOCK}</b></article><article class="info-row"><span>${itemIcon('ticket')} 抽奖机会</span><b>${displayCurrency(game.lotteryChances ?? 0)}</b></article><article class="info-row"><span>${itemIcon('attribute')} 属性点</span><b>${displayCurrency(game.attributePoints ?? 0)}</b></article></div><p class="bag-note">灵魂可以在小镇商人处购买装备、材料和复活币；集齐 ${STAMP_UNLOCK} 枚王印印章可开启隐藏关卡。</p>`
 }
 function npcMarkup() {
   if (!game || !npcOpen) return ''
@@ -1740,35 +1800,62 @@ function npcMenuMarkup() {
   if (!game) return ''
   return `<p>“谢谢你把我从第三关拉出来。灵魂、天赋、运气——你想要哪一种？”</p><div class="npc-menu"><button data-action="npc-shop"><b>${itemIcon('soul')}</b><span><strong>商城</strong><small>用灵魂购买装备与材料</small></span></button><button data-action="npc-talent"><b>${itemIcon('coin')}</b><span><strong>天赋</strong><small>${talentUnlocked() ? '研究普通与高级天赋' : '角色 5 级后开放'}</small></span></button><button data-action="open-lottery"><b>${itemIcon('ticket')}</b><span><strong>抽奖</strong><small>${game.lotteryChances ?? 0} 次机会</small></span></button></div><div class="npc-currency"><span>${itemIcon('soul')} 灵魂 ${displayCurrency(game.soul ?? 0)}</span><span>${itemIcon('fragment')} 碎片 ${displayCurrency(game.talentFragments ?? 0)}</span><span>${itemIcon('coin')} 天赋币 ${displayCurrency(game.talentCoins ?? 0)}</span></div>`
 }
+function todayKey() {
+  const now = new Date()
+  return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`
+}
+function cooldownText(ms: number) {
+  if (ms <= 0) return ''
+  const totalMinutes = Math.ceil(ms / 60000)
+  const days = Math.floor(totalMinutes / 1440)
+  const hours = Math.floor((totalMinutes % 1440) / 60)
+  const minutes = totalMinutes % 60
+  if (days > 0) return `${days} 天 ${hours} 小时`
+  if (hours > 0) return `${hours} 小时 ${minutes} 分`
+  return `${minutes} 分钟`
+}
 function shopMarkup() {
   if (!game) return ''
   const rows = SHOP_ITEMS.map((item) => {
-    const soldOut = item.unique && game!.shopFashionBought
-    const canBuy = !soldOut && (game!.soul ?? 0) >= item.cost
-    const icon = item.id === 'armor1' ? 'armor' : item.id === 'weapon1' ? 'weapon' : item.id === 'fragments2' ? 'fragment' : 'fashion'
-    return `<article class="shop-row"><span class="gear-glyph">${itemIcon(icon)}</span><span class="gear-copy"><b>${item.name}</b><small>${item.desc}</small></span><b class="shop-price">${itemIcon('soul')} ${item.cost}</b><button data-action="shop-buy" data-id="${item.id}" ${canBuy ? '' : 'disabled'}>${soldOut ? '已购买' : '购买'}</button></article>`
+    const uniqueSold = Boolean(item.unique && game!.shopFashionBought)
+    const dailySold = item.id === 'fragments1' && game!.fragmentBuyDay === todayKey()
+    const reviveLeft = item.id === 'revive1' ? Math.max(0, 3 * 24 * 3600 * 1000 - (Date.now() - (game!.reviveBuyAt ?? 0))) : 0
+    const limited = uniqueSold || dailySold || reviveLeft > 0
+    const canBuy = !limited && (game!.soul ?? 0) >= item.cost
+    const icon = item.id === 'armor1' ? 'armor' : item.id === 'weapon1' ? 'weapon' : item.id === 'fragments1' ? 'fragment' : item.id === 'revive1' ? 'revive' : 'fashion'
+    const label = uniqueSold ? '已购买' : dailySold ? '今日已购' : reviveLeft > 0 ? '冷却中' : '购买'
+    const extra = reviveLeft > 0 ? ` · 剩余 ${cooldownText(reviveLeft)}` : dailySold ? ' · 明天刷新' : ''
+    return `<article class="shop-row"><span class="gear-glyph">${itemIcon(icon)}</span><span class="gear-copy"><b>${item.name}</b><small>${item.desc}${extra}</small></span><b class="shop-price">${itemIcon('soul')} ${item.cost}</b><button data-action="shop-buy" data-id="${item.id}" ${canBuy ? '' : 'disabled'}>${label}</button></article>`
   }).join('')
-  return `<div class="npc-currency"><span>${itemIcon('soul')} 灵魂 ${displayCurrency(game.soul ?? 0)}</span><span>${itemIcon('fragment')} 碎片 ${displayCurrency(game.talentFragments ?? 0)}</span></div><div class="bag-list shop-list">${rows}</div><button class="secondary npc-back" data-action="npc-menu">返回商人</button>`
+  return `<div class="npc-currency"><span>${itemIcon('soul')} 灵魂 ${displayCurrency(game.soul ?? 0)}</span><span>${itemIcon('fragment')} 碎片 ${displayCurrency(game.talentFragments ?? 0)}</span><span>${itemIcon('revive')} 复活币 ${displayCurrency(game.reviveCoins ?? 0)}</span></div><div class="bag-list shop-list">${rows}</div><button class="secondary npc-back" data-action="npc-menu">返回商人</button>`
 }
 function talentMarkup() {
   if (!game) return ''
   if (!talentUnlocked()) return `<div class="talent-locked"><b>天赋尚未解锁</b><p>角色达到 5 级后可以研究天赋。</p><button class="secondary npc-back" data-action="npc-menu">返回商人</button></div>`
-  const hasNormal = (game.normalTalent ?? 0) > 0
-  const hasAdvanced = (game.advancedTalent ?? 0) > 0
+  const coins = game.talentCoins ?? 0
+  const levels = normalTalentLevels()
   const normalRows = NORMAL_TALENTS.map((talent) => {
-    const active = game!.normalTalent === talent.id
-    const can = active || hasNormal || (game!.talentCoins ?? 0) >= 1
-    const label = active ? '已选' : hasNormal ? '更换' : `选择 ${itemIcon('coin')}1`
-    return `<article class="talent-row ${active ? 'active' : ''}"><span class="gear-glyph">${itemIcon('attribute')}</span><span class="gear-copy"><b>${talent.name}</b><small>${talent.desc}</small></span><button data-action="talent-normal" data-id="${talent.id}" ${can ? '' : 'disabled'}>${label}</button></article>`
+    const level = levels[talent.id - 1] ?? 0
+    const cost = normalTalentUpgradeCost(level)
+    const refund = normalTalentRefund(level)
+    const current = level > 0 ? normalTalentEffect(talent.id, level) : '未激活'
+    const next = level > 0 ? `下一级：${normalTalentEffect(talent.id, level + 1)}` : `激活后：${normalTalentEffect(talent.id, 1)}`
+    return `<article class="talent-row ${level > 0 ? 'active' : ''}"><span class="gear-glyph">${itemIcon('attribute')}</span><span class="gear-copy"><b>${talent.name}${level > 0 ? ` <i>Lv.${level}</i>` : ''}</b><small>${current} · ${next}</small></span><span class="talent-actions"><button data-action="talent-normal-up" data-id="${talent.id}" ${coins >= cost ? '' : 'disabled'}>${level > 0 ? '升级' : '激活'} ${itemIcon('coin')}${cost}</button>${level > 0 ? `<button class="talent-undo" data-action="talent-normal-undo" data-id="${talent.id}">撤销 ${itemIcon('coin')}${refund}</button>` : ''}</span></article>`
   }).join('')
+  const advId = game.advancedTalent ?? 0
+  const advLevel = advancedTalentLevel()
   const advancedRows = ADVANCED_TALENTS.map((talent) => {
-    const active = game!.advancedTalent === talent.id
-    const can = active || hasAdvanced || (game!.talentCoins ?? 0) >= ADVANCED_TALENT_COST
-    const label = active ? '已选' : hasAdvanced ? '更换' : `选择 ${itemIcon('coin')}${ADVANCED_TALENT_COST}`
-    return `<article class="talent-row ${active ? 'active' : ''}"><span class="gear-glyph">${itemIcon('coin')}</span><span class="gear-copy"><b>${talent.name}</b><small>${talent.desc}</small></span><button data-action="talent-advanced" data-id="${talent.id}" ${can ? '' : 'disabled'}>${label}</button></article>`
+    if (advId === talent.id) {
+      const cost = advancedTalentUpgradeCost(advLevel)
+      const refund = advancedTalentRefund(advLevel)
+      return `<article class="talent-row active"><span class="gear-glyph">${itemIcon('coin')}</span><span class="gear-copy"><b>${talent.name} <i>Lv.${advLevel}</i></b><small>${advancedEffectText(talent.id, advLevel)} · 下一级：${advancedEffectText(talent.id, advLevel + 1)}</small></span><span class="talent-actions"><button data-action="talent-advanced-up" ${coins >= cost ? '' : 'disabled'}>升级 ${itemIcon('coin')}${cost}</button><button class="talent-undo" data-action="talent-advanced-undo">撤销 ${itemIcon('coin')}${refund}</button><button class="talent-undo" data-action="talent-advanced-reset">重置 ${itemIcon('coin')}${advancedTalentSpent(advLevel)}</button></span></article>`
+    }
+    const can = advId === 0 && coins >= ADVANCED_TALENT_COST
+    const hint = advId !== 0 ? `请先重置当前高级天赋 · 激活后：${advancedEffectText(talent.id, 1)}` : `激活后：${advancedEffectText(talent.id, 1)}`
+    return `<article class="talent-row"><span class="gear-glyph">${itemIcon('coin')}</span><span class="gear-copy"><b>${talent.name}</b><small>${hint}</small></span><span class="talent-actions"><button data-action="talent-advanced-select" data-id="${talent.id}" ${can ? '' : 'disabled'}>激活 ${itemIcon('coin')}${ADVANCED_TALENT_COST}</button></span></article>`
   }).join('')
   const canCraft = (game.talentFragments ?? 0) >= TALENT_FRAGMENTS_PER_COIN
-  return `<div class="npc-currency"><span>${itemIcon('fragment')} 碎片 ${displayCurrency(game.talentFragments ?? 0)}</span><span>${itemIcon('coin')} 天赋币 ${displayCurrency(game.talentCoins ?? 0)}</span><span>${itemIcon('attribute')} 等级 ${displayNumber(game.level ?? 1)}</span></div><section class="talent-block"><h3>普通天赋 <small>${hasNormal ? '更换免费' : '首次选择需要 1 天赋币'} · 只能选择一个</small></h3>${normalRows}</section><section class="talent-block"><h3>高级天赋 <small>${hasAdvanced ? '更换免费' : `首次选择需要 ${ADVANCED_TALENT_COST} 天赋币`} · 只能选择一个</small></h3>${advancedRows}</section><div class="talent-footer"><button class="secondary" data-action="talent-craft" ${canCraft ? '' : 'disabled'}>${itemIcon('coin')} 合成天赋币（${displayCurrency(game.talentFragments ?? 0)} / ${TALENT_FRAGMENTS_PER_COIN}）</button><button class="secondary npc-back" data-action="npc-menu">返回商人</button></div><p class="bag-note">同时拥有普通和高级天赋后，Boss 掉落的天赋币碎片将转化为 1000 灵魂。</p>`
+  return `<div class="npc-currency"><span>${itemIcon('fragment')} 碎片 ${displayCurrency(game.talentFragments ?? 0)}</span><span>${itemIcon('coin')} 天赋币 ${displayCurrency(game.talentCoins ?? 0)}</span><span>${itemIcon('attribute')} 等级 ${displayNumber(game.level ?? 1)}</span></div><section class="talent-block"><h3>普通天赋 <small>可以全部激活，分别升级</small></h3>${normalRows}</section><section class="talent-block"><h3>高级天赋 <small>只能激活一个，可升级与重置</small></h3>${advancedRows}</section><div class="talent-footer"><button class="secondary" data-action="talent-craft" ${canCraft ? '' : 'disabled'}>${itemIcon('coin')} 合成天赋币（${displayCurrency(game.talentFragments ?? 0)} / ${TALENT_FRAGMENTS_PER_COIN}）</button><button class="secondary npc-back" data-action="npc-menu">返回商人</button></div><p class="bag-note">撤销或重置天赋会返还已投入的天赋币；每级普通天赋的升级费用依次为 1、2、3…，高级天赋升级费用依次为 3、5、7…。</p>`
 }
 function lotteryMarkup() {
   if (!game || !lotteryOpen) return ''
@@ -1886,32 +1973,97 @@ function buyShopItem(id: string) {
   const item = SHOP_ITEMS.find((entry) => entry.id === id)
   if (!item) return
   if (item.unique && game.shopFashionBought) { toast('这件时装已经购买过。'); return }
+  if (id === 'fragments1' && game.fragmentBuyDay === todayKey()) { toast('天赋币碎片每天只能购买一次，明天再来吧。'); return }
+  if (id === 'revive1') {
+    const left = 3 * 24 * 3600 * 1000 - (Date.now() - (game.reviveBuyAt ?? 0))
+    if (left > 0) { toast(`复活币每 3 天限购一次，还需等待 ${cooldownText(left)}。`); return }
+  }
   if ((game.soul ?? 0) < item.cost) { toast('灵魂不足。'); return }
   game.soul = (game.soul ?? 0) - item.cost
   if (id === 'armor1') game.gear.unshift(makeGear('armor', 1))
   else if (id === 'weapon1') game.gear.unshift(makeGear('weapon', 1))
-  else if (id === 'fragments2') game.talentFragments = (game.talentFragments ?? 0) + 2
+  else if (id === 'fragments1') { game.talentFragments = (game.talentFragments ?? 0) + 1; game.fragmentBuyDay = todayKey() }
+  else if (id === 'revive1') { game.reviveCoins = (game.reviveCoins ?? 0) + 1; game.reviveBuyAt = Date.now() }
   else if (id === 'fashion1') { game.gear.unshift(makeFashion(1)); game.shopFashionBought = true }
   save(); npcOpen = true; npcView = 'shop'; renderGame(); toast(`已购买：${item.name}`)
 }
-function selectNormalTalent(id: number) {
+function applyTalentVitals(before: { hp: number; mp: number }) {
+  if (!game) return
+  const after = stats()
+  game.hp = Math.min(after.hp, game.hp + Math.max(0, after.hp - before.hp))
+  game.mp = Math.min(after.mp, game.mp + Math.max(0, after.mp - before.mp))
+}
+function upgradeNormalTalent(id: number) {
   if (!game || !talentUnlocked()) return
-  if (game.normalTalent === id) { toast('已经选择了这个天赋。'); return }
-  const hasNormal = (game.normalTalent ?? 0) > 0
-  if (!hasNormal && (game.talentCoins ?? 0) < 1) { toast('首次选择普通天赋需要 1 个天赋币。'); return }
-  if (!hasNormal) game.talentCoins = (game.talentCoins ?? 0) - 1
-  game.normalTalent = id
-  const current = stats(); game.hp = Math.min(game.hp, current.hp); game.mp = Math.min(game.mp, current.mp)
-  save(); npcOpen = true; npcView = 'talent'; renderGame(); toast(hasNormal ? '普通天赋已更换（更换免费）。' : '普通天赋已选择。')
+  const levels = [...normalTalentLevels()]
+  const level = levels[id - 1] ?? 0
+  const cost = normalTalentUpgradeCost(level)
+  if ((game.talentCoins ?? 0) < cost) { toast(`升级需要 ${cost} 个天赋币。`); return }
+  const before = stats()
+  game.talentCoins = (game.talentCoins ?? 0) - cost
+  levels[id - 1] = level + 1
+  game.normalTalentLevels = levels
+  applyTalentVitals(before)
+  save(); npcOpen = true; npcView = 'talent'; renderGame(); toast(`${NORMAL_TALENTS[id - 1].name} 已提升到 Lv.${level + 1}。`)
+}
+function undoNormalTalent(id: number) {
+  if (!game || !talentUnlocked()) return
+  const levels = [...normalTalentLevels()]
+  const level = levels[id - 1] ?? 0
+  if (level <= 0) return
+  const refund = normalTalentRefund(level)
+  const before = stats()
+  levels[id - 1] = level - 1
+  game.normalTalentLevels = levels
+  game.talentCoins = (game.talentCoins ?? 0) + refund
+  applyTalentVitals(before)
+  save(); npcOpen = true; npcView = 'talent'; renderGame(); toast(`已撤销 ${NORMAL_TALENTS[id - 1].name}，返还 ${refund} 个天赋币。`)
 }
 function selectAdvancedTalent(id: number) {
   if (!game || !talentUnlocked() || game.advancedTalent === id) return
-  const hasAdvanced = (game.advancedTalent ?? 0) > 0
-  if (!hasAdvanced && (game.talentCoins ?? 0) < ADVANCED_TALENT_COST) { toast(`首次选择高级天赋需要 ${ADVANCED_TALENT_COST} 个天赋币。`); return }
-  if (!hasAdvanced) game.talentCoins = (game.talentCoins ?? 0) - ADVANCED_TALENT_COST
+  if ((game.advancedTalent ?? 0) !== 0) { toast('高级天赋只能激活一个，请先重置当前高级天赋。'); return }
+  if ((game.talentCoins ?? 0) < ADVANCED_TALENT_COST) { toast(`激活高级天赋需要 ${ADVANCED_TALENT_COST} 个天赋币。`); return }
+  const before = stats()
+  game.talentCoins = (game.talentCoins ?? 0) - ADVANCED_TALENT_COST
   game.advancedTalent = id
-  const current = stats(); game.hp = Math.min(game.hp, current.hp); game.mp = Math.min(game.mp, current.mp)
-  save(); npcOpen = true; npcView = 'talent'; renderGame(); toast(hasAdvanced ? '高级天赋已更换（更换免费）。' : '高级天赋已选择。')
+  game.advancedTalentLevel = 1
+  applyTalentVitals(before)
+  save(); npcOpen = true; npcView = 'talent'; renderGame(); toast('高级天赋已激活。')
+}
+function upgradeAdvancedTalent() {
+  if (!game || !talentUnlocked() || !game.advancedTalent) return
+  const level = advancedTalentLevel()
+  if (level < 1) return
+  const cost = advancedTalentUpgradeCost(level)
+  if ((game.talentCoins ?? 0) < cost) { toast(`升级需要 ${cost} 个天赋币。`); return }
+  const before = stats()
+  game.talentCoins = (game.talentCoins ?? 0) - cost
+  game.advancedTalentLevel = level + 1
+  applyTalentVitals(before)
+  save(); npcOpen = true; npcView = 'talent'; renderGame(); toast(`高级天赋已提升到 Lv.${level + 1}。`)
+}
+function undoAdvancedTalent() {
+  if (!game || !game.advancedTalent) return
+  const level = advancedTalentLevel()
+  if (level <= 0) return
+  const refund = advancedTalentRefund(level)
+  const before = stats()
+  game.talentCoins = (game.talentCoins ?? 0) + refund
+  game.advancedTalentLevel = level - 1
+  if (level - 1 <= 0) { game.advancedTalent = 0; game.advancedTalentLevel = 0 }
+  applyTalentVitals(before)
+  save(); npcOpen = true; npcView = 'talent'; renderGame(); toast(`已撤销一级高级天赋，返还 ${refund} 个天赋币。`)
+}
+function resetAdvancedTalent() {
+  if (!game || !game.advancedTalent) return
+  const level = advancedTalentLevel()
+  const refund = advancedTalentSpent(level)
+  const before = stats()
+  game.talentCoins = (game.talentCoins ?? 0) + refund
+  game.advancedTalent = 0
+  game.advancedTalentLevel = 0
+  applyTalentVitals(before)
+  save(); npcOpen = true; npcView = 'talent'; renderGame(); toast(`已重置高级天赋，返还 ${refund} 个天赋币。`)
 }
 function craftTalentCoin() {
   if (!game || (game.talentFragments ?? 0) < TALENT_FRAGMENTS_PER_COIN) return
@@ -2258,7 +2410,7 @@ function renderGame() {
   const chapterLabel = tutorialMode ? 'NEW PLAYER' : hiddenBattle ? 'SECRET BATTLE' : `第 ${String(game.stage).padStart(2, '0')} 章`
   const countText = tutorialMode ? '训练' : hiddenBattle ? '宿敌' : boss ? bossLabel : `${game.kills} / ${MAX_SMALL_KILLS}`
   const townOverlay = ''
-  const deathOverlay = scene === 'defeat' ? '<div class="overlay death-overlay"><small>EXPEDITION PAUSED</small><h2>你倒在了遗迹深处</h2><p>继续战斗会以半血复活并保留当前进度；重新开始会恢复满状态并从本关第一波重新挑战；回到小镇会恢复满状态。</p><div class="death-actions"><button data-action="respawn-fight" class="primary">继续战斗（半血）</button><button data-action="restart-stage" class="secondary">重新开始（满状态）</button><button data-action="respawn-town" class="secondary">回到小镇</button></div></div>' : ''
+  const deathOverlay = scene === 'defeat' ? `<div class="overlay death-overlay"><small>EXPEDITION PAUSED</small><h2>你倒在了遗迹深处</h2><p>继续战斗会以半血复活并保留当前进度；复活币可以满状态复活，每个关卡限用一次；重新开始会恢复满状态并从本关第一波重新挑战；回到小镇会恢复满状态。</p><div class="death-actions">${(game.reviveCoins ?? 0) > 0 && !game.reviveUsed ? `<button data-action="revive-coin" class="revive-button">${itemIcon('revive')} 使用复活币（满状态） · ${game.reviveCoins}</button>` : ''}<button data-action="respawn-fight" class="primary">继续战斗（半血）</button><button data-action="restart-stage" class="secondary">重新开始（满状态）</button><button data-action="respawn-town" class="secondary">回到小镇</button></div></div>` : ''
   const endingOverlay = scene === 'ending' ? '<div class="overlay"><small>THE FRONTIER IS YOURS</small><h2>十片遗迹，皆已沉寂</h2><p>你完成了元素远征。</p><button data-action="town" class="primary">返回小镇　↗</button></div>' : ''
   app.innerHTML = `<main class="game-shell ${isTown ? 'town-mode' : ''}"><header class="game-header"><a data-action="town" class="wordmark"><b>A</b> 冒险王 <i>／</i> ${isTown ? '冒险者小镇' : '元素远征'}</a>${DEMO_MODE ? '<span class="demo-badge">体验版 · 全关卡</span>' : ''}<span class="save-state"><i></i>${isTown ? '小镇安全区' : '进度已自动保存'}</span><span class="soul-badge" title="灵魂">${itemIcon('soul')} ${displayNumber(game.soul ?? 0)}</span><button class="bag-button" data-action="bag">${itemIcon('bag')} 背包 <span>${game.gear.length}</span></button><button class="save-button" data-action="save" title="保存进度">▣</button></header><section class="overview"><div><small>${isTown ? '冒险者小镇' : chapterLabel}</small><h1>${isTown ? '营火集市' : areaName}</h1><p>${isTown ? '缓冲区 · 整备装备与选择关卡' : tutorialMode ? '新手试炼 · 完成引导目标' : hiddenBattle ? '宿敌对决 · 没有退路' : `遗迹入口 · 击败 ${MAX_SMALL_KILLS} 只守卫后迎战 Boss`}</p></div><div class="metrics"><div><small>职业</small><b>${roleLabels[game.role]}</b></div><div><small>已击杀</small><b>${isTown ? `开放至第 ${game.unlockedStage} 关` : countText}</b></div><div><small>当前装备</small><b>${item()?.name ?? '无'}</b></div></div></section><section class="game-grid"><div class="battle-column"><div class="arena-label"><span>◆ ${isTown ? '冒险者小镇 · 补给站' : `${areaName} · 深层区域`}</span><b id="enemy-name">${isTown ? '安全区域' : tutorialMode ? '训练傀儡正在等待' : hiddenBattle ? '宿敌正在等待' : boss ? `${bossLabel}冲刺准备中` : `${foes.length} 只守卫正在逼近`}</b></div><div class="arena-stage"><div class="arena"><canvas id="arena" aria-label="横版战斗场景"></canvas><div class="coords"><span>${isTown ? 'TOWN · SAFE ZONE' : tutorialMode ? 'NEW PLAYER · TRAINING' : hiddenBattle ? 'SECRET · RIVAL' : `遗迹远征 · ${String(game.stage).padStart(2, '0')}`}</span><span>${boss ? 'BOSS ENCOUNTER' : isTown ? 'REST & PREPARE' : 'WAVE ENCOUNTER'}</span></div>${townOverlay}${deathOverlay}${endingOverlay}${bossVictoryMarkup()}${lootRevealMarkup()}${tutorialHintMarkup()}<div class="mobile-control-deck"><div class="mobile-rail mobile-move-rail"><button class="mobile-pad" data-move="left" aria-label="向左移动" title="向左移动" ${canControl ? '' : 'disabled'}>←</button><button class="mobile-pad" data-move="right" aria-label="向右移动" title="向右移动" ${canControl ? '' : 'disabled'}>→</button></div><div class="mobile-rail mobile-action-rail"><div class="mobile-skills">${[2, 3, 0, 1].map((index) => `<button class="mobile-skill" data-action="skill" data-index="${index}" aria-label="技能 ${index + 1}" ${canControl ? '' : 'disabled'}>${index + 1}</button>`).join('')}</div><div class="mobile-utils"><button class="mobile-skill mobile-pickup" data-action="pickup" aria-label="拾取" title="拾取药水 / 与商人对话" ${canControl ? '' : 'disabled'}>S</button><button class="mobile-skill mobile-shield" data-shield aria-label="护盾" title="按住生成护盾" ${canControl ? '' : 'disabled'}>L</button></div><button class="mobile-pad attack-pad" data-action="attack" aria-label="攻击" title="攻击" ${canControl ? '' : 'disabled'}>⚔</button><button class="mobile-pad jump-pad" data-action="jump" aria-label="跳跃" title="跳跃" ${canControl ? '' : 'disabled'}>↟</button></div></div></div></div><div class="foe-health"><div><span>${isTown ? '冒险者状态' : boss ? bossLabel : '本批守卫'}</span><b id="foe-hp">${isTown ? '安全休整' : boss ? `${Math.ceil(foes[0]?.hp ?? 0)} / ${foes[0]?.maxHp ?? 0}` : `${foes.length} 名敌人 · 已击败 ${game.kills} / ${MAX_SMALL_KILLS}`}</b></div><div><i id="foe-fill" style="width:${boss ? `${Math.max(0, foes[0].hp / foes[0].maxHp * 100)}%` : '100%'}"></i></div></div><div class="combat-bar"><button data-action="attack" class="attack" ${canControl ? '' : 'disabled'}><b>${game.role === 'warrior' ? '⚔' : '✦'}</b><span><strong>${game.role === 'warrior' ? '剑刃斩击' : '法杖射击'}</strong><small>J · ${game.role === 'warrior' ? '近战' : '远程'}</small></span></button><button data-action="jump" ${canControl ? '' : 'disabled'}><b>↟</b><span><strong>跳跃</strong><small>K ×2</small></span></button>${skillLabels[game.role].map((label, i) => `<button data-action="skill" data-index="${i}" ${canControl ? '' : 'disabled'}><i>${i + 1}</i><span><strong>${label}</strong><small>${skillSummary(game!.role, i)}</small></span></button>`).join('')}</div><div class="combat-log"><b>✦</b><span>${logText}</span></div></div><aside class="side-column">${isTown ? townPanelMarkup() : ''}<section class="panel status-panel"><header><span>角色状态</span><small>${String(game.stage).padStart(2, '0')}</small></header><div class="hero-card"><b class="avatar ${game.role}">${game.role === 'warrior' ? '刃' : '✦'}</b><span><strong>${roleLabels[game.role]}</strong><small>${game.role === 'warrior' ? '钢铁誓约 · 剑士' : '星辉学派 · 法杖'}</small></span></div><div class="resource-label"><span>生命</span><b id="hp-text">${displayNumber(game.hp)} <i>/ ${displayNumber(s.hp)}</i></b><em>♥</em></div><div class="resource"><i id="hp-fill" style="width:${game.hp / s.hp * 100}%"></i></div><div class="resource-label mana-label"><span>法力</span><b id="mp-text">${displayNumber(game.mp)} <i>/ ${displayNumber(s.mp)}</i></b><em>✦</em></div><div class="resource"><i id="mp-fill" style="width:${game.mp / s.mp * 100}%"></i></div><div class="stats"><div><small>攻击</small><b>${displayNumber(s.attack)}</b></div><div><small>防御</small><b>${displayNumber(s.defense)}</b></div><div><small>增益</small><b id="buff-stat">${buffTime > 0 ? `${buffTime.toFixed(1)}s` : '—'}</b></div></div></section><section class="panel gear-panel"><header><span>装备栏</span><small>${item()?.name ?? '未装备'}</small></header><div class="gear-summary">${item() ? `生命 +${item()!.hp}　攻击 +${item()!.attack}　防御 +${item()!.defense}` : '装备不会自动穿戴，请在小镇打开背包手动更换。'}</div><button class="open-bag" data-action="bag">打开背包　↗</button><div class="camp-hint">⌂　${isTown ? '安全区内可自由更换装备' : '击败 Boss 后回到小镇整备'}</div></section></aside></section><footer class="game-footer"><span>WASD / ← → 移动　·　J 攻击　·　K 跳跃 / 二段跳　·　1–4 技能　·　L 护盾</span><b>LOCAL SAVE　●</b></footer>${bagOpen ? bagMarkup() : ''}</main>`
   if (craftingOpen && isTown) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', craftingMarkup())
@@ -2345,7 +2497,7 @@ function mountLevelHud() {
 function mountEquipmentHud() {
   if (!game) return
   const weapon = game.gear.find((gear) => gear.id === game?.weaponId)
-  const offWeapon = game.advancedTalent === 3 ? game.gear.find((gear) => gear.id === game?.weapon2Id) : undefined
+  const offWeapon = dualWieldUnlocked() ? game.gear.find((gear) => gear.id === game?.weapon2Id) : undefined
   const armor = game.gear.find((gear) => gear.id === game?.armorId)
   const fashion = game.gear.find((gear) => gear.id === game?.fashionId)
   const multiplier = roleGearMultiplier(game.role)
@@ -2463,12 +2615,12 @@ function syncFoeHeads() {
   }
 }
 function skillCostFor(role: Role, index: number) {
-  const base = SKILL_COSTS[role][index]
-  return game?.advancedTalent === 1 ? Math.ceil(base * 1.05) : base
+  return SKILL_COSTS[role][index]
 }
 function skillPower(index: number) {
   const multiplier = SKILL_MULTIPLIERS[game?.role ?? 'warrior'][index]
-  const talentMultiplier = game?.advancedTalent === 1 ? 1.1 : 1
+  const advLevel = advancedTalentLevel()
+  const talentMultiplier = game?.advancedTalent === 1 && advLevel ? 1 + advancedSkillDamagePct(advLevel) : 1
   return Math.round(stats().attack * multiplier * talentMultiplier)
 }
 function skillSummary(role: Role, index: number) {
@@ -2723,17 +2875,11 @@ function defeatFoe(target: Foe) {
     const lottery = wasFirstClear ? 1 : 0
     if (lottery) rewards.push(`${itemIcon('ticket')} 抽奖机会 +1`)
     let fragments = 0
-    let convertedSoul = 0
     if (clearedStage >= 3) {
       const fragmentChance = (clearedStage + 1) * .05
       if (Math.random() < fragmentChance) {
-        if (game.normalTalent && game.advancedTalent) {
-          convertedSoul = 1000
-          rewards.push(`${itemIcon('soul')} 天赋碎片转化为 1000 灵魂`)
-        } else {
-          fragments = 1
-          rewards.push(`${itemIcon('fragment')} 天赋币碎片 +1`)
-        }
+        fragments = 1
+        rewards.push(`${itemIcon('fragment')} 天赋币碎片 +1`)
       }
     }
     foeShots = []
@@ -2742,7 +2888,7 @@ function defeatFoe(target: Foe) {
       x: Math.min(unlockedWidth - 40, Math.max(MAP_LEFT + 40, target.x)),
       stage: clearedStage,
       ending: clearedStage >= 10,
-      loot: { soul: soulGain, gear: droppedGear, stamps, lottery, fragments, convertedSoul, rewards },
+      loot: { soul: soulGain, gear: droppedGear, stamps, lottery, fragments, rewards },
       opened: false,
       opening: 0,
     }
@@ -2800,7 +2946,6 @@ function openBossChest() {
   game.stamps = (game.stamps ?? 0) + chest.loot.stamps
   game.lotteryChances = (game.lotteryChances ?? 0) + chest.loot.lottery
   game.talentFragments = (game.talentFragments ?? 0) + chest.loot.fragments
-  game.soul = (game.soul ?? 0) + chest.loot.convertedSoul
   lootReveal = { rewards: chest.loot.rewards, stage: chest.stage, ending: chest.ending }
   playSfx('victory')
   save(); renderGame()
@@ -2940,7 +3085,7 @@ function equip(id: string) {
   game.equipped = id
   if (gear.type === 'fashion') game.fashionId = id
   else if (gear.type === 'weapon') {
-    if (game.advancedTalent === 3 && game.weaponId && game.weaponId !== id) {
+    if (dualWieldUnlocked() && game.weaponId && game.weaponId !== id) {
       if (game.weapon2Id === id) game.weapon2Id = null
       game.weapon2Id = id
     } else {
@@ -2990,6 +3135,27 @@ function retreatToTown() {
   restoreTownVitals()
   heroX = 480; cameraX = 0; heroY = 0; velocityY = 0; grounded = true; heroSupportTop = world.floor; jumpCount = 0
   foes = []; projectiles = []; foeShots = []; burst = 0; burstTargetId = null; resetPanels(); save(); renderGame()
+}
+function useReviveCoin() {
+  if (!game || scene !== 'defeat') return
+  if (game.reviveUsed) { toast('本关已经使用过复活币了。'); return }
+  if ((game.reviveCoins ?? 0) <= 0) { toast('没有复活币，可以在小镇商人处购买。'); return }
+  game.reviveCoins = (game.reviveCoins ?? 0) - 1
+  game.reviveUsed = true
+  paused = false
+  const s = stats()
+  game.hp = s.hp; game.mp = s.mp
+  scene = 'battle'; game.dead = false
+  if (hiddenBattle) {
+    game.town = true
+    heroX = 480; heroY = 0; velocityY = 0; grounded = true; heroSupportTop = world.floor; jumpCount = 0
+    projectiles = []; foeShots = []; burst = 0; burstTargetId = null
+  } else {
+    game.town = false
+    heroX = 480; heroY = 0; velocityY = 0; grounded = true; heroSupportTop = world.floor; jumpCount = 0
+    projectiles = []; foeShots = []; burst = 0; burstTargetId = null; enterBattlefield()
+  }
+  save(); renderGame(); toast('复活币生效：满状态复活。')
 }
 function resumeBattle() {
   if (!game) return
@@ -3160,8 +3326,12 @@ function performAction(name: string, target: HTMLElement) {
   if (name === 'npc-shop') { npcView = 'shop'; renderGame() }
   if (name === 'npc-talent') { npcView = 'talent'; renderGame() }
   if (name === 'shop-buy' && target.dataset.id) buyShopItem(target.dataset.id)
-  if (name === 'talent-normal' && target.dataset.id) selectNormalTalent(Number(target.dataset.id))
-  if (name === 'talent-advanced' && target.dataset.id) selectAdvancedTalent(Number(target.dataset.id))
+  if (name === 'talent-normal-up' && target.dataset.id) upgradeNormalTalent(Number(target.dataset.id))
+  if (name === 'talent-normal-undo' && target.dataset.id) undoNormalTalent(Number(target.dataset.id))
+  if (name === 'talent-advanced-select' && target.dataset.id) selectAdvancedTalent(Number(target.dataset.id))
+  if (name === 'talent-advanced-up') upgradeAdvancedTalent()
+  if (name === 'talent-advanced-undo') undoAdvancedTalent()
+  if (name === 'talent-advanced-reset') resetAdvancedTalent()
   if (name === 'talent-craft') craftTalentCoin()
   if (name === 'open-lottery') openLottery()
   if (name === 'close-lottery') closeLottery()
@@ -3171,6 +3341,7 @@ function performAction(name: string, target: HTMLElement) {
     beginStage(Math.max(1, Math.min(game.unlockedStage, selected)))
   }
   if (name === 'respawn-town') retreatToTown()
+  if (name === 'revive-coin') useReviveCoin()
   if (name === 'respawn-fight') resumeBattle()
   if (name === 'town' && game) retreatToTown()
   if (name === 'save') { save(); toast('远征进度已保存。') }
@@ -4060,7 +4231,7 @@ function drawWarriorHero(c: CanvasRenderingContext2D, now: number, walk: number)
   c.fillStyle = 'rgba(255, 232, 176, .14)'; c.beginPath(); c.moveTo(-10, -58); c.quadraticCurveTo(-24, -34, -21 + capeWave, -12); c.lineTo(-13, -16); c.closePath(); c.fill()
   if (fashion) { c.strokeStyle = fashion.trim; c.globalAlpha = .7; c.lineWidth = 1; c.stroke(); c.globalAlpha = 1 }
   // 双持专精：背后的副武器
-  if (game?.advancedTalent === 3 && game.weapon2Id) {
+  if (dualWieldUnlocked() && game?.weapon2Id) {
     c.save(); c.translate(-16, -44); c.rotate(.75)
     c.fillStyle = '#c6a967'; c.fillRect(-2, -2, 4, 11)
     c.fillStyle = bladeTint.dark; c.beginPath(); c.moveTo(0, -4); c.lineTo(4, -48); c.lineTo(8, -4); c.closePath(); c.fill()
@@ -4152,7 +4323,7 @@ function drawMageHero(c: CanvasRenderingContext2D, now: number, walk: number) {
   c.fillStyle = 'rgba(197, 255, 232, .12)'; c.beginPath(); c.moveTo(-10, -58); c.quadraticCurveTo(-21, -32, -19 + wave, -12); c.lineTo(-11, -16); c.closePath(); c.fill()
   if (fashion) { c.strokeStyle = fashion.trim; c.globalAlpha = .7; c.lineWidth = 1; c.stroke(); c.globalAlpha = 1 }
   // 双持专精：背后的副法杖
-  if (game?.advancedTalent === 3 && game.weapon2Id) {
+  if (dualWieldUnlocked() && game?.weapon2Id) {
     c.save(); c.translate(-19, -8); c.rotate(-.28)
     c.strokeStyle = '#7a5a35'; c.lineWidth = 3; c.beginPath(); c.moveTo(0, 0); c.lineTo(3, -48); c.stroke()
     c.save(); c.shadowColor = gem; c.shadowBlur = 10; c.fillStyle = gem; c.beginPath(); c.arc(3, -53, 4.5, 0, Math.PI * 2); c.fill(); c.restore()
