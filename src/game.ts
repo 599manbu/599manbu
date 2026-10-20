@@ -26,7 +26,7 @@ type BattlePlatform = { x: number; w: number; height: number; kind: 'tree' | 'ro
 const SAVE_KEY = 'elemental-expedition-save-v2'
 const DEMO_MODE = import.meta.env.MODE === 'demo'
 const DEMO_SAVE_KEY = `${SAVE_KEY}:demo`
-const GAME_VERSION = '1.69'
+const GAME_VERSION = '1.70'
 const stageNames = ['苔痕边境', '沉钟矿道', '赤岩峡谷', '风蚀高原', '幽蓝沼泽', '断星回廊', '灰烬王庭', '深渊裂谷', '苍白圣所', '终焉之门']
 const roleLabels: Record<Role, string> = { warrior: '战士', mage: '法师' }
 const skillLabels: Record<Role, string[]> = { warrior: ['前斩', '旋风斩', '突刺', '蓄力重斩'], mage: ['奥术强化', '双生火柱', '闪现', '能量禁锢'] }
@@ -2085,15 +2085,15 @@ function gameMenuMarkup() {
   if (!game || !gameMenuOpen) return ''
   const isTown = scene === 'town'
   const items: Array<{ action: string; icon: string; title: string; desc: string; disabled?: boolean }> = [
-    { action: 'bag', icon: itemIcon('bag'), title: '背包', desc: '查看装备、时装与物品' },
     { action: 'bag-skills', icon: '✦', title: '技能', desc: '查看技能介绍与当前按键' },
   ]
   if (isTown) {
     items.push(
       { action: 'open-attributes', icon: itemIcon('attribute'), title: '属性分配', desc: `${game.attributePoints ?? 0} 点可用属性点` },
       { action: 'open-lottery', icon: itemIcon('ticket'), title: '抽奖', desc: `${game.lotteryChances ?? 0} 次抽奖机会`, disabled: (game.lotteryChances ?? 0) <= 0 },
-      { action: 'open-hidden', icon: '◈', title: '隐藏关卡', desc: hiddenUnlocked() ? '挑战宿敌' : `集齐 ${STAMP_UNLOCK} 枚王印印章后解锁`, disabled: !hiddenUnlocked() },
     )
+    // 集齐 10 枚王印印章后才显示隐藏关卡入口。
+    if (hiddenUnlocked()) items.push({ action: 'open-hidden', icon: '◈', title: '隐藏关卡', desc: '挑战宿敌' })
   }
   return `<div class="bag-scrim game-menu-scrim"><section class="bag-dialog game-menu-dialog"><header><div><small>MENU · ${isTown ? '冒险者小镇' : '远征中'}</small><h2>功能菜单</h2></div><button data-action="close-game-menu" aria-label="关闭菜单">×</button></header><div class="game-menu-grid">${items.map((item) => `<button class="game-menu-item" data-action="${item.action}" ${item.disabled ? 'disabled' : ''}><b>${item.icon}</b><span><strong>${item.title}</strong><small>${item.desc}</small></span><i>→</i></button>`).join('')}</div></section></div>`
 }
@@ -3182,7 +3182,7 @@ function setupCanvas() {
   const ratio = rect.width > 1 ? rect.height / rect.width : world.height / world.width
   viewHeight = Math.max(world.height, Math.min(2600, Math.round(world.width * ratio)))
   const dpr = window.devicePixelRatio || 1
-  renderScale = dpr > 1 ? Math.min(2, dpr) : 1.5
+  renderScale = dpr > 1 ? Math.min(2.5, dpr) : 2
   canvas.width = Math.round(world.width * renderScale)
   canvas.height = Math.round(viewHeight * renderScale)
   viewOffsetY = Math.round((viewHeight - world.height) / 2)
@@ -3193,6 +3193,8 @@ function update(dt: number) {
   flashTime = Math.max(0, flashTime - dt * 1.6)
   if (paused) { shieldActive = false; return }
   if (storyState) return
+  // 打开设置或功能菜单时暂停战斗与计时。
+  if (settingsOpen || gameMenuOpen) { shieldActive = false; return }
   if (scene !== 'battle' || bossVictory) shieldActive = false
   if (scene !== 'battle') cameraX = 0
   attackWait = Math.max(0, attackWait - dt); attackSwing = Math.max(0, attackSwing - dt); buffTime = Math.max(0, buffTime - dt)
