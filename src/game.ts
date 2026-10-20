@@ -13,7 +13,7 @@ type AttributeAllocation = Record<AttributeStat, number>
 type StageProgress = { kills: number; bossDefeated: boolean; pointsClaimed?: number }
 type Save = { role: Role; stage: number; unlockedStage: number; kills: number; stageProgress?: Record<string, StageProgress>; hp: number; mp: number; gear: Gear[]; equipped: string | null; weaponId?: string | null; weapon2Id?: string | null; armorId?: string | null; fashionId?: string | null; level?: number; exp?: number; drops?: WorldDrop[]; bossDefeated?: boolean; attributePoints?: number; attributeAllocation?: AttributeAllocation; soul?: number; normalTalent?: number; advancedTalent?: number; talentFragments?: number; talentCoins?: number; lotteryChances?: number; shopFashionBought?: boolean; town: boolean; completed: boolean; dead: boolean }
 type SaveSlot = { id: string; label: string; data: Save; updatedAt: number }
-type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; flyPhase?: number; flyAmplitude?: number; flySpeed?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number }
+type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; flyPhase?: number; flyAmplitude?: number; flySpeed?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number; specialTimer?: number; specialWindup?: number; specialKind?: 'pierce' | 'exclusive'; specialNext?: 'pierce' | 'exclusive'; mobSkillTimer?: number; skillWindup?: number; skillKind?: 'lunge' | 'slam' }
 type Fx = { x: number; y: number; life: number; kind: string; direction?: number; text?: string; damage?: number; duration?: number; vx?: number; vy?: number; color?: string; radius?: number }
 type Projectile = { x: number; y: number; vx: number; life: number; damage: number; targetId: number }
 type FoeShot = { x: number; y: number; vx: number; vy: number; damage: number; radius: number; color: string; life: number }
@@ -22,7 +22,7 @@ type BossVictory = { stage: number; bossX: number; rewards: string[]; time: numb
 const SAVE_KEY = 'elemental-expedition-save-v2'
 const DEMO_MODE = import.meta.env.MODE === 'demo'
 const DEMO_SAVE_KEY = `${SAVE_KEY}:demo`
-const GAME_VERSION = '1.62'
+const GAME_VERSION = '1.63'
 const stageNames = ['苔痕边境', '沉钟矿道', '赤岩峡谷', '风蚀高原', '幽蓝沼泽', '断星回廊', '灰烬王庭', '深渊裂谷', '苍白圣所', '终焉之门']
 const roleLabels: Record<Role, string> = { warrior: '战士', mage: '法师' }
 const skillLabels: Record<Role, string[]> = { warrior: ['前斩', '旋风斩', '突刺', '蓄力重斩'], mage: ['奥术强化', '双生火柱', '闪现', '能量禁锢'] }
@@ -124,6 +124,33 @@ const BOSS_RANGED: Array<BossRangedConfig | null> = [
   { count: 5, spread: .68, interval: 2.5, speed: 365, damageScale: .9 },
   { count: 8, spread: Math.PI * 2, interval: 2.3, speed: 330, damageScale: .9 },
 ]
+// 第 4 关起小怪也会使用远程攻击，越往后弹幕越多。
+const MOB_RANGED: Array<BossRangedConfig | null> = [
+  null,
+  null,
+  null,
+  { count: 1, spread: 0, interval: 5.2, speed: 250, damageScale: .7 },
+  { count: 1, spread: .14, interval: 4.8, speed: 260, damageScale: .72 },
+  { count: 2, spread: .24, interval: 4.4, speed: 275, damageScale: .75 },
+  { count: 2, spread: .32, interval: 4.0, speed: 290, damageScale: .78 },
+  { count: 3, spread: .42, interval: 3.7, speed: 305, damageScale: .8 },
+  { count: 3, spread: .52, interval: 3.4, speed: 320, damageScale: .82 },
+  { count: 4, spread: .65, interval: 3.1, speed: 335, damageScale: .85 },
+]
+// 第 7 关起 Boss 拥有贯穿类和主题专属技能，二者交替使用。
+const BOSS_SPECIAL_COOLDOWNS = [0, 0, 0, 0, 0, 0, 8.2, 7.6, 7.0, 6.4]
+const BOSS_SPECIAL_NAMES: Array<{ pierce: string; exclusive: string } | null> = [
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  { pierce: '灰烬贯穿', exclusive: '灰烬风暴' },
+  { pierce: '血牙贯穿', exclusive: '血牙裂地' },
+  { pierce: '圣光贯穿', exclusive: '日轮审判' },
+  { pierce: '星轨贯穿', exclusive: '星辰陨落' },
+]
 // 与十关名称对应的主题顺序：苔痕、沉钟、赤岩、风蚀、幽蓝、断星、灰烬、深渊、苍白、终焉。
 const BOSS_THEMES = ['moss', 'frost', 'ember', 'storm', 'tide', 'void', 'ash', 'blood', 'sun', 'star']
 const BOSS_THEME_COLORS: Record<string, string> = { ember: '#f49b58', frost: '#a9e2e5', storm: '#f2dc79', void: '#d78fb4', moss: '#a7cf77', sun: '#ffe28a', blood: '#ec6464', tide: '#69c7d2', ash: '#c9c2b0', star: '#b8a4f4' }
@@ -198,6 +225,8 @@ let burstTargetId: number | null = null
 let shake = 0
 let flashTime = 0
 let flashColor = '#ffe6a8'
+let shieldActive = false
+let shieldLocked = false
 let bagOpen = false
 let bagTab: 'gear' | 'talent' | 'other' = 'gear'
 let craftingOpen = false
@@ -341,8 +370,9 @@ function foeDamage(foe: Foe, dash = false) {
   if (!game) return 0
   const config = STAGE_CONFIG[Math.max(0, Math.min(9, game.stage - 1))]
   const base = foe.boss ? config.bossAtk * (dash ? 1.5 : 1) : config.mobAtk
-  return Math.max(3, Math.round(base - stats().defense))
+  return Math.max(3, Math.round(base - effectiveDefense()))
 }
+function effectiveDefense() { return stats().defense * (shieldActive ? 10 : 1) }
 function stats() {
   const role = game?.role ?? 'warrior'
   const base = ROLE_BASE[role]
@@ -403,7 +433,7 @@ function setLog(message: string) {
 }
 function addFx(kind: string, x = heroX, y = world.floor - 80, direction = 1, life = .56, color?: string) { effects.push({ kind, x, y, direction, life, color }) }
 function addDamageText(foe: Foe, damage: number) {
-  effects.push({ kind: 'damage-number', x: foe.x, y: world.floor - (foe.boss ? 205 : 104) - foeFlyOffset(foe), life: .95, duration: .95, text: `-${displayNumber(damage)}`, damage })
+  effects.push({ kind: 'damage-number', x: foe.x, y: world.floor - (foe.boss ? 205 : 83) - foeFlyOffset(foe), life: .95, duration: .95, text: `-${displayNumber(damage)}`, damage })
 }
 function addSparks(x: number, y: number, count: number, colors: string[], speed = 150) {
   for (let i = 0; i < count; i++) {
@@ -439,7 +469,7 @@ function spawnFoe(x: number, boss = false, flying = false): Foe {
   const config = STAGE_CONFIG[stageIndexNow()]
   const hp = boss ? config.bossHp : config.mobHp
   const clampedX = Math.max(MAP_LEFT + 20, Math.min(unlockedWidth - 40, x))
-  return { id: nextFoeId++, x: clampedX, hp, maxHp: hp, boss, timer: .7 + Math.random() * 1.2, skillTimer: 3.2, rangedTimer: 3.4 + Math.random() * 1.2, flash: 0, attackAnim: 0, flying: boss ? false : flying, flyHeight: !boss && flying ? 120 + Math.random() * 70 : 0, flyPhase: !boss && flying ? Math.random() * Math.PI * 2 : 0, flyAmplitude: !boss && flying ? 16 + Math.random() * 20 : 0, flySpeed: !boss && flying ? .8 + Math.random() * .5 : 0, stunTimer: 0 }
+  return { id: nextFoeId++, x: clampedX, hp, maxHp: hp, boss, timer: .7 + Math.random() * 1.2, skillTimer: 3.2, rangedTimer: 3.4 + Math.random() * 1.2, flash: 0, attackAnim: 0, flying: boss ? false : flying, flyHeight: !boss && flying ? 120 + Math.random() * 70 : 0, flyPhase: !boss && flying ? Math.random() * Math.PI * 2 : 0, flyAmplitude: !boss && flying ? 16 + Math.random() * 20 : 0, flySpeed: !boss && flying ? .8 + Math.random() * .5 : 0, stunTimer: 0, specialTimer: boss && stageIndexNow() >= 6 ? 4.5 + Math.random() * 1.5 : 0, specialNext: boss ? 'pierce' : undefined, mobSkillTimer: !boss && stageIndexNow() >= 3 ? 4 + Math.random() * 3 : 0 }
 }
 function bossFx(action: 'charge' | 'dash' | 'melee' | 'ranged') {
   return `boss-${action}-${BOSS_THEMES[Math.max(0, Math.min(9, (game?.stage ?? 1) - 1))]}`
@@ -453,7 +483,8 @@ function fireBossVolley(foe: Foe, config: BossRangedConfig) {
   const targetY = world.floor - 55
   const baseAngle = Math.atan2(targetY - originY, heroX - originX)
   const color = BOSS_THEME_COLORS[BOSS_THEMES[stageIndex]] ?? '#d78fb4'
-  const damage = Math.max(3, Math.round(stageValues.bossAtk * config.damageScale - stats().defense))
+  // 伤害在命中时按玩家当前防御结算，护盾可以及时生效。
+  const damage = stageValues.bossAtk * config.damageScale
   for (let i = 0; i < config.count; i++) {
     const offset = config.count === 1
       ? 0
@@ -468,6 +499,117 @@ function fireBossVolley(foe: Foe, config: BossRangedConfig) {
   addShake(4)
   playSfx('boss')
   setLog('守关者释放远程攻击 · 跳跃或走位躲避！')
+}
+function fireShotFan(originX: number, originY: number, targetX: number, count: number, spread: number, speed: number, rawDamage: number, color: string, radius = 9, life = 4) {
+  const targetY = world.floor - 55
+  const baseAngle = Math.atan2(targetY - originY, targetX - originX)
+  for (let i = 0; i < count; i++) {
+    const offset = count === 1
+      ? 0
+      : spread >= Math.PI * 2 - .01
+        ? (Math.PI * 2 * i) / count
+        : -spread / 2 + (spread * i) / (count - 1)
+    const angle = baseAngle + offset
+    foeShots.push({ x: originX, y: originY, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, damage: rawDamage, radius: count > 6 ? Math.min(radius, 7) : radius, color, life })
+  }
+}
+function hurtPlayer(rawDamage: number, shakeAmount = 0) {
+  if (!game) return 0
+  const dealt = Math.max(3, Math.round(rawDamage - effectiveDefense()))
+  game.hp = Math.max(0, game.hp - dealt)
+  effects.push({ kind: 'damage-number', x: heroX, y: world.floor - 90 + heroY, life: .85, duration: .85, text: `-${displayNumber(dealt)}`, damage: dealt })
+  armorHitFx()
+  if (shakeAmount) addShake(shakeAmount)
+  if (game.hp <= 0) { scene = 'defeat'; paused = false; game.dead = true; save(); renderGame() }
+  return dealt
+}
+function fireMobVolley(foe: Foe, config: BossRangedConfig, stageIndex: number) {
+  const stageValues = STAGE_CONFIG[stageIndex]
+  const theme = STAGE_THEMES[stageIndex]
+  const originY = foe.flying ? foeWorldY(foe) - 10 : world.floor - 36
+  fireShotFan(foe.x, originY, heroX, config.count, config.spread, config.speed, stageValues.mobAtk * config.damageScale, theme.glow, 8)
+  addFx('mob-ranged-fire', foe.x, originY, Math.sign(heroX - foe.x) || 1, .36, theme.glow)
+  addSparks(foe.x, originY, 8, [theme.light, theme.glow], 130)
+  addShake(2)
+  setLog('遗迹守卫发射远程弹幕！')
+}
+function executeMobSkill(foe: Foe, stageIndex: number) {
+  if (!game) return
+  const config = STAGE_CONFIG[stageIndex]
+  const theme = STAGE_THEMES[stageIndex]
+  if (foe.skillKind === 'lunge') {
+    const direction = Math.sign(heroX - foe.x) || 1
+    const startX = foe.x
+    foe.x = clampFoeX(foe.x + direction * 120)
+    foe.attackAnim = .3
+    addFx('mob-skill-lunge-execute', (startX + foe.x) / 2, foeWorldY(foe) - 18, direction, .42, theme.glow)
+    addSparks(foe.x, foeWorldY(foe) - 16, 8, [theme.accent, theme.glow], 150)
+    if (Math.abs(heroX - foe.x) < 95 && (grounded || heroY > -36)) hurtPlayer(config.mobAtk * 1.6, 5)
+    setLog('遗迹守卫冲撞！')
+  } else {
+    addFx('mob-skill-slam-execute', foe.x, world.floor - 4, 1, .65, theme.glow)
+    addSparks(foe.x, world.floor - 8, 16, [theme.accent, theme.glow], 220)
+    addShake(7)
+    if (Math.abs(heroX - foe.x) < 155 && (grounded || heroY > -40)) hurtPlayer(config.mobAtk * 1.5, 6)
+    setLog('遗迹守卫震地！')
+  }
+}
+function startBossSpecial(foe: Foe, stageIndex: number) {
+  if (!game) return
+  const special = BOSS_SPECIAL_NAMES[stageIndex]
+  if (!special) return
+  const kind = foe.specialNext ?? 'pierce'
+  const name = kind === 'pierce' ? special.pierce : special.exclusive
+  const duration = kind === 'pierce' ? .85 : 1.05
+  const theme = BOSS_THEMES[stageIndex]
+  const color = BOSS_THEME_COLORS[theme] ?? '#d78fb4'
+  const direction = Math.sign(heroX - foe.x) || 1
+  foe.specialKind = kind
+  foe.specialWindup = duration
+  foe.specialTimer = BOSS_SPECIAL_COOLDOWNS[stageIndex] ?? 8
+  foe.specialNext = kind === 'pierce' ? 'exclusive' : 'pierce'
+  foe.flash = .2; foe.attackAnim = .5
+  effects.push({ kind: `boss-special-windup-${kind}-${theme}`, x: foe.x, y: world.floor - 120, direction, life: duration, duration, color, text: name })
+  addSparks(foe.x, world.floor - 105, 12, [color, '#fff6d0'], 130)
+  addShake(4)
+  playSfx('boss')
+  setLog(`守关者正在蓄力「${name}」· 注意前摇！`)
+}
+function executeBossSpecial(foe: Foe, kind: 'pierce' | 'exclusive', stageIndex: number) {
+  if (!game) return
+  const stageValues = STAGE_CONFIG[stageIndex]
+  const color = BOSS_THEME_COLORS[BOSS_THEMES[stageIndex]] ?? '#d78fb4'
+  const direction = Math.sign(heroX - foe.x) || 1
+  const originY = world.floor - 70
+  const name = BOSS_SPECIAL_NAMES[stageIndex]?.exclusive ?? '专属技能'
+  if (kind === 'pierce') {
+    fireShotFan(foe.x, originY, heroX, 1, 0, 520, stageValues.bossAtk * 2.2, color, 16, 3)
+    addFx('boss-special-beam', foe.x, originY, direction, .6, color)
+    addSparks(foe.x, originY, 18, [color, '#ffffff'], 240)
+    addShake(10)
+    setLog('守关者释放贯穿光束！')
+    return
+  }
+  if (stageIndex === 6) {
+    fireShotFan(foe.x, originY, heroX, 8, 1.15, 300, stageValues.bossAtk * .75, color, 8)
+    addFx('boss-special-nova-ash', foe.x, world.floor - 80, direction, .85, color)
+    addShake(9)
+  } else if (stageIndex === 7) {
+    addFx('boss-special-nova-blood', foe.x, world.floor - 18, direction, .95, color)
+    addSparks(foe.x, world.floor - 8, 22, [color, '#ffd0b0'], 260)
+    if (Math.abs(heroX - foe.x) < 230 && (grounded || heroY > -40)) hurtPlayer(stageValues.bossAtk * 2.5, 16)
+    addShake(14)
+  } else if (stageIndex === 8) {
+    fireShotFan(foe.x, originY, heroX, 12, Math.PI * 2, 320, stageValues.bossAtk * .65, color, 7)
+    addFx('boss-special-nova-sun', foe.x, world.floor - 80, direction, 1.0, color)
+    addShake(10)
+  } else {
+    fireShotFan(foe.x, originY, heroX, 10, 1.5, 340, stageValues.bossAtk * .75, color, 7)
+    fireShotFan(foe.x, originY, heroX, 1, 0, 220, stageValues.bossAtk * 1.6, '#fff2b0', 18, 3)
+    addFx('boss-special-nova-star', foe.x, world.floor - 80, direction, 1.1, color)
+    addShake(12)
+  }
+  setLog(`守关者释放「${name}」！`)
 }
 function spawnCurrentWave() {
   if (!game) return
@@ -1087,6 +1229,7 @@ function resetPanels() {
   if (lotteryInterval !== null) { window.clearInterval(lotteryInterval); lotteryInterval = null }
   if (lotteryTimeout !== null) { window.clearTimeout(lotteryTimeout); lotteryTimeout = null }
   keys.clear()
+  shieldActive = false; shieldLocked = false
 }
 function rollLottery() {
   const total = LOTTERY_PRIZES.reduce((sum, prize) => sum + prize.weight, 0)
@@ -1199,7 +1342,7 @@ function renderGame() {
   const townOverlay = ''
   const deathOverlay = scene === 'defeat' ? '<div class="overlay death-overlay"><small>EXPEDITION PAUSED</small><h2>你倒在了遗迹深处</h2><p>继续战斗会以半血复活并保留当前进度；重新开始会恢复满状态并从本关第一波重新挑战。</p><div class="death-actions"><button data-action="respawn-fight" class="primary">继续战斗（半血）</button><button data-action="restart-stage" class="secondary">重新开始（满状态）</button></div></div>' : ''
   const endingOverlay = scene === 'ending' ? '<div class="overlay"><small>THE FRONTIER IS YOURS</small><h2>十片遗迹，皆已沉寂</h2><p>你完成了元素远征。</p><button data-action="town" class="primary">返回小镇　↗</button></div>' : ''
-  app.innerHTML = `<main class="game-shell ${isTown ? 'town-mode' : ''}"><header class="game-header"><a data-action="town" class="wordmark"><b>A</b> 冒险王 <i>／</i> ${isTown ? '冒险者小镇' : '元素远征'}</a>${DEMO_MODE ? '<span class="demo-badge">体验版 · 全关卡</span>' : ''}<span class="save-state"><i></i>${isTown ? '小镇安全区' : '进度已自动保存'}</span><span class="soul-badge" title="灵魂">${itemIcon('soul')} ${displayNumber(game.soul ?? 0)}</span><button class="bag-button" data-action="bag">${itemIcon('bag')} 背包 <span>${game.gear.length}</span></button><button class="save-button" data-action="save" title="保存进度">▣</button></header><section class="overview"><div><small>${isTown ? '冒险者小镇' : `第 ${String(game.stage).padStart(2, '0')} 章`}</small><h1>${isTown ? '营火集市' : stageNames[game.stage - 1]}</h1><p>${isTown ? '缓冲区 · 整备装备与选择关卡' : `遗迹入口 · 击败 ${MAX_SMALL_KILLS} 只守卫后迎战 Boss`}</p></div><div class="metrics"><div><small>职业</small><b>${roleLabels[game.role]}</b></div><div><small>已击杀</small><b>${isTown ? `开放至第 ${game.unlockedStage} 关` : countText}</b></div><div><small>当前装备</small><b>${item()?.name ?? '无'}</b></div></div></section><section class="game-grid"><div class="battle-column"><div class="arena-label"><span>◆ ${isTown ? '冒险者小镇 · 补给站' : `${stageNames[game.stage - 1]} · 深层区域`}</span><b id="enemy-name">${isTown ? '安全区域' : boss ? '守关者冲刺准备中' : `${foes.length} 只守卫正在逼近`}</b></div><div class="arena-stage"><div class="mobile-rail mobile-move-rail"><button class="mobile-pad" data-move="left" aria-label="向左移动" title="向左移动" ${canControl ? '' : 'disabled'}>←</button><button class="mobile-pad" data-move="right" aria-label="向右移动" title="向右移动" ${canControl ? '' : 'disabled'}>→</button></div><div class="arena"><canvas id="arena" aria-label="横版战斗场景"></canvas><div class="coords"><span>${isTown ? 'TOWN · SAFE ZONE' : `遗迹远征 · ${String(game.stage).padStart(2, '0')}`}</span><span>${boss ? 'BOSS ENCOUNTER' : isTown ? 'REST & PREPARE' : 'WAVE ENCOUNTER'}</span></div>${townOverlay}${deathOverlay}${endingOverlay}${bossVictoryMarkup()}</div><div class="mobile-rail mobile-action-rail"><div class="mobile-skills">${[0, 1, 2, 3].map((index) => `<button class="mobile-skill" data-action="skill" data-index="${index}" aria-label="技能 ${index + 1}" ${canControl ? '' : 'disabled'}>${index + 1}</button>`).join('')}</div><button class="mobile-pad attack-pad" data-action="attack" aria-label="攻击" title="攻击" ${canControl ? '' : 'disabled'}>⚔</button><button class="mobile-pad jump-pad" data-action="jump" aria-label="跳跃" title="跳跃" ${canControl ? '' : 'disabled'}>↟</button></div></div><div class="foe-health"><div><span>${isTown ? '冒险者状态' : boss ? '守关者' : '本批守卫'}</span><b id="foe-hp">${isTown ? '安全休整' : boss ? `${Math.ceil(foes[0]?.hp ?? 0)} / ${foes[0]?.maxHp ?? 0}` : `${foes.length} 名敌人 · 已击败 ${game.kills} / ${MAX_SMALL_KILLS}`}</b></div><div><i id="foe-fill" style="width:${boss ? `${Math.max(0, foes[0].hp / foes[0].maxHp * 100)}%` : '100%'}"></i></div></div><div class="combat-bar"><button data-action="attack" class="attack" ${canControl ? '' : 'disabled'}><b>${game.role === 'warrior' ? '⚔' : '✦'}</b><span><strong>${game.role === 'warrior' ? '剑刃斩击' : '法杖射击'}</strong><small>J · ${game.role === 'warrior' ? '近战' : '远程'}</small></span></button><button data-action="jump" ${canControl ? '' : 'disabled'}><b>↟</b><span><strong>跳跃</strong><small>K ×2</small></span></button>${skillLabels[game.role].map((label, i) => `<button data-action="skill" data-index="${i}" ${canControl ? '' : 'disabled'}><i>${i + 1}</i><span><strong>${label}</strong><small>${skillSummary(game!.role, i)}</small></span></button>`).join('')}</div><div class="combat-log"><b>✦</b><span>${logText}</span></div></div><aside class="side-column">${isTown ? townPanelMarkup() : ''}<section class="panel status-panel"><header><span>角色状态</span><small>${String(game.stage).padStart(2, '0')}</small></header><div class="hero-card"><b class="avatar ${game.role}">${game.role === 'warrior' ? '刃' : '✦'}</b><span><strong>${roleLabels[game.role]}</strong><small>${game.role === 'warrior' ? '钢铁誓约 · 剑士' : '星辉学派 · 法杖'}</small></span></div><div class="resource-label"><span>生命</span><b id="hp-text">${displayNumber(game.hp)} <i>/ ${displayNumber(s.hp)}</i></b><em>♥</em></div><div class="resource"><i id="hp-fill" style="width:${game.hp / s.hp * 100}%"></i></div><div class="resource-label mana-label"><span>法力</span><b id="mp-text">${displayNumber(game.mp)} <i>/ ${displayNumber(s.mp)}</i></b><em>✦</em></div><div class="resource"><i id="mp-fill" style="width:${game.mp / s.mp * 100}%"></i></div><div class="stats"><div><small>攻击</small><b>${displayNumber(s.attack)}</b></div><div><small>防御</small><b>${displayNumber(s.defense)}</b></div><div><small>增益</small><b id="buff-stat">${buffTime > 0 ? `${buffTime.toFixed(1)}s` : '—'}</b></div></div></section><section class="panel gear-panel"><header><span>装备栏</span><small>${item()?.name ?? '未装备'}</small></header><div class="gear-summary">${item() ? `生命 +${item()!.hp}　攻击 +${item()!.attack}　防御 +${item()!.defense}` : '装备不会自动穿戴，请在小镇打开背包手动更换。'}</div><button class="open-bag" data-action="bag">打开背包　↗</button><div class="camp-hint">⌂　${isTown ? '安全区内可自由更换装备' : '击败 Boss 后回到小镇整备'}</div></section></aside></section><footer class="game-footer"><span>WASD / ← → 移动　·　J 攻击　·　K 跳跃 / 二段跳　·　1–4 技能</span><b>LOCAL SAVE　●</b></footer>${bagOpen ? bagMarkup() : ''}</main>`
+  app.innerHTML = `<main class="game-shell ${isTown ? 'town-mode' : ''}"><header class="game-header"><a data-action="town" class="wordmark"><b>A</b> 冒险王 <i>／</i> ${isTown ? '冒险者小镇' : '元素远征'}</a>${DEMO_MODE ? '<span class="demo-badge">体验版 · 全关卡</span>' : ''}<span class="save-state"><i></i>${isTown ? '小镇安全区' : '进度已自动保存'}</span><span class="soul-badge" title="灵魂">${itemIcon('soul')} ${displayNumber(game.soul ?? 0)}</span><button class="bag-button" data-action="bag">${itemIcon('bag')} 背包 <span>${game.gear.length}</span></button><button class="save-button" data-action="save" title="保存进度">▣</button></header><section class="overview"><div><small>${isTown ? '冒险者小镇' : `第 ${String(game.stage).padStart(2, '0')} 章`}</small><h1>${isTown ? '营火集市' : stageNames[game.stage - 1]}</h1><p>${isTown ? '缓冲区 · 整备装备与选择关卡' : `遗迹入口 · 击败 ${MAX_SMALL_KILLS} 只守卫后迎战 Boss`}</p></div><div class="metrics"><div><small>职业</small><b>${roleLabels[game.role]}</b></div><div><small>已击杀</small><b>${isTown ? `开放至第 ${game.unlockedStage} 关` : countText}</b></div><div><small>当前装备</small><b>${item()?.name ?? '无'}</b></div></div></section><section class="game-grid"><div class="battle-column"><div class="arena-label"><span>◆ ${isTown ? '冒险者小镇 · 补给站' : `${stageNames[game.stage - 1]} · 深层区域`}</span><b id="enemy-name">${isTown ? '安全区域' : boss ? '守关者冲刺准备中' : `${foes.length} 只守卫正在逼近`}</b></div><div class="arena-stage"><div class="mobile-rail mobile-move-rail"><button class="mobile-pad" data-move="left" aria-label="向左移动" title="向左移动" ${canControl ? '' : 'disabled'}>←</button><button class="mobile-pad" data-move="right" aria-label="向右移动" title="向右移动" ${canControl ? '' : 'disabled'}>→</button><div class="mobile-utils"><button class="mobile-skill mobile-pickup" data-action="pickup" aria-label="拾取" title="拾取药水 / 与商人对话" ${canControl ? '' : 'disabled'}>S</button><button class="mobile-skill mobile-shield" data-shield aria-label="护盾" title="按住生成护盾" ${canControl ? '' : 'disabled'}>L</button></div></div><div class="arena"><canvas id="arena" aria-label="横版战斗场景"></canvas><div class="coords"><span>${isTown ? 'TOWN · SAFE ZONE' : `遗迹远征 · ${String(game.stage).padStart(2, '0')}`}</span><span>${boss ? 'BOSS ENCOUNTER' : isTown ? 'REST & PREPARE' : 'WAVE ENCOUNTER'}</span></div>${townOverlay}${deathOverlay}${endingOverlay}${bossVictoryMarkup()}</div><div class="mobile-rail mobile-action-rail"><div class="mobile-skills">${[0, 1, 2, 3].map((index) => `<button class="mobile-skill" data-action="skill" data-index="${index}" aria-label="技能 ${index + 1}" ${canControl ? '' : 'disabled'}>${index + 1}</button>`).join('')}</div><button class="mobile-pad attack-pad" data-action="attack" aria-label="攻击" title="攻击" ${canControl ? '' : 'disabled'}>⚔</button><button class="mobile-pad jump-pad" data-action="jump" aria-label="跳跃" title="跳跃" ${canControl ? '' : 'disabled'}>↟</button></div></div><div class="foe-health"><div><span>${isTown ? '冒险者状态' : boss ? '守关者' : '本批守卫'}</span><b id="foe-hp">${isTown ? '安全休整' : boss ? `${Math.ceil(foes[0]?.hp ?? 0)} / ${foes[0]?.maxHp ?? 0}` : `${foes.length} 名敌人 · 已击败 ${game.kills} / ${MAX_SMALL_KILLS}`}</b></div><div><i id="foe-fill" style="width:${boss ? `${Math.max(0, foes[0].hp / foes[0].maxHp * 100)}%` : '100%'}"></i></div></div><div class="combat-bar"><button data-action="attack" class="attack" ${canControl ? '' : 'disabled'}><b>${game.role === 'warrior' ? '⚔' : '✦'}</b><span><strong>${game.role === 'warrior' ? '剑刃斩击' : '法杖射击'}</strong><small>J · ${game.role === 'warrior' ? '近战' : '远程'}</small></span></button><button data-action="jump" ${canControl ? '' : 'disabled'}><b>↟</b><span><strong>跳跃</strong><small>K ×2</small></span></button>${skillLabels[game.role].map((label, i) => `<button data-action="skill" data-index="${i}" ${canControl ? '' : 'disabled'}><i>${i + 1}</i><span><strong>${label}</strong><small>${skillSummary(game!.role, i)}</small></span></button>`).join('')}</div><div class="combat-log"><b>✦</b><span>${logText}</span></div></div><aside class="side-column">${isTown ? townPanelMarkup() : ''}<section class="panel status-panel"><header><span>角色状态</span><small>${String(game.stage).padStart(2, '0')}</small></header><div class="hero-card"><b class="avatar ${game.role}">${game.role === 'warrior' ? '刃' : '✦'}</b><span><strong>${roleLabels[game.role]}</strong><small>${game.role === 'warrior' ? '钢铁誓约 · 剑士' : '星辉学派 · 法杖'}</small></span></div><div class="resource-label"><span>生命</span><b id="hp-text">${displayNumber(game.hp)} <i>/ ${displayNumber(s.hp)}</i></b><em>♥</em></div><div class="resource"><i id="hp-fill" style="width:${game.hp / s.hp * 100}%"></i></div><div class="resource-label mana-label"><span>法力</span><b id="mp-text">${displayNumber(game.mp)} <i>/ ${displayNumber(s.mp)}</i></b><em>✦</em></div><div class="resource"><i id="mp-fill" style="width:${game.mp / s.mp * 100}%"></i></div><div class="stats"><div><small>攻击</small><b>${displayNumber(s.attack)}</b></div><div><small>防御</small><b>${displayNumber(s.defense)}</b></div><div><small>增益</small><b id="buff-stat">${buffTime > 0 ? `${buffTime.toFixed(1)}s` : '—'}</b></div></div></section><section class="panel gear-panel"><header><span>装备栏</span><small>${item()?.name ?? '未装备'}</small></header><div class="gear-summary">${item() ? `生命 +${item()!.hp}　攻击 +${item()!.attack}　防御 +${item()!.defense}` : '装备不会自动穿戴，请在小镇打开背包手动更换。'}</div><button class="open-bag" data-action="bag">打开背包　↗</button><div class="camp-hint">⌂　${isTown ? '安全区内可自由更换装备' : '击败 Boss 后回到小镇整备'}</div></section></aside></section><footer class="game-footer"><span>WASD / ← → 移动　·　J 攻击　·　K 跳跃 / 二段跳　·　1–4 技能　·　L 护盾</span><b>LOCAL SAVE　●</b></footer>${bagOpen ? bagMarkup() : ''}</main>`
   if (craftingOpen && isTown) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', `<div class="bag-scrim craft-scrim"><section class="bag-dialog craft-dialog"><header><div><small>FORGE · 冒险者小镇</small><h2>合成台</h2></div><button data-action="close-crafting" aria-label="关闭合成台">×</button></header><p>只消耗未穿戴的材料：5 件同类同等级武器/护甲合成高一级装备；3 件一阶时装合成二阶时装。</p><div class="bag-list craft-list">${craftMarkup()}</div></section></div>`)
   if (attributesOpen && isTown) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', attributeMarkup())
   if (npcOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', npcMarkup())
@@ -1223,7 +1366,7 @@ function renderGame() {
   if (paused) document.querySelector<HTMLButtonElement>('.combat-bar button[data-action="attack"]')!.disabled = true
   if (paused) document.querySelector<HTMLButtonElement>('.combat-bar button[data-action="jump"]')!.disabled = true
   const controls = document.querySelector<HTMLElement>('.game-footer span')
-  if (controls) controls.textContent = 'WASD / ← → 移动　·　J 攻击　·　K 跳跃 / 二段跳　·　1–4 技能　·　S 拾取药水　·　P 暂停'
+  if (controls) controls.textContent = 'WASD / ← → 移动　·　J 攻击　·　K 跳跃 / 二段跳　·　1–4 技能　·　L 按住护盾（防御 ×10，耗蓝 3/秒）　·　S 拾取药水　·　P 暂停'
   setupCanvas()
   syncHud()
 }
@@ -1233,7 +1376,7 @@ function render() {
   scene === 'title' ? renderTitle() : renderGame()
 }
 function foeHeadTop(foe: Foe) {
-  const offset = (foe.boss ? 242 : 90) + foeFlyOffset(foe)
+  const offset = (foe.boss ? 242 : 72) + foeFlyOffset(foe)
   return `${((world.floor - offset) / world.height) * 100}%`
 }
 function mountBattleHud() {
@@ -1383,7 +1526,7 @@ function skillPower(index: number) {
 }
 function skillSummary(role: Role, index: number) {
   const cost = skillCostFor(role, index)
-  if (role === 'mage' && index === 0) return `+10% 攻速/攻击 · 10s · ${cost} MP`
+  if (role === 'mage' && index === 0) return `+10% 攻速/攻击 · 7s · ${cost} MP`
   if (role === 'mage' && index === 2) return `无伤害位移 · ${cost} MP`
   if (role === 'mage' && index === 3) return `眩晕 1s · 5 连击 · ${cost} MP`
   return `${Math.round(SKILL_MULTIPLIERS[role][index] * 100)}% 攻击 · ${cost} MP`
@@ -1408,9 +1551,9 @@ function strike(target: Foe, damage: number, label: string) {
   const dealt = Math.max(1, Math.round(damage))
   target.hp -= dealt; target.flash = .18
   addDamageText(target, dealt)
-  const impactY = target.flying ? foeWorldY(target) - 18 : world.floor - (target.boss ? 120 : 72)
+  const impactY = target.flying ? foeWorldY(target) - 14 : world.floor - (target.boss ? 120 : 58)
   addFx('impact', target.x, impactY, -1, .22)
-  addSparks(target.x, impactY + 10, 4, ['#ffe6a8', '#e8b56f'], 110)
+  addSparks(target.x, impactY + 8, 4, ['#ffe6a8', '#e8b56f'], 110)
   if (target.hp <= 0) defeatFoe(target)
   else syncHud()
   setLog(`${label} · 命中${target.boss ? '守关者' : '守卫'}`)
@@ -1429,18 +1572,18 @@ function attack() {
   if (game.role === 'warrior') {
     const style = weaponStyle()
     const fxColor = weaponFxColor()
-    const swingY = world.floor - 66 + heroY
-    addFx(`weapon-swing-${style}`, heroX + facing * 52, swingY, facing, .4, fxColor)
-    if (!foes.length) addFx('slash-crescent', heroX + facing * 58, swingY - 3, facing, .5)
-    addSparks(heroX + facing * 68, swingY + 4, style === 'axe' ? 9 : 5, [fxColor, '#fff2c0'], style === 'axe' ? 140 : 90)
+    const swingY = world.floor - 53 + heroY
+    addFx(`weapon-swing-${style}`, heroX + facing * 42, swingY, facing, .4, fxColor)
+    if (!foes.length) addFx('slash-crescent', heroX + facing * 46, swingY - 3, facing, .5)
+    addSparks(heroX + facing * 54, swingY + 4, style === 'axe' ? 9 : 5, [fxColor, '#fff2c0'], style === 'axe' ? 140 : 90)
     if (style === 'axe') addShake(3)
     strikeNearby(stats().attack, '剑刃斩击', 138)
   } else {
     const target = targetForFacing(unlockedWidth - MAP_LEFT)
     const projectileDirection = target ? Math.sign(target.x - heroX) || facing : facing
-    projectiles.push({ x: heroX + projectileDirection * 25, y: world.floor - 68 + heroY, vx: projectileDirection * 620, life: 1.3, damage: stats().attack, targetId: target?.id ?? -1 })
-    addFx('muzzle', heroX + projectileDirection * 25, world.floor - 68 + heroY, projectileDirection, .16)
-    addSparks(heroX + projectileDirection * 25, world.floor - 68 + heroY, 4, [weaponFxColor(), '#e8ffe8'], 80)
+    projectiles.push({ x: heroX + projectileDirection * 20, y: world.floor - 54 + heroY, vx: projectileDirection * 620, life: 1.3, damage: stats().attack, targetId: target?.id ?? -1 })
+    addFx('muzzle', heroX + projectileDirection * 20, world.floor - 54 + heroY, projectileDirection, .16)
+    addSparks(heroX + projectileDirection * 20, world.floor - 54 + heroY, 4, [weaponFxColor(), '#e8ffe8'], 80)
     if (!target) setLog('法杖光弹向空地上射出。')
   }
   playSfx(game.role === 'warrior' ? 'slash' : 'magic')
@@ -1471,7 +1614,8 @@ function cast(index: number) {
     const left = keys.has('a') || keys.has('arrowleft')
     const right = keys.has('d') || keys.has('arrowright')
     if (left !== right) facing = right ? 1 : -1
-  } else {
+  } else if (!(game.role === 'mage' && index === 1)) {
+    // 法师双生火柱固定在当前朝向前方，不再自动转向最近的敌人。
     const nearest = [...foes].sort((a, b) => Math.abs(a.x - heroX) - Math.abs(b.x - heroX))[0]
     if (nearest) facing = Math.sign(nearest.x - heroX) || facing
   }
@@ -1527,10 +1671,10 @@ function cast(index: number) {
       strikeNearby(power, '蓄力重斩', 175, true)
     }
   } else if (index === 0) {
-    buffTime = 10
+    buffTime = 7
     addFx('arcane-blessing', heroX, world.floor - 88, facing, 1)
     addSparks(heroX, world.floor - 70, 12, ['#b9e0d2', '#e6ddb0'], 90)
-    setLog('奥术强化：10 秒内攻击与攻速提升 10%。')
+    setLog('奥术强化：7 秒内攻击与攻速提升 10%。')
   } else if (index === 1) {
     const center = heroX + facing * 150
     addFx('twin-fire-pillars', center, world.floor - 2, facing, .9)
@@ -1538,7 +1682,7 @@ function cast(index: number) {
     addShake(4)
     const targets = foes.filter((foe) => Math.abs(foe.x - heroX) <= 320)
     // 火柱之间的吸力：非 Boss 敌人被拉向两根火柱的中点。
-    targets.forEach((foe) => { if (!foe.boss) foe.x = clampFoeX(foe.x + (center - foe.x) * .55) })
+    targets.forEach((foe) => { if (!foe.boss) foe.x = clampFoeX(foe.x + (center - foe.x) * .8) })
     if (targets.length) targets.forEach((foe) => strike(foe, power, '双生火柱'))
     else setLog('双生火柱在空地上燃起。')
   } else if (index === 2) {
@@ -1559,8 +1703,12 @@ function cast(index: number) {
     }
     target.stunTimer = 1
     target.dashWindup = undefined
+    target.specialWindup = undefined
+    target.skillWindup = undefined
+    target.rangedWindup = undefined
+    target.specialTimer = Math.max(target.specialTimer ?? 0, 2)
     burst = 5; burstWait = .06; burstTargetId = target.id
-    addFx('energy-prison', target.x, world.floor - (target.boss ? 130 : 83), facing, 1.2)
+    addFx('energy-prison', target.x, world.floor - (target.boss ? 130 : 66), facing, 1.2)
     addSparks(target.x, world.floor - 80, 18, ['#a8e0d0', '#d7f4ea'], 120)
     setLog('能量禁锢展开 · 控制目标 1 秒并瞬发 5 次普攻。')
   }
@@ -1894,6 +2042,7 @@ function performAction(name: string, target: HTMLElement) {
   if (name === 'restart-stage' && game && (scene === 'town' || scene === 'defeat')) beginStage(game.stage, 'restart')
   if (name === 'challenge-boss' && game && scene === 'town') beginStage(game.stage, 'boss')
   if (name === 'attack') attack()
+  if (name === 'pickup') pickupDrop()
   if (name === 'jump') jump()
   if (name === 'skill') cast(Number(target.dataset.index))
   if (name === 'pause' && scene === 'battle') { paused = !paused; keys.clear(); renderGame() }
@@ -1943,8 +2092,20 @@ app.addEventListener('submit', (event) => {
   void submitAuth()
 })
 app.addEventListener('pointerdown', (event) => {
-  const button = event.target instanceof HTMLElement ? event.target.closest<HTMLElement>('[data-move]') : null
-  if (button?.dataset.move) keys.add(button.dataset.move === 'left' ? 'arrowleft' : 'arrowright')
+  if (!(event.target instanceof HTMLElement)) return
+  const moveButton = event.target.closest<HTMLElement>('[data-move]')
+  if (moveButton?.dataset.move) {
+    event.preventDefault()
+    keys.add(moveButton.dataset.move === 'left' ? 'arrowleft' : 'arrowright')
+  }
+  const shieldButton = event.target.closest<HTMLButtonElement>('[data-shield]')
+  if (shieldButton && !shieldButton.disabled) {
+    event.preventDefault()
+    keys.add('l')
+  }
+})
+app.addEventListener('contextmenu', (event) => {
+  if (event.target instanceof HTMLElement && event.target.closest('button, [data-move], [data-shield]')) event.preventDefault()
 })
 app.addEventListener('change', (event) => {
   if ((event.target as HTMLElement).id === 'stage-select' && game) {
@@ -1955,7 +2116,12 @@ app.addEventListener('change', (event) => {
     save(); renderGame()
   }
 })
-window.addEventListener('pointerup', () => { keys.delete('arrowleft'); keys.delete('arrowright') })
+function releaseTouchControls() {
+  keys.delete('arrowleft'); keys.delete('arrowright'); keys.delete('l')
+  shieldLocked = false
+}
+window.addEventListener('pointerup', releaseTouchControls)
+window.addEventListener('pointercancel', releaseTouchControls)
 window.addEventListener('keydown', (event) => {
   const key = event.key.toLowerCase()
   if (pendingDeleteId && key === 'escape') { pendingDeleteId = null; document.querySelector('.delete-confirm')?.remove(); return }
@@ -1980,8 +2146,12 @@ window.addEventListener('keydown', (event) => {
   if (key === 'k') jump()
   const index = ['1', '2', '3', '4'].indexOf(key); if (index >= 0) cast(index)
 })
-window.addEventListener('keyup', (event) => keys.delete(event.key.toLowerCase()))
-window.addEventListener('blur', () => keys.clear())
+window.addEventListener('keyup', (event) => {
+  const key = event.key.toLowerCase()
+  keys.delete(key)
+  if (key === 'l') shieldLocked = false
+})
+window.addEventListener('blur', () => { keys.clear(); shieldActive = false; shieldLocked = false })
 function setupCanvas() {
   canvas = document.querySelector<HTMLCanvasElement>('#arena')
   if (!canvas) return
@@ -1990,7 +2160,8 @@ function setupCanvas() {
 function update(dt: number) {
   shake = Math.max(0, shake - dt * 30)
   flashTime = Math.max(0, flashTime - dt * 1.6)
-  if (paused) return
+  if (paused) { shieldActive = false; return }
+  if (scene !== 'battle' || bossVictory) shieldActive = false
   if (scene !== 'battle') cameraX = 0
   attackWait = Math.max(0, attackWait - dt); attackSwing = Math.max(0, attackSwing - dt); buffTime = Math.max(0, buffTime - dt)
   skillWait = skillWait.map((time) => Math.max(0, time - dt))
@@ -2021,7 +2192,19 @@ function update(dt: number) {
     bossVictory.time -= dt
     if (bossVictory.time <= 0) finishBossVictory()
   } else if (scene === 'battle' && game) {
-    game.mp = Math.min(stats().mp, game.mp + dt * 4)
+    const holdingShield = keys.has('l') && !shieldLocked && !bossVictory && game.mp > 0
+    shieldActive = holdingShield
+    if (holdingShield) {
+      game.mp = Math.max(0, game.mp - dt * 3)
+      if (game.mp <= 0) {
+        game.mp = 0; shieldActive = false; shieldLocked = true
+        addFx('shield-break', heroX + facing * 42, world.floor - 50 + heroY, facing, .55, weaponFxColor())
+        addSparks(heroX + facing * 42, world.floor - 50 + heroY, 14, [weaponFxColor(), '#ffffff'], 220)
+        addShake(4)
+        toast('法力耗尽，护盾解除。')
+      }
+    }
+    if (!shieldActive) game.mp = Math.min(stats().mp, game.mp + dt * 4)
     const left = keys.has('a') || keys.has('arrowleft'); const right = keys.has('d') || keys.has('arrowright')
     if (left !== right) { const d = right ? 1 : -1; heroX = clampHeroX(heroX + d * 245 * dt); facing = d }
     if (keys.has('j') && attackWait <= 0) attack()
@@ -2042,6 +2225,73 @@ function update(dt: number) {
       }
       const distance = heroX - foe.x
       const directionToHero = Math.sign(distance) || 1
+      const mobRanged = MOB_RANGED[stageIndex]
+      if (foe.boss) foe.specialTimer = Math.max(0, (foe.specialTimer ?? 0) - dt)
+      else foe.mobSkillTimer = Math.max(0, (foe.mobSkillTimer ?? 0) - dt)
+
+      // 小怪技能：短暂前摇后冲撞或震地。
+      if (!foe.boss && foe.skillWindup !== undefined) {
+        foe.skillWindup -= dt
+        if (foe.skillWindup <= 0) {
+          executeMobSkill(foe, stageIndex)
+          foe.skillWindup = undefined
+          if (game.hp <= 0) break
+        }
+        continue
+      }
+      // 小怪远程攻击：蓄力后发射。
+      if (!foe.boss && foe.rangedWindup !== undefined) {
+        foe.rangedWindup -= dt
+        if (foe.rangedWindup <= 0) {
+          foe.rangedWindup = undefined
+          if (mobRanged) fireMobVolley(foe, mobRanged, stageIndex)
+          foe.rangedTimer = mobRanged?.interval ?? 4
+          foe.attackAnim = .3
+        }
+        continue
+      }
+      if (!foe.boss && mobRanged && (foe.mobSkillTimer ?? 0) <= 0 && Math.abs(distance) < 430) {
+        const kind = stageIndex >= 6 ? 'slam' : 'lunge'
+        const windup = kind === 'lunge' ? .38 : .5
+        foe.skillKind = kind
+        foe.skillWindup = windup
+        foe.mobSkillTimer = 6 + Math.random() * 2
+        foe.rangedTimer = Math.max(foe.rangedTimer, 1.5)
+        foe.flash = .18; foe.attackAnim = .45
+        const theme = STAGE_THEMES[stageIndex]
+        effects.push({ kind: kind === 'lunge' ? 'mob-skill-lunge' : 'mob-skill-slam', x: foe.x, y: foeWorldY(foe) - 12, direction: directionToHero, life: windup, duration: windup, color: theme.glow })
+        addSparks(foe.x, foeWorldY(foe) - 20, 8, [theme.accent, theme.glow], 100)
+        setLog(`遗迹守卫正在蓄力${kind === 'lunge' ? '冲撞' : '震地'}...`)
+        continue
+      }
+      if (!foe.boss && mobRanged && foe.rangedTimer <= 0 && Math.abs(distance) > 135 && Math.abs(distance) < 620) {
+        foe.rangedWindup = .45
+        foe.rangedTimer = mobRanged.interval + .45
+        foe.mobSkillTimer = Math.max(foe.mobSkillTimer ?? 0, 1.5)
+        foe.flash = .15; foe.attackAnim = .4
+        const theme = STAGE_THEMES[stageIndex]
+        effects.push({ kind: 'mob-ranged-charge', x: foe.x, y: foeWorldY(foe) - 18, direction: directionToHero, life: .45, duration: .45, color: theme.glow })
+        addSparks(foe.x, foeWorldY(foe) - 18, 7, [theme.light, theme.glow], 100)
+        setLog('遗迹守卫正在凝聚远程攻击...')
+        continue
+      }
+
+      // Boss 强力技能 / 专属技能：独立前摇，前摇期间停止普通行动。
+      if (foe.boss && foe.specialWindup !== undefined) {
+        foe.specialWindup -= dt
+        if (foe.specialWindup <= 0) {
+          const kind = foe.specialKind
+          foe.specialWindup = undefined
+          foe.specialKind = undefined
+          if (kind) executeBossSpecial(foe, kind, stageIndex)
+          if (game.hp <= 0) break
+        }
+        continue
+      }
+      if (foe.boss && stageIndex >= 6 && (foe.specialTimer ?? 0) <= 0 && foe.dashWindup === undefined && foe.rangedWindup === undefined && Math.abs(distance) < 620) {
+        startBossSpecial(foe, stageIndex)
+        continue
+      }
       if (foe.boss && foe.dashWindup !== undefined) {
         foe.dashWindup -= dt
         if (foe.dashWindup <= 0) {
@@ -2089,11 +2339,11 @@ function update(dt: number) {
           playSfx(foe.boss ? 'boss' : 'slash')
           playSfx('hurt')
           const theme = STAGE_THEMES[stageIndex]
-          addFx(foe.boss ? bossFx('melee') : 'enemy-swipe', heroX, world.floor - 65 + heroY, -directionToHero, .38)
+          addFx(foe.boss ? bossFx('melee') : 'enemy-swipe', heroX, world.floor - 52 + heroY, -directionToHero, .38)
           armorHitFx()
-          addSparks(heroX, world.floor - 60 + heroY, foe.boss ? 8 : 5, [theme.accent, theme.glow], foe.boss ? 150 : 110)
+          addSparks(heroX, world.floor - 48 + heroY, foe.boss ? 8 : 5, [theme.accent, theme.glow], foe.boss ? 150 : 110)
           if (foe.flying) addSparks(foe.x, foeWorldY(foe), 6, [theme.light, theme.accent], 100)
-          effects.push({ kind: 'damage-number', x: heroX, y: world.floor - 112 + heroY, life: .82, duration: .82, text: `-${displayNumber(damage)}` })
+          effects.push({ kind: 'damage-number', x: heroX, y: world.floor - 90 + heroY, life: .82, duration: .82, text: `-${displayNumber(damage)}` })
           addShake(foe.boss ? 8 : 3)
           if (game.hp <= 0) { scene = 'defeat'; paused = false; game.dead = true; save(); renderGame(); break }
         }
@@ -2129,8 +2379,9 @@ function update(dt: number) {
       const heroBottom = world.floor + heroY
       const heroTop = heroBottom - 70
       if (Math.abs(shot.x - heroX) < 24 && shot.y > heroTop && shot.y < heroBottom + 6) {
-        game.hp = Math.max(0, game.hp - shot.damage)
-        effects.push({ kind: 'damage-number', x: heroX, y: world.floor - 112 + heroY, life: .82, duration: .82, text: `-${displayNumber(shot.damage)}`, damage: shot.damage })
+        const shotDamage = Math.max(3, Math.round(shot.damage - effectiveDefense()))
+        game.hp = Math.max(0, game.hp - shotDamage)
+        effects.push({ kind: 'damage-number', x: heroX, y: world.floor - 90 + heroY, life: .82, duration: .82, text: `-${displayNumber(shotDamage)}`, damage: shotDamage })
         armorHitFx()
         addShake(7)
         playSfx('hurt')
@@ -2148,8 +2399,11 @@ function update(dt: number) {
         if (target) {
           burst -= 1
           strike(target, stats().attack, `能量禁锢 ${5 - burst} / 5`)
-          addFx('energy-prison-hit', target.x, world.floor - (target.boss ? 120 : 72), 1, .32)
-          addSparks(target.x, world.floor - (target.boss ? 110 : 62), 5, ['#a8e0d0', '#e8ffe8'], 130)
+          const hitY = target.flying ? foeWorldY(target) - 24 : world.floor - (target.boss ? 120 : 58)
+          const hitColor = weaponFxColor()
+          addFx('arcane-bolt-hit', target.x, hitY, Math.sign(target.x - heroX) || 1, .38, hitColor)
+          addFx('energy-prison-hit', target.x, hitY, 1, .32)
+          addSparks(target.x, hitY + 10, 7, [hitColor, '#e8ffe8'], 140)
           if (burst <= 0) burstTargetId = null
         } else { burst = 0; burstTargetId = null }
       }
@@ -2334,12 +2588,33 @@ function drawHero(c: CanvasRenderingContext2D) {
   const sway = Math.sin(now / 150) * (grounded ? 1.2 : 0)
   const walking = grounded && (keys.has('a') || keys.has('d') || keys.has('arrowleft') || keys.has('arrowright'))
   const walk = walking ? Math.sin(now / 90) : 0
-  c.fillStyle = 'rgba(8, 17, 17, .36)'; c.beginPath(); c.ellipse(heroX, world.floor + 2, Math.max(14, 30 - jumpHeight * .045), 7, 0, 0, Math.PI * 2); c.fill()
-  c.save(); c.translate(heroX, world.floor - jumpHeight + sway); c.scale(facing, 1); c.rotate(walk * .022)
+  c.fillStyle = 'rgba(8, 17, 17, .36)'; c.beginPath(); c.ellipse(heroX, world.floor + 2, Math.max(11, 24 - jumpHeight * .036), 6, 0, 0, Math.PI * 2); c.fill()
+  c.save(); c.translate(heroX, world.floor - jumpHeight + sway); c.scale(facing * .8, .8); c.rotate(walk * .022)
   if (game.role === 'warrior') drawWarriorHero(c, now, walk)
   else drawMageHero(c, now, walk)
   c.restore()
   drawFashionOrbit(c, jumpHeight)
+}
+function drawShield(c: CanvasRenderingContext2D) {
+  if (!shieldActive || !game || scene !== 'battle') return
+  const x = heroX + facing * 42
+  const y = world.floor - 50 + heroY
+  const color = weaponFxColor()
+  const pulse = .88 + Math.sin(performance.now() / 110) * .12
+  c.save(); c.translate(x, y); c.rotate(facing * .08)
+  c.shadowColor = color; c.shadowBlur = 20
+  c.globalAlpha = .3; c.fillStyle = color
+  c.beginPath(); c.ellipse(0, 0, 13 * pulse, 35 * pulse, 0, 0, Math.PI * 2); c.fill()
+  c.globalAlpha = .95; c.strokeStyle = color; c.lineWidth = 3
+  c.beginPath(); c.ellipse(0, 0, 14 * pulse, 37 * pulse, 0, 0, Math.PI * 2); c.stroke()
+  c.globalAlpha = .55; c.strokeStyle = '#ffffff'; c.lineWidth = 1.3
+  c.beginPath(); c.ellipse(-facing * 2.4, 0, 9 * pulse, 30 * pulse, 0, 0, Math.PI * 2); c.stroke()
+  c.globalAlpha = .8; c.fillStyle = '#ffffff'
+  for (let i = 0; i < 3; i++) {
+    const angle = performance.now() / 500 + (i * Math.PI * 2) / 3
+    c.beginPath(); c.arc(Math.cos(angle) * 6, Math.sin(angle) * 24, 1.5, 0, Math.PI * 2); c.fill()
+  }
+  c.restore()
 }
 function equippedLevel(type: GearType) {
   const id = type === 'weapon' ? game?.weaponId : type === 'armor' ? game?.armorId : game?.fashionId
@@ -2374,7 +2649,7 @@ function armorFxColor() {
   const level = Math.max(1, armor.level)
   return `hsl(${(base + level * 18) % 360}, 58%, 70%)`
 }
-function armorHitFx() { addFx('armor-hit', heroX, world.floor - 68 + heroY, 1, .5, armorFxColor()) }
+function armorHitFx() { addFx('armor-hit', heroX, world.floor - 54 + heroY, 1, .5, armorFxColor()) }
 function weaponPalette(level: number) {
   const palettes = [
     { light: '#f3f5e8', dark: '#c9d2c4', glow: '' },
@@ -2406,10 +2681,10 @@ function drawFashionOrbit(c: CanvasRenderingContext2D, jumpHeight: number) {
   if (!tier || !palette) return
   const now = performance.now()
   const centerX = heroX
-  const centerY = world.floor - jumpHeight - 46
+  const centerY = world.floor - jumpHeight - 37
   const count = Math.min(8, 2 + tier)
-  const radiusX = 30 + Math.min(15, tier * 3)
-  const radiusY = 16 + Math.min(10, tier * 2)
+  const radiusX = 24 + Math.min(12, tier * 2.4)
+  const radiusY = 13 + Math.min(8, tier * 1.6)
   c.save()
   c.globalAlpha = .85
   if (tier >= 2) {
@@ -2574,7 +2849,7 @@ function drawMageHero(c: CanvasRenderingContext2D, now: number, walk: number) {
 function drawFoe(c: CanvasRenderingContext2D, foe: Foe) {
   const theme = currentStageTheme()
   const index = Math.max(0, Math.min(9, (game?.stage ?? 1) - 1))
-  const scale = foe.boss ? 2.25 : 1
+  const scale = foe.boss ? 2.25 : .8
   const dir = heroX <= foe.x ? -1 : 1
   const now = performance.now()
   const flyHeight = foe.flying ? foeFlyOffset(foe) : 0
@@ -2582,7 +2857,7 @@ function drawFoe(c: CanvasRenderingContext2D, foe: Foe) {
   const lunge = Math.sin(attackPhase * Math.PI) * (foe.boss ? 12 : 6)
   const bob = Math.sin(now / (foe.flying ? 240 : 420) + foe.id * 1.7) * (foe.flying ? 4 : foe.boss ? 2 : 1.2)
   const sway = Math.sin(now / (foe.boss ? 520 : 300) + foe.id) * (foe.boss ? .022 : .045) * dir
-  c.save(); c.fillStyle = 'rgba(8, 17, 17, .32)'; c.beginPath(); c.ellipse(foe.x, world.floor + 2, foe.flying ? 14 : foe.boss ? 48 : 24, foe.flying ? 4 : foe.boss ? 10 : 6, 0, 0, Math.PI * 2); c.fill(); c.restore()
+  c.save(); c.fillStyle = 'rgba(8, 17, 17, .32)'; c.beginPath(); c.ellipse(foe.x, world.floor + 2, foe.flying ? 11 : foe.boss ? 48 : 19, foe.flying ? 3 : foe.boss ? 10 : 5, 0, 0, Math.PI * 2); c.fill(); c.restore()
   if (foe.flying) {
     c.save(); c.strokeStyle = `${theme.glow}66`; c.lineWidth = 1.6
     for (let i = 0; i < 2; i++) { c.beginPath(); c.ellipse(foe.x - 10 + i * 20, world.floor - flyHeight + 18, 10, 3, 0, 0, Math.PI * 2); c.stroke() }
@@ -2936,6 +3211,33 @@ function drawFx(c: CanvasRenderingContext2D, fx: Fx) {
     c.restore()
     c.strokeStyle = 'rgba(215, 244, 234, .7)'; c.lineWidth = 2
     c.beginPath(); c.ellipse(fx.x, world.floor - 4, 52, 13, 0, 0, Math.PI * 2); c.stroke()
+  } else if (fx.kind === 'shield-break') {
+    const color = fx.color ?? '#b9e0d2'
+    c.strokeStyle = color; c.lineWidth = 3
+    for (let ring = 0; ring < 2; ring++) {
+      c.globalAlpha = alpha * (1 - ring * .35)
+      c.beginPath(); c.arc(fx.x, fx.y, 14 + progress * 40 + ring * 10, 0, Math.PI * 2); c.stroke()
+    }
+    c.globalAlpha = alpha; c.fillStyle = color
+    for (let shard = 0; shard < 10; shard++) {
+      const angle = (shard / 10) * Math.PI * 2
+      const radius = 10 + progress * 36
+      c.beginPath(); c.arc(fx.x + Math.cos(angle) * radius, fx.y + Math.sin(angle) * radius * .7, 2.5, 0, Math.PI * 2); c.fill()
+    }
+  } else if (fx.kind === 'arcane-bolt-hit') {
+    const dir = fx.direction ?? 1
+    const color = fx.color ?? '#b9e0d2'
+    c.globalAlpha = alpha * .7; c.strokeStyle = color; c.lineWidth = 4
+    c.beginPath(); c.moveTo(fx.x - dir * 82, fx.y + 4); c.lineTo(fx.x - dir * 12, fx.y); c.stroke()
+    c.globalAlpha = alpha * .9; c.fillStyle = color
+    c.beginPath(); c.arc(fx.x, fx.y, 8 + progress * 10, 0, Math.PI * 2); c.fill()
+    c.fillStyle = '#ffffff'; c.beginPath(); c.arc(fx.x, fx.y, 3 + progress * 5, 0, Math.PI * 2); c.fill()
+    c.globalAlpha = alpha * .65; c.strokeStyle = color; c.lineWidth = 2
+    c.beginPath(); c.arc(fx.x, fx.y, 18 + progress * 28, 0, Math.PI * 2); c.stroke()
+    for (let ray = 0; ray < 4; ray++) {
+      const angle = (ray / 4) * Math.PI * 2 + progress * 2
+      c.beginPath(); c.moveTo(fx.x + Math.cos(angle) * 14, fx.y + Math.sin(angle) * 10); c.lineTo(fx.x + Math.cos(angle) * (30 + progress * 16), fx.y + Math.sin(angle) * (22 + progress * 10)); c.stroke()
+    }
   } else if (fx.kind === 'energy-prison-hit') {
     c.strokeStyle = '#e8fff2'; c.lineWidth = 4
     c.beginPath(); c.moveTo(fx.x - 40, fx.y - 30); c.lineTo(fx.x + 40, fx.y + 20); c.stroke()
@@ -2947,6 +3249,136 @@ function drawFx(c: CanvasRenderingContext2D, fx: Fx) {
   } else if (fx.kind === 'spark') {
     c.fillStyle = fx.color ?? '#ffe09a'
     c.beginPath(); c.arc(fx.x, fx.y, fx.radius ?? 2, 0, Math.PI * 2); c.fill()
+  } else if (fx.kind === 'mob-ranged-charge') {
+    const color = fx.color ?? '#a9e2e5'
+    const pulse = .7 + Math.sin(performance.now() / 90) * .2
+    c.globalAlpha = alpha * .9; c.strokeStyle = color; c.lineWidth = 2
+    c.beginPath(); c.arc(fx.x, fx.y, 8 + progress * 10, 0, Math.PI * 2); c.stroke()
+    c.fillStyle = color; c.beginPath(); c.arc(fx.x, fx.y, 3 + pulse * 2, 0, Math.PI * 2); c.fill()
+    for (let i = 0; i < 3; i++) {
+      const angle = performance.now() / 240 + (i * Math.PI * 2) / 3
+      c.beginPath(); c.arc(fx.x + Math.cos(angle) * 14, fx.y + Math.sin(angle) * 9, 1.8, 0, Math.PI * 2); c.fill()
+    }
+  } else if (fx.kind === 'mob-ranged-fire') {
+    const color = fx.color ?? '#a9e2e5'
+    c.strokeStyle = color; c.lineWidth = 3; c.globalAlpha = alpha
+    c.beginPath(); c.arc(fx.x, fx.y, 8 + progress * 26, 0, Math.PI * 2); c.stroke()
+    c.fillStyle = '#ffffff'; c.globalAlpha = alpha * .7
+    c.beginPath(); c.arc(fx.x, fx.y, 4 + progress * 8, 0, Math.PI * 2); c.fill()
+  } else if (fx.kind === 'mob-skill-lunge') {
+    const dir = fx.direction ?? 1
+    const color = fx.color ?? '#a9e2e5'
+    c.strokeStyle = color; c.lineWidth = 3; c.globalAlpha = alpha * (.5 + progress * .5)
+    c.beginPath(); c.moveTo(fx.x - dir * 20, fx.y + 20); c.lineTo(fx.x + dir * (30 + progress * 40), fx.y + 20); c.stroke()
+    c.beginPath(); c.arc(fx.x, fx.y, 12 + progress * 14, 0, Math.PI * 2); c.stroke()
+    c.fillStyle = color
+    for (let i = 0; i < 5; i++) { c.beginPath(); c.arc(fx.x - dir * i * 6, fx.y + 26 + ((i * 5) % 10), 1.6, 0, Math.PI * 2); c.fill() }
+  } else if (fx.kind === 'mob-skill-slam') {
+    const color = fx.color ?? '#a9e2e5'
+    c.strokeStyle = color; c.lineWidth = 3; c.globalAlpha = alpha * .9
+    for (let ring = 0; ring < 2; ring++) { c.beginPath(); c.ellipse(fx.x, world.floor - 4, 16 + progress * 36 + ring * 10, 5 + progress * 8, 0, 0, Math.PI * 2); c.stroke() }
+    c.fillStyle = color
+    for (let i = 0; i < 6; i++) { const angle = (i / 6) * Math.PI * 2; c.beginPath(); c.arc(fx.x + Math.cos(angle) * (12 + progress * 20), world.floor - 6 + Math.sin(angle) * 6, 2, 0, Math.PI * 2); c.fill() }
+  } else if (fx.kind === 'mob-skill-lunge-execute') {
+    const dir = fx.direction ?? 1
+    const color = fx.color ?? '#a9e2e5'
+    c.strokeStyle = color; c.lineWidth = 6; c.globalAlpha = alpha
+    c.beginPath(); c.moveTo(fx.x - dir * 70, fx.y); c.lineTo(fx.x + dir * 40, fx.y); c.stroke()
+    c.strokeStyle = '#ffffff'; c.lineWidth = 2
+    c.beginPath(); c.moveTo(fx.x - dir * 55, fx.y - 4); c.lineTo(fx.x + dir * 30, fx.y - 4); c.stroke()
+  } else if (fx.kind === 'mob-skill-slam-execute') {
+    const color = fx.color ?? '#a9e2e5'
+    c.strokeStyle = color; c.lineWidth = 4
+    for (let ring = 0; ring < 2; ring++) {
+      const ringProgress = (progress + ring * .18) % 1
+      c.globalAlpha = alpha * (1 - ringProgress * .7)
+      c.beginPath(); c.ellipse(fx.x, world.floor - 3, 24 + ringProgress * 90, 8 + ringProgress * 18, 0, 0, Math.PI * 2); c.stroke()
+    }
+  } else if (fx.kind.startsWith('boss-special-windup-')) {
+    const parts = fx.kind.split('-')
+    const kind = parts[3]
+    const theme = parts[4]
+    const color = fx.color ?? BOSS_THEME_COLORS[theme] ?? '#d78fb4'
+    const dir = fx.direction ?? 1
+    if (fx.text) {
+      c.globalAlpha = Math.min(1, alpha * 1.2)
+      c.font = "700 13px 'Microsoft YaHei', sans-serif"; c.textAlign = 'center'
+      c.lineWidth = 3; c.strokeStyle = 'rgba(10, 16, 16, .85)'; c.strokeText(fx.text, fx.x, fx.y - 86)
+      c.fillStyle = '#fff1c8'; c.fillText(fx.text, fx.x, fx.y - 86)
+    }
+    c.globalAlpha = alpha; c.strokeStyle = color; c.lineWidth = 3
+    c.beginPath(); c.arc(fx.x, fx.y, 30 + progress * 20, 0, Math.PI * 2); c.stroke()
+    c.beginPath(); c.arc(fx.x, fx.y, 18 + progress * 12, 0, Math.PI * 2); c.stroke()
+    c.fillStyle = color; c.globalAlpha = alpha * .6
+    c.beginPath(); c.arc(fx.x, fx.y, 8 + progress * 10, 0, Math.PI * 2); c.fill()
+    if (kind === 'pierce') {
+      c.globalAlpha = alpha * .9; c.strokeStyle = color; c.lineWidth = 2
+      c.beginPath(); c.moveTo(fx.x + dir * 30, fx.y); c.lineTo(fx.x + dir * (60 + progress * 120), fx.y); c.stroke()
+      for (let i = 0; i < 4; i++) { c.beginPath(); c.arc(fx.x + dir * (45 + i * 24), fx.y, 3 - progress * 2, 0, Math.PI * 2); c.stroke() }
+    } else if (theme === 'ash') {
+      c.strokeStyle = color; c.lineWidth = 2
+      for (let i = 0; i < 3; i++) {
+        c.globalAlpha = alpha * (.5 + i * .1)
+        c.beginPath(); c.ellipse(fx.x, fx.y, 40 + progress * 30 + i * 12, 14 + progress * 10, performance.now() / 600 + i, 0, Math.PI * 2); c.stroke()
+      }
+      c.fillStyle = color; c.globalAlpha = alpha * .9
+      for (let i = 0; i < 8; i++) { const angle = performance.now() / 500 + (i * Math.PI * 2) / 8; c.beginPath(); c.arc(fx.x + Math.cos(angle) * (22 + progress * 20), fx.y + Math.sin(angle) * (12 + progress * 12), 2.2, 0, Math.PI * 2); c.fill() }
+    } else if (theme === 'blood') {
+      c.strokeStyle = color; c.lineWidth = 4; c.globalAlpha = alpha * .9
+      for (const side of [-1, 1]) { c.beginPath(); c.arc(fx.x, fx.y, 32 + progress * 24, side > 0 ? -.9 : 2.1, side > 0 ? 1.0 : 4.0); c.stroke() }
+      c.fillStyle = '#ffd0c0'
+      for (let i = 0; i < 5; i++) { const angle = performance.now() / 300 + (i * Math.PI * 2) / 5; c.beginPath(); c.arc(fx.x + Math.cos(angle) * 20, fx.y + Math.sin(angle) * 14, 2.5, 0, Math.PI * 2); c.fill() }
+    } else if (theme === 'sun') {
+      c.strokeStyle = color; c.lineWidth = 2; c.globalAlpha = alpha * .85
+      for (let i = 0; i < 12; i++) {
+        const angle = (i / 12) * Math.PI * 2 + progress * .5
+        c.beginPath(); c.moveTo(fx.x + Math.cos(angle) * 18, fx.y + Math.sin(angle) * 12); c.lineTo(fx.x + Math.cos(angle) * (44 + progress * 30), fx.y + Math.sin(angle) * (30 + progress * 20)); c.stroke()
+      }
+      c.beginPath(); c.arc(fx.x, fx.y, 26 + progress * 14, 0, Math.PI * 2); c.stroke()
+    } else {
+      c.strokeStyle = color; c.lineWidth = 2; c.globalAlpha = alpha * .9
+      for (let i = 0; i < 6; i++) {
+        const angle = performance.now() / 700 + (i * Math.PI) / 3
+        c.beginPath(); c.moveTo(fx.x + Math.cos(angle) * 14, fx.y + Math.sin(angle) * 9); c.lineTo(fx.x + Math.cos(angle + 2.1) * 30, fx.y + Math.sin(angle + 2.1) * 20); c.stroke()
+      }
+      c.fillStyle = '#ffffff'
+      for (let i = 0; i < 8; i++) { const angle = performance.now() / 600 + (i * Math.PI) / 4; c.beginPath(); c.arc(fx.x + Math.cos(angle) * (25 + progress * 16), fx.y + Math.sin(angle) * (15 + progress * 10), 2, 0, Math.PI * 2); c.fill() }
+    }
+    c.globalAlpha = alpha * .7; c.strokeStyle = '#ffffff'; c.lineWidth = 2
+    c.beginPath(); c.arc(fx.x, fx.y, 52 - progress * 20, 0, Math.PI * 2); c.stroke()
+  } else if (fx.kind.startsWith('boss-special-nova-')) {
+    const theme = fx.kind.slice('boss-special-nova-'.length)
+    const color = fx.color ?? BOSS_THEME_COLORS[theme] ?? '#d78fb4'
+    for (let ring = 0; ring < 3; ring++) {
+      const ringProgress = (progress + ring * .14) % 1
+      c.globalAlpha = alpha * (1 - ringProgress * .8)
+      c.strokeStyle = ring === 0 ? '#fff6d0' : color
+      c.lineWidth = 5 - ring
+      c.beginPath(); c.arc(fx.x, fx.y, 30 + ringProgress * 220, 0, Math.PI * 2); c.stroke()
+    }
+    c.globalAlpha = alpha * .85; c.strokeStyle = color; c.lineWidth = 3
+    if (theme === 'ash') {
+      for (let i = 0; i < 10; i++) { const angle = (i / 10) * Math.PI * 2 + progress; c.beginPath(); c.moveTo(fx.x + Math.cos(angle) * 20, fx.y + Math.sin(angle) * 12); c.lineTo(fx.x + Math.cos(angle) * (80 + progress * 60), fx.y + Math.sin(angle) * (45 + progress * 30)); c.stroke() }
+    } else if (theme === 'blood') {
+      for (let i = 0; i < 3; i++) { c.beginPath(); c.arc(fx.x, world.floor - 8 - i * 10, 40 + progress * 150 + i * 20, .15, Math.PI - .15); c.stroke() }
+    } else if (theme === 'sun') {
+      for (let i = 0; i < 16; i++) { const angle = (i / 16) * Math.PI * 2 + progress * .5; c.beginPath(); c.moveTo(fx.x + Math.cos(angle) * 24, fx.y + Math.sin(angle) * 14); c.lineTo(fx.x + Math.cos(angle) * (100 + progress * 80), fx.y + Math.sin(angle) * (60 + progress * 50)); c.stroke() }
+    } else {
+      for (let i = 0; i < 10; i++) {
+        const angle = (i / 10) * Math.PI * 2
+        const radius = 40 + progress * 130
+        c.beginPath(); c.moveTo(fx.x + Math.cos(angle) * radius, fx.y + Math.sin(angle) * radius * .6); c.lineTo(fx.x + Math.cos(angle + 2.5) * radius * .7, fx.y + Math.sin(angle + 2.5) * radius * .4); c.stroke()
+      }
+    }
+  } else if (fx.kind === 'boss-special-beam') {
+    const dir = fx.direction ?? 1
+    const color = fx.color ?? '#d78fb4'
+    c.strokeStyle = color; c.lineWidth = 18 - progress * 10; c.globalAlpha = alpha * .85
+    c.beginPath(); c.moveTo(fx.x, fx.y); c.lineTo(fx.x + dir * 700, fx.y); c.stroke()
+    c.strokeStyle = '#ffffff'; c.lineWidth = 5
+    c.beginPath(); c.moveTo(fx.x, fx.y); c.lineTo(fx.x + dir * 700, fx.y); c.stroke()
+    c.fillStyle = '#ffffff'; c.globalAlpha = alpha * .8
+    c.beginPath(); c.arc(fx.x + dir * 700, fx.y, 14 + progress * 20, 0, Math.PI * 2); c.fill()
   } else if (fx.kind.startsWith('boss-')) {
     const theme = fx.kind.split('-')[2]
     const charging = fx.kind.includes('charge')
@@ -3152,6 +3584,7 @@ function draw() {
   for (const foe of foes) drawFoe(ctx, foe)
   if (scene === 'town') drawTownNpc(ctx)
   drawHero(ctx)
+  drawShield(ctx)
   for (const projectile of projectiles) {
     const projectileColor = weaponFxColor()
     ctx.fillStyle = projectileColor; ctx.shadowColor = projectileColor; ctx.shadowBlur = 15; ctx.beginPath(); ctx.arc(projectile.x, projectile.y, 7, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0

@@ -114,7 +114,18 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--ochre); outline
 .combat-bar button:nth-of-type(4) > i { color: #9fc8bd; }
 .arena-stage { display: block; }
 .mobile-rail { display: none; }
+button, .mobile-pad, .mobile-skill, [data-move], [data-shield] {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.mobile-pad, .mobile-skill, [data-move], [data-shield] { touch-action: none; }
 .mobile-skills { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.mobile-utils { display: grid; gap: 4px; width: 100%; margin-top: 1px; }
+.mobile-pickup { color: #f0d39a; border-color: rgba(212, 182, 109, .4); }
+.mobile-shield { color: #bfe6d8; border-color: rgba(165, 214, 198, .4); }
 .mobile-skill { min-height: 31px; padding: 0; border: 1px solid rgba(191, 202, 169, .32); border-radius: 2px; background: #203332; color: #d9d5bb; font-family: var(--mono); font-size: 13px; touch-action: none; cursor: pointer; }
 .mobile-skill:active { background: #2c423e; }
 .mobile-skill:disabled { opacity: .4; cursor: not-allowed; }
