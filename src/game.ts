@@ -33,7 +33,7 @@ type BattlePlatform = { x: number; w: number; height: number; kind: 'tree' | 'ro
 const SAVE_KEY = 'elemental-expedition-save-v2'
 const DEMO_MODE = import.meta.env.MODE === 'demo'
 const DEMO_SAVE_KEY = `${SAVE_KEY}:demo`
-const GAME_VERSION = '1.79'
+const GAME_VERSION = '1.80'
 const stageNames = ['苔痕边境', '沉钟矿道', '赤岩峡谷', '风蚀高原', '幽蓝沼泽', '断星回廊', '灰烬王庭', '深渊裂谷', '苍白圣所', '终焉之门']
 const roleLabels: Record<Role, string> = { warrior: '战士', mage: '法师' }
 const SKILL_LABELS: Record<SkillSetKey, string[]> = {
@@ -4566,6 +4566,7 @@ function dropMobLoot(x: number) {
   const gearChance = mobEquipmentChance(stage)
   const potionChance = .10
   const materialChance = .15
+  const fragmentChance = Math.min(1, stage * .01)
   const dropX = Math.max(MAP_LEFT, Math.min(unlockedWidth - 35, x))
   const roll = Math.random()
   if (roll < gearChance) {
@@ -4588,13 +4589,33 @@ function dropMobLoot(x: number) {
     const variant = Math.floor(Math.random() * 3)
     game.drops ??= []
     game.drops.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, type: 'material', x: dropX, materialKey: materialKey(stage, variant) })
+    return
+  }
+  if (roll < gearChance + potionChance + materialChance + fragmentChance) {
+    game.talentFragments = (game.talentFragments ?? 0) + 1
+    toast('小怪掉落：天赋币碎片 ×1')
+    setLog('小怪掉落：天赋币碎片 ×1')
   }
 }
 function dropBossGear(): Gear[] {
   if (!game) return []
   if (Math.random() >= .4) return []
   const type: GearType = Math.random() < .5 ? 'weapon' : 'armor'
-  return [makeGear(type, game.stage)]
+  // Boss 装备等级：1~3 关固定 1/2/3 级；4 关起从 [关卡-3, 关卡] 中随机。
+  // 括号内等级从低到高权重 4:3:2:1，越高的等级越难获得。
+  const stage = Math.max(1, Math.min(10, game.stage))
+  let level = stage
+  if (stage > 3) {
+    const minLevel = stage - 3
+    const weights = [4, 3, 2, 1]
+    let roll = Math.random() * 10
+    level = minLevel
+    for (let rank = 0; rank < weights.length; rank += 1) {
+      roll -= weights[rank]
+      if (roll <= 0) { level = minLevel + rank; break }
+    }
+  }
+  return [makeGear(type, level)]
 }
 function pickupDrop() {
   if (!game) return
