@@ -1128,3 +1128,36 @@ body { background: #0d1717; }
 }
 .bag-content .bag-list { overflow: visible; padding-right: 0; }
 .bag-figure .bag-preview canvas { max-height: 52dvh; width: auto; max-width: 100%; }
+/* ── 1.76 装备点击 / 武器图标 / 左下角快捷入口 ─────────── */
+.equip-slot.filled { cursor: pointer; }
+.equip-slot.filled:hover { border-color: #e2c57e; background: rgba(66, 56, 30, .55); }
+.equip-slot.filled:active { transform: scale(.995); }
+.gear-row[data-action] { cursor: pointer; }
+.gear-row[data-action]:hover { border-color: rgba(201, 178, 115, .5); background: rgba(55, 76, 67, .6); }
+.hud-fabs { flex-wrap: wrap; max-width: min(560px, 66vw); }
+.hud-bag.hud-skill .item-icon, .hud-bag.hud-shop .item-icon { width: 26px; height: 26px; }
+@media (max-width: 760px) {
+  .hud-fabs { max-width: 228px; }
+}
+/* 剧情弹窗始终盖在功能菜单、设置等面板之上，避免引导剧情被挡住导致卡住。 */
+.story-scrim { z-index: 80; }
+/* ── 剧情回顾 ─────────────────────────────────────── */
+.story-log-dialog { width: min(96vw, 980px); max-height: 96dvh; overflow: hidden; }
+.story-log-body { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 14px; flex: 1; min-height: 0; margin-top: 12px; }
+.story-log-list { display: grid; gap: 6px; align-content: start; overflow: auto; padding-right: 4px; }
+.story-log-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 9px 11px; border: 1px solid rgba(191, 202, 169, .22); background: rgba(20, 35, 35, .62); color: #dfe3d2; text-align: left; cursor: pointer; }
+.story-log-row:hover { border-color: #c9b273; background: #293a35; }
+.story-log-row.active { border-color: #e2c57e; background: rgba(66, 56, 30, .62); }
+.story-log-row span { display: grid; gap: 2px; }
+.story-log-row b { color: #f0dfb2; font-size: 11px; font-weight: 500; }
+.story-log-row small { color: #93a297; font-size: 9px; }
+.story-log-row i { color: #c9b273; font-size: 9px; font-style: normal; white-space: nowrap; }
+.story-log-content { display: grid; gap: 10px; align-content: start; overflow: auto; padding-right: 4px; }
+.story-log-line { padding: 10px 13px; border-left: 2px solid rgba(201, 178, 115, .45); background: rgba(43, 60, 54, .38); }
+.story-log-line b { color: #e2c57e; font-size: 11px; }
+.story-log-line p { margin: 5px 0 0; color: #c6d0c2; font-size: 12px; line-height: 1.8; }
+@media (max-width: 760px) {
+  .story-log-body { grid-template-columns: 1fr; }
+  .story-log-list { max-height: 34dvh; grid-template-columns: 1fr 1fr; }
+}
+.story-log-note { margin: 0; padding: 8px 11px; border: 1px dashed rgba(191, 202, 169, .25); color: #9fb0a3; font-size: 10px; line-height: 1.7; }
