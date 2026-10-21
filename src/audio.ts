@@ -10,6 +10,7 @@ let sfxBus: GainNode | null = null
 let musicTimer: number | null = null
 let musicStep = 0
 let musicMode: MusicMode = 'title'
+let musicStage = 0
 let unlocked = false
 
 function ensureContext(): AudioContext | null {
@@ -40,9 +41,11 @@ export async function unlockAudio() {
   if (enabled) startMusic()
 }
 
-export function setMusicMode(mode: MusicMode) {
-  if (musicMode === mode) return
+export function setMusicMode(mode: MusicMode, stage = 0) {
+  const nextStage = mode === 'battle' || mode === 'boss' ? Math.max(0, Math.min(9, Math.floor(stage))) : 0
+  if (musicMode === mode && musicStage === nextStage) return
   musicMode = mode
+  musicStage = nextStage
   if (musicTimer !== null) { window.clearInterval(musicTimer); musicTimer = null }
   musicStep = 0
   if (enabled && unlocked) startMusic()
@@ -74,25 +77,96 @@ type MusicCfg = {
   bassSteps: number[]
   padSteps: number[]
   drums: boolean
+  // 每个关卡独立的主旋律音级（相对 root 的半音），让 10 关听起来各不相同。
+  leadLine?: number[]
+  // 可选的琶音层，增加流动感。
+  arpSteps?: number[]
+  arpWave?: OscillatorType
 }
 // 16 步一小节：主旋律、低音、铺底和弦与鼓点分层，战斗与 Boss 曲更密集、更有推进感。
-const MUSIC: Record<MusicMode, MusicCfg> = {
-  title: {
-    root: 196, scale: [0, 2, 3, 5, 7, 8, 10, 12], stepMs: 205, wave: 'triangle', volume: .16, leadOctave: 2,
-    progression: [0, 5, 3, 7], leadSteps: [0, 2, 4, 6, 8, 10, 12, 14], bassSteps: [0, 8], padSteps: [0], drums: false,
+const TITLE_MUSIC: MusicCfg = {
+  root: 196, scale: [0, 2, 3, 5, 7, 8, 10, 12], stepMs: 205, wave: 'triangle', volume: .16, leadOctave: 2,
+  progression: [0, 5, 3, 7], leadSteps: [0, 2, 4, 6, 8, 10, 12, 14], bassSteps: [0, 8], padSteps: [0], drums: false,
+  leadLine: [0, 2, 3, 5, 7, 5, 3, 2, 0, 3, 5, 7, 8, 7, 5, 3],
+  arpSteps: [2, 6, 10, 14],
+}
+// 小镇：温暖、明亮、慢速的旋律。
+const TOWN_MUSIC: MusicCfg = {
+  root: 262, scale: [0, 2, 4, 5, 7, 9, 11, 12], stepMs: 250, wave: 'sine', volume: .15, leadOctave: 2,
+  progression: [0, 5, 3, 4], leadSteps: [0, 2, 4, 6, 8, 10, 12, 14], bassSteps: [0, 8], padSteps: [0, 8], drums: false,
+  leadLine: [0, 4, 7, 4, 9, 7, 4, 2, 5, 7, 9, 7, 4, 2, 0, -1],
+  arpSteps: [2, 6, 10, 14], arpWave: 'triangle',
+}
+// 十个关卡各自的主旋律：不同调式、速度、和弦走向与节奏型。
+const STAGE_MUSIC: MusicCfg[] = [
+  {
+    root: 146.83, scale: [0, 2, 3, 5, 7, 8, 10, 12], stepMs: 150, wave: 'triangle', volume: .17, leadOctave: 2,
+    progression: [0, 3, 5, 4], leadSteps: [0, 2, 3, 4, 6, 8, 10, 12, 14], bassSteps: [0, 4, 8, 12], padSteps: [0, 8], drums: true,
+    leadLine: [0, 2, 3, 5, 7, 5, 3, 2, 0, 3, 5, 8, 7, 5, 3, 2],
+    arpSteps: [1, 5, 9, 13],
   },
-  town: {
-    root: 262, scale: [0, 2, 4, 5, 7, 9, 11, 12], stepMs: 235, wave: 'triangle', volume: .15, leadOctave: 2,
-    progression: [0, 4, 5, 3], leadSteps: [0, 3, 6, 8, 11, 14], bassSteps: [0, 8], padSteps: [0, 8], drums: false,
+  {
+    root: 130.81, scale: [0, 2, 3, 5, 7, 8, 10, 12], stepMs: 162, wave: 'triangle', volume: .17, leadOctave: 2,
+    progression: [0, 5, 3, 4], leadSteps: [0, 4, 6, 8, 12, 14], bassSteps: [0, 2, 4, 6, 8, 10, 12, 14], padSteps: [0], drums: true,
+    leadLine: [0, 3, 5, 3, 0, -2, 0, 3, 5, 7, 8, 7, 5, 3, 2, 0],
   },
-  battle: {
-    root: 165, scale: [0, 2, 3, 5, 7, 8, 10, 12], stepMs: 120, wave: 'sawtooth', volume: .18, leadOctave: 2,
-    progression: [0, 5, 3, 7], leadSteps: [0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14], bassSteps: [0, 2, 4, 6, 8, 10, 12, 14], padSteps: [0], drums: true,
+  {
+    root: 155.56, scale: [0, 1, 4, 5, 7, 8, 11, 12], stepMs: 118, wave: 'sawtooth', volume: .16, leadOctave: 2,
+    progression: [0, 1, 4, 5], leadSteps: [0, 1, 2, 4, 5, 6, 8, 10, 12, 13, 14], bassSteps: [0, 2, 4, 6, 8, 10, 12, 14], padSteps: [0], drums: true,
+    leadLine: [0, 4, 5, 7, 8, 7, 5, 4, 1, 4, 5, 8, 7, 5, 4, 1],
   },
-  boss: {
-    root: 123.47, scale: [0, 1, 3, 5, 6, 8, 10, 12], stepMs: 102, wave: 'sawtooth', volume: .19, leadOctave: 2,
-    progression: [0, 1, 5, 4], leadSteps: [0, 1, 2, 3, 4, 6, 7, 8, 10, 11, 12, 14, 15], bassSteps: [0, 2, 3, 4, 6, 8, 10, 11, 12, 14], padSteps: [0, 8], drums: true,
+  {
+    root: 174.61, scale: [0, 2, 3, 5, 7, 9, 10, 12], stepMs: 128, wave: 'triangle', volume: .15, leadOctave: 2,
+    progression: [0, 3, 5, 2], leadSteps: [0, 2, 4, 6, 8, 10, 12, 14], bassSteps: [0, 8], padSteps: [0, 8], drums: false,
+    leadLine: [0, 3, 5, 7, 9, 7, 5, 3, 2, 5, 7, 10, 9, 7, 5, 3],
+    arpSteps: [1, 3, 5, 7, 9, 11, 13, 15],
   },
+  {
+    root: 123.47, scale: [0, 2, 3, 5, 7, 8, 10, 12], stepMs: 196, wave: 'sine', volume: .16, leadOctave: 2,
+    progression: [0, 5, 2, 4], leadSteps: [0, 3, 6, 8, 11, 14], bassSteps: [0, 8], padSteps: [0], drums: false,
+    leadLine: [0, 3, 5, 3, 2, 0, -2, 0, 5, 7, 8, 7, 5, 3, 2, 0],
+  },
+  {
+    root: 164.81, scale: [0, 2, 4, 6, 7, 9, 11, 12], stepMs: 120, wave: 'triangle', volume: .16, leadOctave: 2,
+    progression: [0, 2, 5, 4], leadSteps: [0, 2, 4, 6, 8, 10, 12, 14], bassSteps: [0, 4, 8, 12], padSteps: [0, 8], drums: true,
+    leadLine: [0, 4, 6, 9, 11, 9, 6, 4, 2, 6, 7, 11, 9, 7, 6, 2],
+    arpSteps: [1, 5, 9, 13],
+  },
+  {
+    root: 138.59, scale: [0, 2, 3, 5, 7, 8, 11, 12], stepMs: 138, wave: 'sawtooth', volume: .17, leadOctave: 2,
+    progression: [0, 5, 3, 4], leadSteps: [0, 2, 4, 6, 8, 10, 12, 14], bassSteps: [0, 2, 4, 6, 8, 10, 12, 14], padSteps: [0, 8], drums: true,
+    leadLine: [0, 3, 5, 7, 8, 7, 5, 3, 0, 3, 5, 8, 11, 8, 5, 3],
+  },
+  {
+    root: 116.54, scale: [0, 1, 3, 5, 6, 8, 10, 12], stepMs: 108, wave: 'sawtooth', volume: .18, leadOctave: 2,
+    progression: [0, 1, 5, 4], leadSteps: [0, 1, 2, 3, 4, 6, 7, 8, 10, 11, 12, 14], bassSteps: [0, 2, 3, 4, 6, 8, 10, 11, 12, 14], padSteps: [0], drums: true,
+    leadLine: [0, 1, 3, 6, 8, 6, 3, 1, 5, 6, 8, 10, 8, 6, 5, 3],
+  },
+  {
+    root: 155.56, scale: [0, 2, 4, 5, 7, 9, 11, 12], stepMs: 144, wave: 'sine', volume: .16, leadOctave: 2,
+    progression: [0, 3, 5, 4], leadSteps: [0, 2, 4, 6, 8, 10, 12, 14], bassSteps: [0, 8], padSteps: [0, 8], drums: false,
+    leadLine: [0, 4, 7, 4, 5, 7, 9, 7, 4, 5, 7, 11, 9, 7, 5, 4],
+    arpSteps: [2, 6, 10, 14],
+  },
+  {
+    root: 110, scale: [0, 2, 3, 5, 7, 8, 10, 12], stepMs: 112, wave: 'sawtooth', volume: .19, leadOctave: 2,
+    progression: [0, 5, 3, 4], leadSteps: [0, 1, 2, 3, 4, 6, 8, 10, 11, 12, 14, 15], bassSteps: [0, 2, 4, 6, 8, 10, 12, 14], padSteps: [0, 8], drums: true,
+    leadLine: [0, 3, 5, 8, 10, 8, 5, 3, 0, 3, 7, 10, 12, 10, 7, 3],
+  },
+]
+// Boss 战沿用各关主旋律，但速度更快、音色更硬、鼓点更密。
+const BOSS_MUSIC: MusicCfg[] = STAGE_MUSIC.map((cfg) => ({
+  ...cfg,
+  stepMs: Math.max(88, cfg.stepMs - 28),
+  wave: 'sawtooth',
+  volume: Math.min(.2, cfg.volume + .015),
+  drums: true,
+}))
+function currentMusicCfg(): MusicCfg {
+  if (musicMode === 'town') return TOWN_MUSIC
+  if (musicMode === 'title') return TITLE_MUSIC
+  if (musicMode === 'boss') return BOSS_MUSIC[musicStage] ?? BOSS_MUSIC[0]
+  return STAGE_MUSIC[musicStage] ?? STAGE_MUSIC[0]
 }
 
 function startMusic() {
@@ -101,16 +175,22 @@ function startMusic() {
   if (!context) return
   musicTimer = window.setInterval(() => {
     if (!ctx || !musicBus || !enabled) return
-    const cfg = MUSIC[musicMode]
+    const cfg = currentMusicCfg()
     const step = musicStep++
     const pos = step % 16
     const bar = Math.floor(step / 16)
     const chord = cfg.progression[bar % cfg.progression.length]
     const beat = cfg.stepMs / 1000
     if (cfg.leadSteps.includes(pos)) {
-      const chordTones = [0, 3, 7, 10, 12, 7, 3]
-      const degree = chord + chordTones[(Math.floor(pos / 2) + bar) % chordTones.length]
+      // 每关有自己的旋律线；没有旋律线时退回和弦音即兴。
+      const degree = cfg.leadLine && cfg.leadLine.length
+        ? cfg.leadLine[step % cfg.leadLine.length]
+        : chord + [0, 3, 7, 10, 12, 7, 3][(Math.floor(pos / 2) + bar) % 7]
       note(cfg.root * cfg.leadOctave * 2 ** (degree / 12), beat * .82, cfg.wave, cfg.volume)
+    }
+    if (cfg.arpSteps?.includes(pos)) {
+      const arp = [0, 3, 7, 12][(step + bar) % 4]
+      note(cfg.root * 2 ** ((chord + arp) / 12), beat * .55, cfg.arpWave ?? 'triangle', cfg.volume * .3)
     }
     if (cfg.bassSteps.includes(pos)) {
       const octave = pos % 8 === 0 ? 1 : 2
@@ -127,7 +207,7 @@ function startMusic() {
       if (pos === 4 || pos === 12) musicSnare(cfg.volume * .5)
       if (pos % 2 === 1) musicHat(cfg.volume * (pos % 4 === 3 ? .26 : .15))
     }
-  }, MUSIC[musicMode].stepMs)
+  }, currentMusicCfg().stepMs)
 }
 
 function musicKick(volume: number) {
