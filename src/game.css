@@ -1161,3 +1161,38 @@ body { background: #0d1717; }
   .story-log-list { max-height: 34dvh; grid-template-columns: 1fr 1fr; }
 }
 .story-log-note { margin: 0; padding: 8px 11px; border: 1px dashed rgba(191, 202, 169, .25); color: #9fb0a3; font-size: 10px; line-height: 1.7; }
+/* ── 背包分类 / 独立技能面板 ─────────────────────── */
+.bag-filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+.bag-filters button { flex: 1 1 60px; min-height: 30px; border: 1px solid var(--line); background: rgba(31, 49, 48, .5); color: #9ba79d; font-size: 10px; cursor: pointer; }
+.bag-filters button:hover { border-color: #b7b78e; }
+.bag-filters button.active { border-color: rgba(201, 178, 115, .65); background: rgba(201, 178, 115, .16); color: #f0dfb2; }
+.skill-panel-dialog { width: min(96vw, 980px); max-height: 96dvh; overflow-y: auto; }
+.skill-panel-dialog .skill-bag { max-height: none; }
+.skill-card footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.skill-upgrade { min-height: 28px; padding: 0 10px; border: 1px dashed rgba(201, 178, 115, .4); background: transparent; color: #9ba79d; font-size: 9px; cursor: not-allowed; }
+/* ── 金币 / 金币商店 / 充值 ───────────────────────── */
+.gold-badge { color: #ffe28a; border-color: rgba(255, 210, 90, .45); }
+.shop-wallet { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.shop-wallet span { display: inline-flex; align-items: center; gap: 5px; padding: 5px 9px; border: 1px solid rgba(201, 178, 115, .28); background: rgba(43, 60, 54, .45); color: #d9d6c2; font-size: 10px; }
+.shop-wallet b { color: #ffe2a0; }
+.shop-tabs { display: flex; gap: 6px; margin: 4px 0 10px; }
+.shop-tabs button { flex: 1; min-height: 32px; border: 1px solid var(--line); background: rgba(31, 49, 48, .5); color: #9ba79d; font-size: 10px; cursor: pointer; }
+.shop-tabs button:hover { border-color: #b7b78e; }
+.shop-tabs button.active { border-color: rgba(201, 178, 115, .6); background: rgba(201, 178, 115, .16); color: #f0dfb2; }
+.recharge-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+.recharge-tier { display: grid; gap: 3px; justify-items: center; padding: 12px 8px; border: 1px solid rgba(201, 178, 115, .3); background: rgba(43, 60, 54, .45); color: #e4dfc8; cursor: pointer; }
+.recharge-tier:hover { border-color: #e2c57e; background: rgba(66, 56, 30, .55); }
+.recharge-tier small { color: #c9b273; font-family: var(--mono); font-size: 10px; }
+.recharge-tier b { color: #ffe2a0; font-size: 15px; }
+.recharge-tier em { color: #9fb0a3; font-style: normal; font-size: 9px; }
+@media (max-width: 520px) {
+  .recharge-grid { grid-template-columns: 1fr; }
+}
+.first-recharge { margin: 8px 0; padding: 12px; border: 1px solid rgba(255, 210, 90, .45); background: linear-gradient(135deg, rgba(88, 73, 34, .55), rgba(43, 60, 54, .45)); }
+.first-recharge.claimed { border-color: rgba(191, 202, 169, .25); background: rgba(31, 49, 48, .45); opacity: .82; }
+.first-recharge header { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
+.first-recharge header b { color: #ffe2a0; font-size: 13px; }
+.first-recharge header small { color: #9fb0a3; font-size: 10px; }
+.first-recharge ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 0; padding: 0; list-style: none; }
+.first-recharge li { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border: 1px solid rgba(201, 178, 115, .2); color: #d9d6c2; font-size: 10px; }
+.first-recharge .item-icon { width: 16px; height: 16px; }
