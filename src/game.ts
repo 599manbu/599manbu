@@ -15,7 +15,7 @@ type WorldDrop = { id: string; type: 'hp-potion' | 'mp-potion' | 'material'; x: 
 type AttributeStat = 'hp' | 'attack' | 'mp' | 'defense'
 type AttributeAllocation = Record<AttributeStat, number>
 type StageProgress = { kills: number; bossDefeated: boolean; pointsClaimed?: number }
-type Save = { role: Role; stage: number; unlockedStage: number; kills: number; stageProgress?: Record<string, StageProgress>; hp: number; mp: number; gear: Gear[]; equipped: string | null; weaponId?: string | null; weapon2Id?: string | null; armorId?: string | null; armor2Id?: string | null; fashionId?: string | null; extraSlot?: 'weapon' | 'armor'; level?: number; exp?: number; drops?: WorldDrop[]; bossDefeated?: boolean; attributePoints?: number; attributeAllocation?: AttributeAllocation; soul?: number; normalTalent?: number; normalTalentLevels?: number[]; advancedTalent?: number; advancedTalentLevel?: number; talentFragments?: number; talentCoins?: number; lotteryChances?: number; shopFashionBought?: boolean; reviveCoins?: number; reviveUsed?: boolean; fragmentBuyDay?: string; reviveBuyAt?: number; materials?: Record<string, number>; stones?: number[]; enhance?: { weapon: number; armor: number; armor2: number; weapon2: number; failWeapon: number; failArmor: number; failArmor2: number; failWeapon2: number }; nightmareCleared?: number[]; stamps?: number; tutorialDone?: boolean; hiddenCleared?: boolean; rivalTrust?: boolean; stage8Choice?: 'save' | 'chase' | 'together' | null; rescuedRock?: boolean; rescuedXiaoman?: boolean; rescuedZhou?: boolean; seenStories?: string[]; forgeIntroSeen?: boolean; shopIntroSeen?: boolean; lotteryIntroSeen?: boolean; townIntroSeen?: boolean; mainQuestsClaimed?: number[]; sideQuest?: { stage: number; clears: number } | null; sideQuestDay?: string; gems?: Gem[]; punchStones?: number; punchBuyAt?: number; town: boolean; completed: boolean; dead: boolean }
+type Save = { role: Role; stage: number; unlockedStage: number; kills: number; stageProgress?: Record<string, StageProgress>; hp: number; mp: number; gear: Gear[]; equipped: string | null; weaponId?: string | null; weapon2Id?: string | null; armorId?: string | null; armor2Id?: string | null; fashionId?: string | null; extraSlot?: 'weapon' | 'armor'; level?: number; exp?: number; drops?: WorldDrop[]; bossDefeated?: boolean; attributePoints?: number; attributeAllocation?: AttributeAllocation; soul?: number; normalTalent?: number; normalTalentLevels?: number[]; advancedTalent?: number; advancedTalentLevel?: number; talentFragments?: number; talentCoins?: number; lotteryChances?: number; shopFashionBought?: boolean; reviveCoins?: number; reviveUsed?: boolean; fragmentBuyDay?: string; reviveBuyAt?: number; materials?: Record<string, number>; stones?: number[]; enhance?: { weapon: number; armor: number; armor2: number; weapon2: number; failWeapon: number; failArmor: number; failArmor2: number; failWeapon2: number }; nightmareCleared?: number[]; stamps?: number; tutorialDone?: boolean; hiddenCleared?: boolean; rivalTrust?: boolean; stage8Choice?: 'save' | 'chase' | 'together' | null; rescuedRock?: boolean; rescuedXiaoman?: boolean; rescuedZhou?: boolean; seenStories?: string[]; forgeIntroSeen?: boolean; shopIntroSeen?: boolean; lotteryIntroSeen?: boolean; townIntroSeen?: boolean; mainQuestsClaimed?: number[]; sideQuest?: { stage: number; clears: number } | null; sideQuestDay?: string; skillLevels?: Record<string, number>; gems?: Gem[]; punchStones?: number; punchBuyAt?: number; town: boolean; completed: boolean; dead: boolean }
 type SaveSlot = { id: string; label: string; data: Save; updatedAt: number }
 type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; flyPhase?: number; flyAmplitude?: number; flySpeed?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number; specialTimer?: number; specialWindup?: number; specialKind?: 'pierce' | 'exclusive'; specialNext?: 'pierce' | 'exclusive'; mobSkillTimer?: number; skillWindup?: number; skillKind?: 'lunge' | 'slam'; tutorial?: boolean; mirror?: boolean; mirrorRole?: Role; mp?: number; mirrorSkillTimer?: number; mirrorWindup?: number; mirrorSkill?: number; mirrorBuffTimer?: number; mirrorBurst?: number; mirrorBurstWait?: number; wanderTimer?: number; wanderTargetX?: number | null }
 type Fx = { x: number; y: number; life: number; kind: string; direction?: number; text?: string; damage?: number; duration?: number; vx?: number; vy?: number; color?: string; radius?: number }
@@ -33,7 +33,7 @@ type BattlePlatform = { x: number; w: number; height: number; kind: 'tree' | 'ro
 const SAVE_KEY = 'elemental-expedition-save-v2'
 const DEMO_MODE = import.meta.env.MODE === 'demo'
 const DEMO_SAVE_KEY = `${SAVE_KEY}:demo`
-const GAME_VERSION = '1.78'
+const GAME_VERSION = '1.79'
 const stageNames = ['苔痕边境', '沉钟矿道', '赤岩峡谷', '风蚀高原', '幽蓝沼泽', '断星回廊', '灰烬王庭', '深渊裂谷', '苍白圣所', '终焉之门']
 const roleLabels: Record<Role, string> = { warrior: '战士', mage: '法师' }
 const SKILL_LABELS: Record<SkillSetKey, string[]> = {
@@ -68,7 +68,7 @@ const SKILL_COSTS: Record<SkillSetKey, number[]> = {
 const SKILL_MULTIPLIERS: Record<SkillSetKey, number[]> = {
   sword: [1.5, 1.5, 1, 2],
   bow: [0, 0, 1.5, 0],
-  staff: [0, 1.6, 0, 0],
+  staff: [0, 1.6, 1, 0],
   book: [0, 0, 1.5, 2],
 }
 // 弓箭蓄力上限（秒）与“身位”换算：技能 3 的位移统一为 2.5 个身位。
@@ -116,7 +116,7 @@ const STAGE_CONFIG = [
   { mobHp: 5900, mobAtk: 590, bossHp: 85000, bossAtk: 2400 },
 ]
 const STAMP_UNLOCK = 10
-const STAMP_DROP_CHANCE = .2
+const STAMP_DROP_CHANCE = .35
 const OTHER_ROLE: Record<Role, Role> = { warrior: 'mage', mage: 'warrior' }
 // 第 11 关（隐藏关卡）对应的 Boss 数值。
 const HIDDEN_CONFIG = { bossHp: 99000, bossAtk: 2900, mp: 1000 }
@@ -163,7 +163,6 @@ function addStone(tier: number, amount = 1) {
   game.stones[tier - 1] = Math.max(0, (game.stones[tier - 1] ?? 0) + amount)
 }
 function stoneName(tier: number) { return STONE_NAMES[tier - 1] ?? `${tier} 阶强化石` }
-function materialDropChance(stage: number) { return stage >= 7 ? .05 : stage >= 5 ? .075 : .1 }
 function secondNpcUnlocked() { return Boolean(game && (game.unlockedStage > 5 || game.stageProgress?.['5']?.bossDefeated)) }
 function nightmareUnlocked(stage: number) {
   if (!game?.stageProgress?.[String(stage)]?.bossDefeated) return false
@@ -272,16 +271,65 @@ function legacySocketCount(id: string) {
   for (let i = 0; i < id.length; i += 1) sum = (sum + id.charCodeAt(i) * (i + 1)) % 100
   return sum < 30 ? 0 : sum < 80 ? 1 : 2
 }
-type ShopItem = { id: string; name: string; cost: number; desc: string; unique?: boolean; demoOnly?: boolean }
+type ShopCategory = 'equipment' | 'fashion' | 'gem' | 'material' | 'other'
+type ShopGrant =
+  | { kind: 'gear'; gearType: 'weapon' | 'armor'; level: number }
+  | { kind: 'fashion'; tier: number }
+  | { kind: 'gem'; gemKind: GemKind; tier: number }
+  | { kind: 'material'; key: string }
+  | { kind: 'stone'; tier: number }
+  | { kind: 'punch'; amount: number }
+  | { kind: 'fragments'; amount: number }
+  | { kind: 'revive'; amount: number }
+  | { kind: 'talentCoin'; amount: number }
+  | { kind: 'soul'; amount: number }
+  | { kind: 'lottery'; amount: number }
+type ShopItem = { id: string; name: string; cost: number; desc: string; category: ShopCategory; icon: string; iconClass?: string; unique?: boolean; demoOnly?: boolean; grant: ShopGrant }
 const SHOP_ITEMS: ShopItem[] = [
-  // 正式版商城不再出售武器与护甲；体验版仍可在本地购买全部道具。
-  { id: 'armor1', name: '一阶护甲 ×1', cost: 1000, desc: '随机一件 1 级护甲', demoOnly: true },
-  { id: 'weapon1', name: '一阶武器 ×1', cost: 1000, desc: '随机一件 1 级武器', demoOnly: true },
-  { id: 'fragments1', name: '天赋币碎片 ×1', cost: 2000, desc: '每日限购一次' },
-  { id: 'revive1', name: '复活币 ×1', cost: 2000, desc: '每 3 天限购一次；战斗中死亡可满状态复活' },
-  { id: 'punch1', name: '打孔石 ×1', cost: 2000, desc: '每周限购一次；在合成台为装备打孔' },
-  { id: 'fashion1', name: '一阶时装 ×1', cost: 10000, desc: '限购一份；小怪与 Boss 不会掉落', unique: true },
+  // 正式版商城不出售武器与护甲。
+  { id: 'armor1', name: '一阶护甲 ×1', cost: 1000, desc: '随机一件 1 级护甲', category: 'equipment', icon: 'armor', demoOnly: true, grant: { kind: 'gear', gearType: 'armor', level: 1 } },
+  { id: 'weapon1', name: '一阶武器 ×1', cost: 1000, desc: '随机一件 1 级武器', category: 'equipment', icon: 'weapon', demoOnly: true, grant: { kind: 'gear', gearType: 'weapon', level: 1 } },
+  { id: 'fragments1', name: '天赋币碎片 ×1', cost: 2000, desc: '每日限购一次', category: 'other', icon: 'fragment', grant: { kind: 'fragments', amount: 1 } },
+  { id: 'revive1', name: '复活币 ×1', cost: 2000, desc: '每 3 天限购一次；战斗中死亡可满状态复活', category: 'other', icon: 'revive', grant: { kind: 'revive', amount: 1 } },
+  { id: 'punch1', name: '打孔石 ×1', cost: 2000, desc: '每周限购一次；在合成台为装备打孔', category: 'material', icon: 'punch', grant: { kind: 'punch', amount: 1 } },
+  { id: 'fashion1', name: '一阶时装 ×1', cost: 10000, desc: '限购一份；小怪与 Boss 不会掉落', category: 'fashion', icon: 'fashion', unique: true, grant: { kind: 'fashion', tier: 1 } },
 ]
+// 体验版商城：所有道具 1 灵魂，覆盖时装、装备、宝石、材料与消耗品。
+function demoShopItems(): ShopItem[] {
+  const items: ShopItem[] = []
+  for (let tier = 2; tier <= 4; tier += 1) {
+    items.push({ id: `demo-fashion-${tier}`, name: `${fashionTierName(tier)} ×1`, cost: 1, desc: '体验版商城道具', category: 'fashion', icon: 'fashion', demoOnly: true, grant: { kind: 'fashion', tier } })
+  }
+  for (let level = 2; level <= 11; level += 1) {
+    items.push({ id: `demo-weapon-${level}`, name: `${level} 级武器 ×1`, cost: 1, desc: '体验版商城道具', category: 'equipment', icon: 'weapon', demoOnly: true, grant: { kind: 'gear', gearType: 'weapon', level } })
+    items.push({ id: `demo-armor-${level}`, name: `${level} 级护甲 ×1`, cost: 1, desc: '体验版商城道具', category: 'equipment', icon: 'armor', demoOnly: true, grant: { kind: 'gear', gearType: 'armor', level } })
+  }
+  for (const kind of GEM_KINDS) {
+    for (let tier = 1; tier <= 6; tier += 1) {
+      items.push({ id: `demo-gem-${kind}-${tier}`, name: `${gemName({ id: '', kind, tier })} ×1`, cost: 1, desc: `体验版商城道具 · ${gemSummary({ id: '', kind, tier })}`, category: 'gem', icon: 'gem', iconClass: `gem-${kind}`, demoOnly: true, grant: { kind: 'gem', gemKind: kind, tier } })
+    }
+  }
+  STAGE_MATERIALS.forEach((materials, stageIndex) => {
+    materials.forEach((name, variant) => {
+      const key = materialKey(stageIndex + 1, variant)
+      items.push({ id: `demo-material-${key}`, name: `${name} ×1`, cost: 1, desc: `第 ${stageIndex + 1} 关专属材料`, category: 'material', icon: 'fragment', demoOnly: true, grant: { kind: 'material', key } })
+    })
+  })
+  STONE_NAMES.forEach((name, index) => {
+    items.push({ id: `demo-stone-${index + 1}`, name: `${name} ×1`, cost: 1, desc: '体验版商城道具', category: 'material', icon: 'enhance', demoOnly: true, grant: { kind: 'stone', tier: index + 1 } })
+  })
+  items.push(
+    { id: 'demo-talent-coin', name: '天赋币 ×1', cost: 1, desc: '体验版商城道具', category: 'other', icon: 'coin', demoOnly: true, grant: { kind: 'talentCoin', amount: 1 } },
+    { id: 'demo-soul-1000', name: '灵魂 ×1000', cost: 1, desc: '体验版商城道具', category: 'other', icon: 'soul', demoOnly: true, grant: { kind: 'soul', amount: 1000 } },
+    { id: 'demo-soul-10000', name: '灵魂 ×10000', cost: 1, desc: '体验版商城道具', category: 'other', icon: 'soul', demoOnly: true, grant: { kind: 'soul', amount: 10000 } },
+    { id: 'demo-lottery-1', name: '抽奖机会 ×1', cost: 1, desc: '体验版商城道具', category: 'other', icon: 'ticket', demoOnly: true, grant: { kind: 'lottery', amount: 1 } },
+  )
+  return items
+}
+function shopItems(): ShopItem[] {
+  return DEMO_MODE ? [...SHOP_ITEMS, ...demoShopItems()] : SHOP_ITEMS.filter((item) => !item.demoOnly)
+}
+const SHOP_CATEGORY_LABELS: Record<ShopCategory, string> = { equipment: '装备', fashion: '时装', gem: '宝石', material: '材料', other: '其他' }
 const LOTTERY_PRIZES = [
   { id: 'attr', label: '属性点 +10', weight: 20 },
   { id: 'gear2', label: '当前品阶装备 ×2', weight: 10 },
@@ -294,7 +342,6 @@ const LOTTERY_PRIZES = [
 const ATTRIBUTE_STEP: Record<AttributeStat, number> = { hp: 10, attack: 1, mp: 1, defense: 1 }
 const ATTRIBUTE_POINT_CAP_PER_STAGE = 20
 const MAX_SMALL_KILLS = 50
-const POTION_DROP_CHANCE = .075
 const MAP_LEFT = 40
 const TOWN_LEFT = 150
 const TOWN_RIGHT = 810
@@ -432,6 +479,11 @@ let buffTime = 0
 let burst = 0
 let burstWait = 0
 let burstTargetId: number | null = null
+// 能量禁锢的残留法阵：在目标位置继续显示 1.4 秒。
+let prisonTimer = 0
+let prisonX = 0
+let prisonY = 0
+let prisonColor = '#a8e0d0'
 let invisibleTimer = 0
 let cloneTimer = 0
 // 分身自己的动作计时：用于绘制同步攻击/施法的特效。
@@ -449,7 +501,8 @@ let bowAirLocked = false
 let flowerBomb: { x: number; y: number; timer: number } | null = null
 let skyBow: { x: number; timer: number; shots: number } | null = null
 // 魔法书技能 3：冲向敌人的实体分身，接触或超时后自爆。
-let bombClone: { x: number; y: number; timer: number; power: number } | null = null
+type BombClone = { x: number; y: number; timer: number; power: number; source: 'main' | 'clone' }
+let bombClones: BombClone[] = []
 // 魔法书技能 4：飞向目标的远程爆炸法球。
 let arcaneOrb: { x: number; y: number; targetX: number; timer: number; power: number } | null = null
 let shake = 0
@@ -470,6 +523,8 @@ let npcOpen = false
 let stageCircleOpen = false
 let gameMenuOpen = false
 let settingsOpen = false
+let quitConfirmOpen = false
+let gameClosed = false
 let creditsOpen = false
 let storyLogOpen = false
 let storyLogStage = 1
@@ -483,6 +538,7 @@ let attrRepeatTimer: number | null = null
 let attrSuppressClick = false
 let npcView: 'menu' | 'shop' | 'talent' | 'enhance' | 'quests' = 'menu'
 let questTab: 'main' | 'side' = 'main'
+let shopCategory: 'all' | ShopCategory = 'all'
 let lotteryOpen = false
 let lotterySpinning = false
 let lotteryHighlight = -1
@@ -604,6 +660,14 @@ function normalizeSave(data: Save): Save {
     ? { stage: sideStage, clears: Math.max(0, Math.min(2, Math.floor(Number(data.sideQuest?.clears ?? 0)))) }
     : null
   data.sideQuestDay = typeof data.sideQuestDay === 'string' ? data.sideQuestDay : ''
+  const skillLevels = data.skillLevels && typeof data.skillLevels === 'object' ? data.skillLevels : {}
+  const normalizedSkillLevels: Record<string, number> = {}
+  for (const set of ['sword', 'bow', 'staff', 'book']) {
+    for (let index = 0; index < 4; index += 1) {
+      normalizedSkillLevels[`${set}:${index}`] = Math.max(1, Math.floor(Number(skillLevels[`${set}:${index}`] ?? 1)))
+    }
+  }
+  data.skillLevels = normalizedSkillLevels
   data.gems = Array.isArray(data.gems) ? data.gems.map(normalizeGem).filter((gem): gem is Gem => Boolean(gem)) : []
   data.punchStones = Math.max(0, Math.floor(Number(data.punchStones ?? 0)))
   data.punchBuyAt = Math.max(0, Number(data.punchBuyAt ?? 0))
@@ -783,8 +847,8 @@ function stats() {
   // 已装备的主武器/主护甲上的宝石提供固定属性。
   const gemBonus = equippedGemBonus()
   hp += gemBonus.hp; mp += gemBonus.mp; attack += gemBonus.attack; defense += gemBonus.defense
-  if (invisibleTimer > 0) attack = Math.round(attack * 1.05)
-  const buffMultiplier = role === 'mage' && buffTime > 0 ? 1.1 : 1
+  if (invisibleTimer > 0) attack = Math.round(attack * (1.05 + .1 * (skillLevel(0, 'book') - 1)))
+  const buffMultiplier = role === 'mage' && buffTime > 0 ? 1 + .1 * skillLevel(0, 'staff') : 1
   attack = Math.round(attack * buffMultiplier)
   return { hp: Math.round(hp), mp: Math.round(mp), attack: Math.round(attack), defense: Math.round(defense) }
 }
@@ -1101,7 +1165,7 @@ function beginTutorial() {
   tutorialMode = true
   tutorialStep = 0
   hiddenBattle = false
-  bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; cloneAttackPulse = 0; cloneCastPulse = 0; cloneStealthTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null; bombClone = null; arcaneOrb = null
+  bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; cloneAttackPulse = 0; cloneCastPulse = 0; cloneStealthTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null; bombClones = []; arcaneOrb = null
   if (game) game.reviveUsed = false
   scene = 'battle'
   game.town = false; game.dead = false; game.completed = false
@@ -1129,7 +1193,7 @@ function beginHiddenBattle() {
   battleTime = 0
   hiddenBattle = true
   tutorialMode = false
-  bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; cloneAttackPulse = 0; cloneCastPulse = 0; cloneStealthTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null; bombClone = null; arcaneOrb = null
+  bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; cloneAttackPulse = 0; cloneCastPulse = 0; cloneStealthTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null; bombClones = []; arcaneOrb = null
   if (game) game.reviveUsed = false
   scene = 'battle'
   game.town = true; game.dead = false
@@ -1258,7 +1322,7 @@ function updateMirrorFoe(foe: Foe, dt: number, distance: number, direction: numb
 function beginStage(stage: number, mode: 'continue' | 'restart' | 'boss' = 'continue') {
   if (!game) return
   hiddenBattle = false
-  bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; cloneAttackPulse = 0; cloneCastPulse = 0; cloneStealthTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null; bombClone = null; arcaneOrb = null
+  bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; cloneAttackPulse = 0; cloneCastPulse = 0; cloneStealthTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null; bombClones = []; arcaneOrb = null
   game.reviveUsed = false
   tutorialMode = false; tutorialStep = 0
   const progress = getStageProgress(stage)
@@ -1287,7 +1351,7 @@ function beginStage(stage: number, mode: 'continue' | 'restart' | 'boss' = 'cont
 }
 function start(role: Role, previous?: Save) {
   game = previous ? structuredClone(previous) : freshSave(role)
-  bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; cloneAttackPulse = 0; cloneCastPulse = 0; cloneStealthTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null; bombClone = null; arcaneOrb = null
+  bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; cloneAttackPulse = 0; cloneCastPulse = 0; cloneStealthTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null; bombClones = []; arcaneOrb = null
   applyDemoUnlock(game)
   if (!game.tutorialDone) { beginTutorial(); return }
   game.unlockedStage = Math.min(10, Math.max(game.unlockedStage ?? 1, game.stage))
@@ -1310,7 +1374,7 @@ function start(role: Role, previous?: Save) {
 }
 function freshSave(role: Role): Save {
   const base = ROLE_BASE[role]
-  return { role, stage: 1, unlockedStage: 1, kills: 0, hp: base.hp, mp: base.mp, gear: [], equipped: null, weaponId: null, weapon2Id: null, armorId: null, armor2Id: null, fashionId: null, extraSlot: 'weapon', level: 1, exp: 0, drops: [], bossDefeated: false, attributePoints: 0, attributeAllocation: { hp: 0, attack: 0, mp: 0, defense: 0 }, soul: 0, normalTalent: 0, normalTalentLevels: [0, 0, 0, 0], advancedTalent: 0, advancedTalentLevel: 0, talentFragments: 0, talentCoins: 0, lotteryChances: 0, shopFashionBought: false, reviveCoins: 0, reviveUsed: false, fragmentBuyDay: '', reviveBuyAt: 0, materials: {}, stones: [0, 0, 0, 0, 0], enhance: { weapon: 0, armor: 0, armor2: 0, weapon2: 0, failWeapon: 0, failArmor: 0, failArmor2: 0, failWeapon2: 0 }, nightmareCleared: [], stamps: 0, tutorialDone: false, hiddenCleared: false, rivalTrust: false, stage8Choice: null, rescuedRock: false, rescuedXiaoman: false, rescuedZhou: false, seenStories: [], forgeIntroSeen: false, shopIntroSeen: false, lotteryIntroSeen: false, townIntroSeen: false, mainQuestsClaimed: [], sideQuest: null, sideQuestDay: '', gems: [], punchStones: 0, punchBuyAt: 0, town: true, completed: false, dead: false }
+  return { role, stage: 1, unlockedStage: 1, kills: 0, hp: base.hp, mp: base.mp, gear: [], equipped: null, weaponId: null, weapon2Id: null, armorId: null, armor2Id: null, fashionId: null, extraSlot: 'weapon', level: 1, exp: 0, drops: [], bossDefeated: false, attributePoints: 0, attributeAllocation: { hp: 0, attack: 0, mp: 0, defense: 0 }, soul: 0, normalTalent: 0, normalTalentLevels: [0, 0, 0, 0], advancedTalent: 0, advancedTalentLevel: 0, talentFragments: 0, talentCoins: 0, lotteryChances: 0, shopFashionBought: false, reviveCoins: 0, reviveUsed: false, fragmentBuyDay: '', reviveBuyAt: 0, materials: {}, stones: [0, 0, 0, 0, 0], enhance: { weapon: 0, armor: 0, armor2: 0, weapon2: 0, failWeapon: 0, failArmor: 0, failArmor2: 0, failWeapon2: 0 }, nightmareCleared: [], stamps: 0, tutorialDone: false, hiddenCleared: false, rivalTrust: false, stage8Choice: null, rescuedRock: false, rescuedXiaoman: false, rescuedZhou: false, seenStories: [], forgeIntroSeen: false, shopIntroSeen: false, lotteryIntroSeen: false, townIntroSeen: false, mainQuestsClaimed: [], sideQuest: null, sideQuestDay: '', skillLevels: {}, gems: [], punchStones: 0, punchBuyAt: 0, town: true, completed: false, dead: false }
 }
 function awardExperience(amount: number) {
   if (!game) return
@@ -2025,7 +2089,7 @@ function beginNightmare(stage: number) {
   if (!game || !secondNpcUnlocked() || !nightmareUnlocked(stage)) return
   resetPanels()
   battleTime = 0
-  hiddenBattle = false; tutorialMode = false; bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; cloneAttackPulse = 0; cloneCastPulse = 0; cloneStealthTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null; bombClone = null; arcaneOrb = null
+  hiddenBattle = false; tutorialMode = false; bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; cloneAttackPulse = 0; cloneCastPulse = 0; cloneStealthTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null; bombClones = []; arcaneOrb = null
   nightmareStage = stage
   game.stage = stage
   game.kills = 0; game.bossDefeated = false; game.dead = false; game.town = true
@@ -2676,9 +2740,12 @@ function cooldownText(ms: number) {
 function soulShopMarkup() {
   if (!game) return ''
   const demo = DEMO_MODE
-  const items = SHOP_ITEMS.filter((item) => !item.demoOnly || demo)
+  const all = shopItems()
+  const categories = (['equipment', 'fashion', 'gem', 'material', 'other'] as ShopCategory[]).filter((category) => all.some((item) => item.category === category))
+  const active: 'all' | ShopCategory = shopCategory !== 'all' && categories.includes(shopCategory) ? shopCategory : 'all'
+  const items = active === 'all' ? all : all.filter((item) => item.category === active)
   const rows = items.map((item) => {
-    // 体验版：所有道具都可用灵魂购买，不受限购与冷却约束。
+    // 体验版：所有道具都可用 1 灵魂购买，不受限购与冷却约束。
     const uniqueSold = !demo && Boolean(item.unique && game!.shopFashionBought)
     const dailySold = !demo && item.id === 'fragments1' && game!.fragmentBuyDay === todayKey()
     const reviveLeft = !demo && item.id === 'revive1' ? Math.max(0, 3 * 24 * 3600 * 1000 - (Date.now() - (game!.reviveBuyAt ?? 0))) : 0
@@ -2686,12 +2753,12 @@ function soulShopMarkup() {
     const limited = uniqueSold || dailySold || reviveLeft > 0 || punchLeft > 0
     const price = demo ? 1 : item.cost
     const canBuy = !limited && (game!.soul ?? 0) >= price
-    const icon = item.id === 'armor1' ? 'armor' : item.id === 'weapon1' ? 'weapon' : item.id === 'fragments1' ? 'fragment' : item.id === 'revive1' ? 'revive' : item.id === 'punch1' ? 'punch' : 'fashion'
     const label = uniqueSold ? '已购买' : dailySold ? '今日已购' : reviveLeft > 0 || punchLeft > 0 ? '冷却中' : '购买'
     const extra = demo ? ' · 体验版 1 灵魂' : reviveLeft > 0 ? ` · 剩余 ${cooldownText(reviveLeft)}` : punchLeft > 0 ? ` · 剩余 ${cooldownText(punchLeft)}` : dailySold ? ' · 明天刷新' : ''
-    return `<article class="shop-row"><span class="gear-glyph">${itemIcon(icon)}</span><span class="gear-copy"><b>${item.name}</b><small>${item.desc}${extra}</small></span><b class="shop-price">${itemIcon('soul')} ${price}</b><button data-action="shop-buy" data-id="${item.id}" ${canBuy ? '' : 'disabled'}>${label}</button></article>`
+    return `<article class="shop-row"><span class="gear-glyph">${itemIcon(item.icon, item.iconClass ?? '')}</span><span class="gear-copy"><b>${item.name}</b><small>${item.desc}${extra}</small></span><b class="shop-price">${itemIcon('soul')} ${price}</b><button data-action="shop-buy" data-id="${item.id}" ${canBuy ? '' : 'disabled'}>${label}</button></article>`
   }).join('')
-  return `<div class="npc-currency"><span>${itemIcon('soul')} 灵魂 ${displayCurrency(game.soul ?? 0)}</span><span>${itemIcon('fragment')} 碎片 ${displayCurrency(game.talentFragments ?? 0)}</span><span>${itemIcon('revive')} 复活币 ${displayCurrency(game.reviveCoins ?? 0)}</span></div><div class="bag-list shop-list">${rows}</div>`
+  const categoryBar = `<div class="shop-categories"><button class="${active === 'all' ? 'active' : ''}" data-action="shop-category" data-category="all" type="button">全部</button>${categories.map((category) => `<button class="${active === category ? 'active' : ''}" data-action="shop-category" data-category="${category}" type="button">${SHOP_CATEGORY_LABELS[category]}</button>`).join('')}</div>`
+  return `${categoryBar}<div class="npc-currency"><span>${itemIcon('soul')} 灵魂 ${displayCurrency(game.soul ?? 0)}</span><span>${itemIcon('fragment')} 碎片 ${displayCurrency(game.talentFragments ?? 0)}</span><span>${itemIcon('revive')} 复活币 ${displayCurrency(game.reviveCoins ?? 0)}</span></div><div class="bag-list shop-list">${rows || '<div class="empty-gear">该分类暂时没有道具</div>'}</div>`
 }
 function shopMarkup() {
   if (!game) return ''
@@ -2804,7 +2871,7 @@ function closeLottery() {
 }
 // 打开任意面板前统一收起其它弹窗，避免多个遮罩叠加。
 function resetPanels() {
-  bagOpen = false; craftingOpen = false; attributesOpen = false; npcOpen = false; secondNpcOpen = false; lotteryOpen = false; stageCircleOpen = false; gameMenuOpen = false; settingsOpen = false; creditsOpen = false; storyLogOpen = false; skillPanelOpen = false; listeningBind = null; forgeSlots = []; specialSlots = []
+  bagOpen = false; craftingOpen = false; attributesOpen = false; npcOpen = false; secondNpcOpen = false; lotteryOpen = false; stageCircleOpen = false; gameMenuOpen = false; settingsOpen = false; creditsOpen = false; quitConfirmOpen = false; storyLogOpen = false; skillPanelOpen = false; listeningBind = null; forgeSlots = []; specialSlots = []
   lotterySpinning = false; lotteryResult = null; lotteryHighlight = -1
   if (lotteryInterval !== null) { window.clearInterval(lotteryInterval); lotteryInterval = null }
   if (lotteryTimeout !== null) { window.clearTimeout(lotteryTimeout); lotteryTimeout = null }
@@ -2853,20 +2920,34 @@ function startLottery() {
     renderGame()
   }, 3000)
 }
+function grantShopItem(grant: ShopGrant) {
+  if (!game) return
+  if (grant.kind === 'gear') game.gear.unshift(makeGear(grant.gearType, grant.level))
+  else if (grant.kind === 'fashion') game.gear.unshift(makeFashion(grant.tier))
+  else if (grant.kind === 'gem') { game.gems ??= []; game.gems.push(makeGem(grant.gemKind, grant.tier)) }
+  else if (grant.kind === 'material') addMaterial(grant.key, 1)
+  else if (grant.kind === 'stone') addStone(grant.tier, 1)
+  else if (grant.kind === 'punch') game.punchStones = (game.punchStones ?? 0) + grant.amount
+  else if (grant.kind === 'fragments') game.talentFragments = (game.talentFragments ?? 0) + grant.amount
+  else if (grant.kind === 'revive') game.reviveCoins = (game.reviveCoins ?? 0) + grant.amount
+  else if (grant.kind === 'talentCoin') game.talentCoins = (game.talentCoins ?? 0) + grant.amount
+  else if (grant.kind === 'soul') game.soul = (game.soul ?? 0) + grant.amount
+  else if (grant.kind === 'lottery') game.lotteryChances = (game.lotteryChances ?? 0) + grant.amount
+}
 function buyShopItem(id: string) {
   if (!game || !npcUnlocked()) return
-  const item = SHOP_ITEMS.find((entry) => entry.id === id)
+  const item = shopItems().find((entry) => entry.id === id)
   if (!item) return
   if (item.demoOnly && !DEMO_MODE) return
   // 体验版没有限购与冷却，只要灵魂足够即可购买所有道具。
   if (!DEMO_MODE) {
     if (item.unique && game.shopFashionBought) { toast('这件时装已经购买过。'); return }
-    if (id === 'fragments1' && game.fragmentBuyDay === todayKey()) { toast('天赋币碎片每天只能购买一次，明天再来吧。'); return }
-    if (id === 'revive1') {
+    if (item.id === 'fragments1' && game.fragmentBuyDay === todayKey()) { toast('天赋币碎片每天只能购买一次，明天再来吧。'); return }
+    if (item.id === 'revive1') {
       const left = 3 * 24 * 3600 * 1000 - (Date.now() - (game.reviveBuyAt ?? 0))
       if (left > 0) { toast(`复活币每 3 天限购一次，还需等待 ${cooldownText(left)}。`); return }
     }
-    if (id === 'punch1') {
+    if (item.id === 'punch1') {
       const left = 7 * 24 * 3600 * 1000 - (Date.now() - (game.punchBuyAt ?? 0))
       if (left > 0) { toast(`打孔石每周限购一次，还需等待 ${cooldownText(left)}。`); return }
     }
@@ -2874,12 +2955,11 @@ function buyShopItem(id: string) {
   const cost = DEMO_MODE ? 1 : item.cost
   if ((game.soul ?? 0) < cost) { toast('灵魂不足。'); return }
   game.soul = (game.soul ?? 0) - cost
-  if (id === 'armor1') game.gear.unshift(makeGear('armor', 1))
-  else if (id === 'weapon1') game.gear.unshift(makeGear('weapon', 1))
-  else if (id === 'fragments1') { game.talentFragments = (game.talentFragments ?? 0) + 1; game.fragmentBuyDay = todayKey() }
-  else if (id === 'revive1') { game.reviveCoins = (game.reviveCoins ?? 0) + 1; game.reviveBuyAt = Date.now() }
-  else if (id === 'punch1') { game.punchStones = (game.punchStones ?? 0) + 1; game.punchBuyAt = Date.now() }
-  else if (id === 'fashion1') { game.gear.unshift(makeFashion(1)); game.shopFashionBought = true }
+  grantShopItem(item.grant)
+  if (item.id === 'fragments1') game.fragmentBuyDay = todayKey()
+  if (item.id === 'revive1') game.reviveBuyAt = Date.now()
+  if (item.id === 'punch1') game.punchBuyAt = Date.now()
+  if (item.id === 'fashion1') game.shopFashionBought = true
   save(); npcOpen = true; npcView = 'shop'; renderGame(); toast(`已购买：${item.name}`)
 }
 function applyTalentVitals(before: { hp: number; mp: number }) {
@@ -3164,7 +3244,7 @@ const SKILL_DESCRIPTIONS: Record<SkillSetKey, string[]> = {
   staff: [
     '攻击力 +10%、攻击速度 +10%，持续 7 秒；角色头顶会显示剩余时间。',
     '在固定前方距离生成双生火柱，造成 160% 攻击伤害，并把范围内的非 Boss 敌人拉向火柱中间。',
-    '向当前方向瞬间移动 2.5 个身位，不造成伤害，可以用来躲避攻击或调整站位。',
+    '向当前方向瞬间移动 2.5 个身位，并在瞬移前与瞬移后的位置各向中点释放一道横向闪电，合计造成 100% 攻击伤害。',
     '禁锢目标 1 秒，并立刻打出 5 次带命中特效的普通攻击。',
   ],
   book: [
@@ -3242,6 +3322,21 @@ function gameMenuMarkup() {
   }
   return `<div class="bag-scrim game-menu-scrim"><section class="bag-dialog game-menu-dialog"><header><div><small>MENU · ${isTown ? '冒险者小镇' : '远征中'}</small><h2>功能菜单</h2></div><button data-action="close-game-menu" aria-label="关闭菜单">×</button></header><div class="game-menu-grid">${items.map((item) => `<button class="game-menu-item" data-action="${item.action}" ${item.disabled ? 'disabled' : ''}><b>${item.icon}</b><span><strong>${item.title}</strong><small>${item.desc}</small></span><i>→</i></button>`).join('')}</div></section></div>`
 }
+function performQuitGame() {
+  if (game) save()
+  quitConfirmOpen = false
+  gameClosed = true
+  resetPanels()
+  try { window.open('', '_self'); window.close() } catch { /* 浏览器可能禁止关闭标签页 */ }
+  window.setTimeout(() => {
+    // 浏览器阻止 window.close() 时，至少把整个游戏界面替换掉。
+    document.body.innerHTML = '<main class="quit-screen"><section><small>GAME CLOSED</small><h1>游戏已关闭</h1><p>进度已保存，可以安全关闭此标签页。</p></section></main>'
+  }, 220)
+}
+function quitConfirmMarkup() {
+  if (!quitConfirmOpen) return ''
+  return `<div class="bag-scrim quit-scrim"><section class="bag-dialog quit-dialog"><header><div><small>EXIT · 退出游戏</small><h2>是否关闭游戏界面？</h2></div><button data-action="cancel-quit" aria-label="取消退出">×</button></header><p>退出后会关闭整个游戏界面。当前进度会自动保存，下次打开游戏可以继续。</p><div class="quit-actions"><button class="secondary" data-action="cancel-quit">取消</button><button class="primary" data-action="confirm-quit">退出并关闭</button></div></section></div>`
+}
 function creditsMarkup() {
   if (!creditsOpen) return ''
   return `<div class="bag-scrim credits-scrim"><section class="bag-dialog credits-dialog"><header><div><small>CREDITS · 制作人员</small><h2>制作人</h2></div><button data-action="close-credits" aria-label="关闭制作人信息">×</button></header><div class="credits-body"><small>PRODUCER</small><h3>制作人：郑浩南</h3><p>感谢每一位踏上元素远征的冒险者。</p></div><button class="primary credits-confirm" data-action="close-credits">确定</button></section></div>`
@@ -3291,13 +3386,42 @@ function settingsMarkup() {
 function skillBagMarkup() {
   if (!game) return ''
   const set = activeSkillSet()
-  return `<div class="skill-bag">${SKILL_LABELS[set].map((name, index) => `<article class="skill-card"><header><b>${index + 1}</b><strong>${name}</strong><small>Lv.1 · ${keyLabel(keyBinds[`skill${index + 1}` as BindAction])}</small></header><p>${SKILL_DESCRIPTIONS[set][index]}</p><footer><span>${skillSummary(index, set)}</span><button class="skill-upgrade" type="button" disabled title="技能升级将在后续版本开放">升级 · 后续开放</button></footer></article>`).join('')}<p class="bag-note">当前技能组由装备的武器决定。技能按键可以在“设置 · 按键设置”中修改，伤害按当前总攻击力计算；技能升级功能将在后续版本开放。</p></div>`
+  return `<div class="skill-bag">${SKILL_LABELS[set].map((name, index) => {
+    const level = skillLevel(index, set)
+    const max = skillMaxLevel(index)
+    const cost = skillUpgradeCost(level)
+    const required = skillRequiredLevel(index, level)
+    const canUpgrade = level < max
+    const hasSoul = (game!.soul ?? 0) >= cost
+    const button = canUpgrade
+      ? hasSoul
+        ? `<button class="skill-upgrade" type="button" data-action="skill-upgrade" data-index="${index}">升级 · ${itemIcon('soul')}${cost}</button>`
+        : `<button class="skill-upgrade" type="button" disabled>灵魂不足 · ${cost}</button>`
+      : `<button class="skill-upgrade" type="button" disabled>角色 Lv.${required} 解锁</button>`
+    return `<article class="skill-card"><header><b>${index + 1}</b><strong>${name}</strong><small>Lv.${level} · ${keyLabel(keyBinds[`skill${index + 1}` as BindAction])}</small></header><p>${SKILL_DESCRIPTIONS[set][index]}</p><footer><span>${skillSummary(index, set)}</span><small class="skill-next">下一级：伤害/效果 +${index === 3 ? 20 : 10}% · 蓝耗 +10</small>${button}</footer></article>`
+  }).join('')}<p class="bag-note">角色等级 Lv.${game.level ?? 1} · 灵魂 ${displayCurrency(game.soul ?? 0)}。技能组由装备的武器决定；技能 1/2/3/4 分别在角色 2/3/4/5 级解锁升级，之后每 4 级可以再升一级。升级消耗 500、1000、1500… 灵魂。</p></div>`
 }
 const SKILL_SET_NAMES: Record<SkillSetKey, string> = { sword: '剑术技能', bow: '弓术技能', staff: '法杖技能', book: '魔典技能' }
 function skillPanelMarkup() {
   if (!game || !skillPanelOpen) return ''
   const set = activeSkillSet()
   return `<div class="bag-scrim skill-panel-scrim"><section class="bag-dialog skill-panel-dialog"><header><div><small>SKILLS · 技能</small><h2>${SKILL_SET_NAMES[set]}</h2></div><button data-action="close-skill-panel" aria-label="关闭技能面板">×</button></header>${skillBagMarkup()}</section></div>`
+}
+function upgradeSkill(index: number) {
+  if (!game || index < 0 || index > 3) return
+  const set = activeSkillSet()
+  const level = skillLevel(index, set)
+  if (level >= skillMaxLevel(index)) {
+    toast(`角色达到 ${skillRequiredLevel(index, level)} 级后才能继续升级技能 ${index + 1}。`)
+    return
+  }
+  const cost = skillUpgradeCost(level)
+  if ((game.soul ?? 0) < cost) { toast(`升级技能需要 ${cost} 灵魂。`); return }
+  game.soul = (game.soul ?? 0) - cost
+  game.skillLevels ??= {}
+  game.skillLevels[`${set}:${index}`] = level + 1
+  save(); skillPanelOpen = true; renderGame()
+  toast(`技能 ${index + 1} 升级到 Lv.${level + 1}，伤害/效果提升，蓝耗 +10。`)
 }
 function paintHudPortrait() {
   const canvas = document.querySelector<HTMLCanvasElement>('#hud-portrait')
@@ -3374,6 +3498,7 @@ function renderGame() {
   if (lotteryOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', lotteryMarkup())
   if (gameMenuOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', gameMenuMarkup())
   if (settingsOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', settingsMarkup())
+  if (quitConfirmOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', quitConfirmMarkup())
   if (creditsOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', creditsMarkup())
   if (storyLogOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', storyLogMarkup())
   if (skillPanelOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', skillPanelMarkup())
@@ -3577,29 +3702,51 @@ function syncFoeHeads() {
     if (fill) fill.style.width = `${Math.max(0, foe.hp / foe.maxHp * 100)}%`
   }
 }
+function skillLevel(index: number, set: SkillSetKey = activeSkillSet()) {
+  return Math.max(1, Math.floor(Number(game?.skillLevels?.[`${set}:${index}`] ?? 1)))
+}
+function skillMaxLevel(index: number) {
+  const level = game?.level ?? 1
+  const unlockLevel = 2 + index
+  return level >= unlockLevel ? 2 + Math.floor((level - unlockLevel) / 4) : 1
+}
+function skillRequiredLevel(index: number, currentLevel: number) {
+  return 2 + index + 4 * (currentLevel - 1)
+}
+function skillUpgradeCost(currentLevel: number) { return 500 * currentLevel }
+function skillDamageBonus(index: number, set: SkillSetKey = activeSkillSet()) {
+  return (index === 3 ? .2 : .1) * (skillLevel(index, set) - 1)
+}
 function skillCostFor(index: number, set: SkillSetKey = activeSkillSet()) {
-  return SKILL_COSTS[set][index]
+  return SKILL_COSTS[set][index] + 10 * (skillLevel(index, set) - 1)
 }
 function skillPower(index: number, set: SkillSetKey = activeSkillSet()) {
-  const multiplier = SKILL_MULTIPLIERS[set][index]
+  const multiplier = SKILL_MULTIPLIERS[set][index] + skillDamageBonus(index, set)
   const advLevel = advancedTalentLevel()
   const talentMultiplier = game?.advancedTalent === 1 && advLevel ? 1 + advancedSkillDamagePct(advLevel) : 1
   return Math.round(stats().attack * multiplier * talentMultiplier)
 }
+function mirrorDamageRatio() {
+  return .4 + .1 * (skillLevel(1, 'book') - 1)
+}
 function skillSummary(index: number, set: SkillSetKey = activeSkillSet()) {
   const cost = skillCostFor(index, set)
-  if (set === 'staff' && index === 0) return `+10% 攻速/攻击 · 7s · ${cost} MP`
-  if (set === 'staff' && index === 2) return `无伤害位移 · ${cost} MP`
-  if (set === 'staff' && index === 3) return `眩晕 1s · 5 连击 · ${cost} MP`
-  if (set === 'bow' && index === 0) return `蓄力穿透箭 · 最长 2s · ${cost} MP`
-  if (set === 'bow' && index === 1) return `6 连下射 · 腾空 · ${cost} MP`
-  if (set === 'bow' && index === 2) return `花炸弹 150% · 位移 · ${cost} MP`
-  if (set === 'bow' && index === 3) return `6 支满蓄力箭 · ${cost} MP`
-  if (set === 'book' && index === 0) return `隐身 5s · 攻击 +5% · ${cost} MP`
-  if (set === 'book' && index === 1) return `分身 10s · 40% 伤害 · ${cost} MP`
-  if (set === 'book' && index === 2) return `爆裂分身 150% · 嘲讽/眩晕 · ${cost} MP`
-  if (set === 'book' && index === 3) return `远程爆炸 200% · ${cost} MP`
-  return `${Math.round(SKILL_MULTIPLIERS[set][index] * 100)}% 攻击 · ${cost} MP`
+  const level = skillLevel(index, set)
+  const pct = Math.round((SKILL_MULTIPLIERS[set][index] + skillDamageBonus(index, set)) * 100)
+  if (set === 'sword') return `${pct}% 攻击 · ${cost} MP`
+  if (set === 'staff' && index === 0) return `攻击 +${10 * level}% · 7s · ${cost} MP`
+  if (set === 'staff' && index === 1) return `双生火柱 ${pct}% · ${cost} MP`
+  if (set === 'staff' && index === 2) return `瞬移闪电 ${pct}% · ${cost} MP`
+  if (set === 'staff' && index === 3) return `眩晕 1s · 5 连击 ×${100 + 20 * (level - 1)}% · ${cost} MP`
+  if (set === 'bow' && index === 0) return `蓄力穿透箭 · 最长 2s · 蓄力伤害 +${10 * (level - 1)}% · ${cost} MP`
+  if (set === 'bow' && index === 1) return `6 连追踪箭 · 每箭 +${10 * (level - 1)}% · ${cost} MP`
+  if (set === 'bow' && index === 2) return `花炸弹 ${pct}% · ${cost} MP`
+  if (set === 'bow' && index === 3) return `6 支追踪箭 · 每箭 +${20 * (level - 1)}% · ${cost} MP`
+  if (set === 'book' && index === 0) return `隐身 5s · 攻击 +${5 + 10 * (level - 1)}% · ${cost} MP`
+  if (set === 'book' && index === 1) return `分身 10s · ${Math.round(mirrorDamageRatio() * 100)}% 伤害 · ${cost} MP`
+  if (set === 'book' && index === 2) return `爆裂分身 ${pct}% · 嘲讽/眩晕 · ${cost} MP`
+  if (set === 'book' && index === 3) return `远程爆炸 ${pct}% · ${cost} MP`
+  return `${pct}% 攻击 · ${cost} MP`
 }
 function spend(cost: number) {
   if (!game) return false
@@ -3659,7 +3806,8 @@ function fireBowProjectile(charged: boolean) {
   if (!game) return
   const attack = stats().attack
   const chargeRatio = bowCharge / BOW_CHARGE_MAX
-  const damage = Math.round(attack * (charged ? 1 + chargeRatio * .1 : 1))
+  const upgradeBonus = .1 * (skillLevel(0, 'bow') - 1)
+  const damage = Math.round(attack * (charged ? 1 + chargeRatio * .1 + upgradeBonus : 1))
   const dir = facing
   projectiles.push({
     x: heroX + dir * 24,
@@ -3777,7 +3925,7 @@ function cloneMirrorAttack() {
     const style = weaponStyle()
     addFx(`weapon-swing-${style}`, cloneX + dir * 42, y + 3, dir, .35, weaponFxColor())
     addSparks(cloneX + dir * 54, y + 4, 5, [weaponFxColor(), '#fff2c0'], 95)
-    const damage = Math.round(stats().attack * .4)
+    const damage = Math.round(stats().attack * mirrorDamageRatio())
     foes.filter((foe) => (foe.x - cloneX) * dir >= -30 && Math.abs(foe.x - cloneX) <= 138).forEach((foe) => strike(foe, damage, '分身斩击', true))
   } else if (mode === 'staff') {
     const range = 230
@@ -3787,7 +3935,7 @@ function cloneMirrorAttack() {
     const span = target ? Math.max(48, Math.abs(target.x - cloneX)) : range
     effects.push({ kind: 'staff-lightning', x: cloneX + dir * span / 2, y: y - 6, direction: dir, life: .45, color: '#c7b3ff', radius: span })
     addSparks(target ? target.x : cloneX + dir * 100, y, 8, ['#d6b4ff', '#fff2c0'], 150)
-    const damage = Math.round(stats().attack * .4)
+    const damage = Math.round(stats().attack * mirrorDamageRatio())
     if (target) strike(target, damage, '分身闪电', true)
   } else {
     // 魔法书：从分身手中射出一枚可见的紫色魔法弹，命中后结算伤害。
@@ -3796,7 +3944,7 @@ function cloneMirrorAttack() {
       y,
       vx: dir * 620,
       life: 1,
-      damage: Math.max(1, Math.round(stats().attack * .4)),
+      damage: Math.max(1, Math.round(stats().attack * mirrorDamageRatio())),
       targetId: -1,
       kind: 'book',
       pierce: true,
@@ -3812,14 +3960,14 @@ function cloneMirrorAttack() {
   }
   playSfx('magic')
 }
-// 分身与本体同步施放技能：播放对应特效，并按 40% 威力结算。
+// 分身与本体同步施放技能：播放对应特效，并按分身倍率结算。
 function cloneMirrorSkill(index: number, power: number) {
   if (!game || cloneTimer <= 0) return
   const target = nearestFoeTo(cloneX)
   const dir = target ? Math.sign(target.x - cloneX) || facing : facing
   const y = world.floor - 64 + cloneY
   cloneCastPulse = .56
-  const damage = Math.max(1, Math.round(power * .4))
+  const damage = Math.max(1, Math.round(power * mirrorDamageRatio()))
   if (index === 0) {
     // 同步隐匿：分身也被薄雾包裹。
     cloneStealthTimer = 5
@@ -3829,9 +3977,11 @@ function cloneMirrorSkill(index: number, power: number) {
     addFx('arcane-blessing', cloneX, world.floor - 88 + cloneY, dir, 1, '#d6b4ff')
     addSparks(cloneX, y, 16, ['#d6b4ff', '#9fe8ff'], 150)
   } else if (index === 2) {
-    fireCloneBlast(150, damage, '分身爆裂', dir, 520)
-    addFx('arcane-blessing', cloneX, y, dir, .5, '#d6b4ff')
-    addSparks(cloneX + dir * 26, y, 12, ['#d6b4ff', '#ff9ae0'], 150)
+    // 本体召唤爆裂分身，分身也召唤一个较小的爆裂分身，而不是改放技能 4。
+    bombClones.push({ x: cloneX + dir * 30, y: cloneY, timer: 3.2, power: damage, source: 'clone' })
+    addFx('arcane-blessing', cloneX + dir * 30, world.floor - 88 + cloneY, dir, .55, '#9fe8ff')
+    addFx('blink-rift', cloneX + dir * 30, y, dir, .4, '#9fe8ff')
+    addSparks(cloneX + dir * 30, y, 14, ['#9fe8ff', '#d6b4ff'], 160)
   } else {
     fireCloneBlast(180, damage, '分身魔典', dir, 640)
     addFx('blink-rift', cloneX, y, dir, .45, '#d6b4ff')
@@ -3886,7 +4036,7 @@ function castBowSkill(index: number) {
     const aim = foes.slice().sort((a, b) => Math.abs(a.x - heroX) - Math.abs(b.x - heroX))[0]
     for (let i = 0; i < 6; i++) {
       const startX = heroX + (i - 2.5) * 24
-      projectiles.push({ x: startX, y: world.floor - 260 - i * 16, vx: aim ? Math.max(-130, Math.min(130, (aim.x - startX) * .55)) : 0, vy: 640, life: 1.6, damage: Math.round(stats().attack), targetId: -1, kind: 'fall', hitIds: [], label: '箭雨' })
+      projectiles.push({ x: startX, y: world.floor - 260 - i * 16, vx: aim ? Math.max(-130, Math.min(130, (aim.x - startX) * .55)) : 0, vy: 640, life: 1.6, damage: Math.round(stats().attack * (1 + .1 * (skillLevel(1, 'bow') - 1))), targetId: -1, kind: 'fall', hitIds: [], label: '箭雨' })
     }
     setLog('箭雨腾空：6 支追踪箭向下坠落，落地前无法再次使用。')
   } else if (index === 2) {
@@ -3929,7 +4079,7 @@ function castBookSkill(index: number, power: number) {
     setLog('镜像分身已召唤，持续 10 秒；分身存在时技能法力消耗 +50%。')
   } else if (index === 2) {
     // 召唤实体分身：锁定最近的怪物并冲过去，接触或超时后自爆。
-    bombClone = { x: heroX + facing * 40, y: heroY, timer: 4, power }
+    bombClones.push({ x: heroX + facing * 40, y: heroY, timer: 4, power, source: 'main' })
     addFx('arcane-blessing', heroX + facing * 40, world.floor - 88, facing, 1, '#d6b4ff')
     addFx('blink-rift', heroX + facing * 40, world.floor - 65, facing, .45, '#d6b4ff')
     addSparks(heroX + facing * 40, world.floor - 55, 18, ['#d6b4ff', '#ff9ae0', '#9fe8ff'], 170)
@@ -3955,7 +4105,7 @@ function cast(index: number) {
   const skillSet = activeSkillSet()
   if (skillSet === 'bow' && index === 0) {
     if (bowCharging) return
-    if (!spend(30)) return
+    if (!spend(skillCostFor(0, 'bow'))) return
     startBowCharge('skill1')
     syncHud(); save(); return
   }
@@ -4034,32 +4184,66 @@ function cast(index: number) {
     }
   } else if (index === 0) {
     buffTime = 7
-    addFx('arcane-blessing', heroX, world.floor - 88, facing, 1)
-    addSparks(heroX, world.floor - 70, 12, ['#b9e0d2', '#e6ddb0'], 90)
+    const color = weaponFxColor()
+    addFx('arcane-empower', heroX, world.floor - 8 + heroY, facing, 1.2, color)
+    addFx('arcane-blessing', heroX, world.floor - 88, facing, 1, color)
+    addSparks(heroX, world.floor - 70, 24, [color, '#e6ddb0', '#ffffff'], 210)
+    addFlash(.16, color)
+    addShake(4)
     setLog('奥术强化：7 秒内攻击与攻速提升 10%。')
   } else if (index === 1) {
     const center = heroX + facing * 150
-    addFx('twin-fire-pillars', center, world.floor - 2, facing, .9)
-    addSparks(heroX + facing * 120, world.floor - 40, 16, ['#ff9a5c', '#ffd27a'], 170)
-    addShake(4)
+    addFx('twin-fire-pillars', center, world.floor - 2, facing, 1.05, '#ff9a5c')
+    addFx('fire-nova', center, world.floor - 62, facing, 1, '#ffd27a')
+    addFx('great-quake', center, world.floor - 8, facing, .9, '#ff7a3d')
+    addSparks(heroX + facing * 120, world.floor - 40, 32, ['#ff9a5c', '#ffd27a', '#fff2c0', '#ff6a3d'], 280)
+    addFlash(.18, '#ff9a5c')
+    addShake(9)
     const targets = foes.filter((foe) => Math.abs(foe.x - heroX) <= 320)
     // 火柱之间的吸力：非 Boss 敌人被拉向两根火柱的中点。
     targets.forEach((foe) => { if (!foe.boss) foe.x = clampFoeX(foe.x + (center - foe.x) * .8) })
     if (targets.length) targets.forEach((foe) => strike(foe, power, '双生火柱'))
     else setLog('双生火柱在空地上燃起。')
   } else if (index === 2) {
-    addFx('blink-rift', heroX, world.floor - 65, facing, .35)
+    const startX = heroX
+    addFx('blink-burst', startX, world.floor - 65 + heroY, facing, .7, '#b7f0ff')
     heroX = scene === 'town'
       ? Math.max(TOWN_LEFT, Math.min(TOWN_RIGHT, heroX + facing * SKILL3_DISTANCE))
       : clampHeroX(heroX + facing * SKILL3_DISTANCE)
-    addFx('blink-rift', heroX, world.floor - 65, -facing, .45)
-    addSparks(heroX, world.floor - 65, 10, ['#b7d9cb', '#8fc4b4'], 130)
-    setLog('闪现穿过前方，未造成伤害。')
+    const distance = Math.abs(heroX - startX)
+    effects.push({ kind: 'blink-trail', x: (startX + heroX) / 2, y: world.floor - 65 + heroY, direction: facing, life: .55, color: '#b7e8ff', radius: distance })
+    addFx('blink-burst', heroX, world.floor - 65 + heroY, -facing, .7, '#d6b4ff')
+    addSparks(startX, world.floor - 65 + heroY, 18, ['#b7e8ff', '#d6b4ff', '#ffffff'], 200)
+    addSparks(heroX, world.floor - 65 + heroY, 18, ['#b7e8ff', '#d6b4ff', '#ffffff'], 200)
+    addFlash(.14, '#b7e8ff')
+    addShake(3)
+    // 瞬移前与瞬移后的位置各向中点发射一道横向闪电，合计 100%（随技能等级提升）。
+    const midX = (startX + heroX) / 2
+    const halfPower = Math.max(1, Math.round(power / 2))
+    const strikeFrom = (fromX: number) => {
+      const dirToMid = Math.sign(midX - fromX) || facing
+      const segment = Math.max(48, Math.abs(midX - fromX))
+      const target = foes
+        .filter((foe) => (foe.x - fromX) * dirToMid >= -20 && Math.abs(foe.x - fromX) <= segment + 20)
+        .sort((a, b) => Math.abs(a.x - fromX) - Math.abs(b.x - fromX))[0]
+      effects.push({ kind: 'staff-lightning', x: (fromX + midX) / 2, y: world.floor - 62 + heroY, direction: dirToMid, life: .45, color: '#ffd84a', radius: segment })
+      addSparks(target ? target.x : midX, world.floor - 62 + heroY, 10, ['#ffe66a', '#fff6b0'], 170)
+      if (target) strike(target, halfPower, '瞬移闪电')
+    }
+    strikeFrom(startX)
+    strikeFrom(heroX)
+    setLog('闪现后的前后位置各向中点释放横向闪电，合计造成 100% 攻击伤害。')
   } else {
     const target = foes.slice().sort((a, b) => Number(b.boss) - Number(a.boss) || Math.abs(a.x - heroX) - Math.abs(b.x - heroX))[0]
+    const color = '#a8e0d0'
     if (!target) {
-      addFx('energy-prison', heroX + facing * 140, world.floor - 80, facing, 1)
-      addSparks(heroX + facing * 140, world.floor - 60, 8, ['#a8e0d0', '#e8ffe8'], 100)
+      const emptyX = heroX + facing * 140
+      addFx('energy-prison', emptyX, world.floor - 80, facing, 1.2, color)
+      addFx('arcane-seal', emptyX, world.floor - 6, facing, 1.2, color)
+      addFx('energy-finale', emptyX, world.floor - 70, facing, .9, color)
+      addSparks(emptyX, world.floor - 60, 26, [color, '#e8ffe8', '#b7f0ff'], 220)
+      addFlash(.16, color)
+      addShake(6)
       setLog('能量禁锢在空地上展开。')
       syncHud(); save(); return
     }
@@ -4070,9 +4254,15 @@ function cast(index: number) {
     target.rangedWindup = undefined
     target.specialTimer = Math.max(target.specialTimer ?? 0, 2)
     burst = 5; burstWait = .06; burstTargetId = target.id
-    addFx('energy-prison', target.x, world.floor - (target.boss ? 130 : 66), facing, 1.2)
-    addSparks(target.x, world.floor - 80, 18, ['#a8e0d0', '#d7f4ea'], 120)
-    setLog('能量禁锢展开 · 控制目标 1 秒并瞬发 5 次普攻。')
+    const targetY = world.floor - (target.boss ? 130 : 66)
+    prisonTimer = 1.5; prisonX = target.x; prisonY = targetY; prisonColor = color
+    addFx('energy-prison', target.x, targetY, facing, 1.5, color)
+    addFx('arcane-seal', target.x, world.floor - 6, facing, 1.4, color)
+    effects.push({ kind: 'energy-chain', x: (heroX + target.x) / 2, y: world.floor - 72 + heroY, direction: Math.sign(target.x - heroX) || facing, life: .8, color, radius: Math.abs(target.x - heroX) })
+    addSparks(target.x, world.floor - 70, 36, [color, '#e8fff2', '#b7f0ff', '#ffffff'], 300)
+    addFlash(.3, color)
+    addShake(14)
+    setLog('能量禁锢展开 · 六芒法阵封锁目标 1 秒，并瞬发 5 次奥术轰击。')
   }
   // 魔法书的分身会与本体同步施放同一个技能。
   if (skillSet === 'book') cloneMirrorSkill(index, power)
@@ -4108,6 +4298,11 @@ function defeatFoe(target: Foe) {
     scene = 'town'; paused = false; heroSupportTop = world.floor
     restoreTownVitals()
     projectiles = []; foeShots = []; effects = []; burst = 0; burstTargetId = null
+    // 隐藏关卡奖励：一阶时装、灵魂 10000、天赋币碎片 ×5，可重复挑战重复获得。
+    game.gear.unshift(makeFashion(1))
+    game.soul = (game.soul ?? 0) + 10000
+    game.talentFragments = (game.talentFragments ?? 0) + 5
+    toast('隐藏关卡奖励：一阶时装 ×1、灵魂 ×10000、天赋币碎片 ×5')
     save()
     // 已经看过的结局剧情不再重复弹出。
     if (!seenStory('hidden-complete')) startStory(hiddenCompleteStoryData(), () => { save(); renderGame() })
@@ -4144,11 +4339,11 @@ function defeatFoe(target: Foe) {
   }
   const bossExperience = (wasBoss ? 100 : 10) * 2 ** (game.stage - 1)
   awardExperience(bossExperience)
-  const droppedGear = dropGear(wasBoss, !wasBoss)
-  if (!wasBoss) { dropPotions(target.x); dropMaterials(target.x) }
+  const droppedGear = wasBoss ? dropBossGear() : []
+  if (!wasBoss) dropMobLoot(target.x)
   if (wasBoss) {
     const clearedStage = game.stage
-    const soulGain = clearedStage * 100
+    const soulGain = 200 + 50 * (clearedStage - 1) * clearedStage
     game.bossDefeated = true
     game.unlockedStage = Math.max(game.unlockedStage, Math.min(10, clearedStage + 1))
     game.stageProgress ??= {}
@@ -4168,12 +4363,10 @@ function defeatFoe(target: Foe) {
     const lottery = wasFirstClear ? 1 : 0
     if (lottery) rewards.push(`${itemIcon('ticket')} 抽奖机会 +1`)
     let fragments = 0
-    if (clearedStage >= 3) {
-      const fragmentChance = (clearedStage + 1) * .025
-      if (Math.random() < fragmentChance) {
-        fragments = 1
-        rewards.push(`${itemIcon('fragment')} 天赋币碎片 +1`)
-      }
+    const fragmentChance = (clearedStage + 3) * .025
+    if (Math.random() < fragmentChance) {
+      fragments = 1
+      rewards.push(`${itemIcon('fragment')} 天赋币碎片 +1`)
     }
     foeShots = []
     projectiles = []
@@ -4335,58 +4528,73 @@ function fashionSummary(tier: number) {
   const stats = fashionTierStats(tier)
   return `生命 +${Math.round(stats.hpPct * 100)}% · 攻击 +${stats.atkFlat} + ${Math.round(stats.atkPct * 100)}% · 防御 +${stats.defFlat} + ${Math.round(stats.defPct * 100)}% · 蓝量 +${stats.mpFlat} + ${Math.round(stats.mpPct * 100)}%`
 }
-function gearDropLevel(): number {
-  if (!game) return 0
-  for (let candidate = game.stage; candidate >= 1; candidate -= 1) {
-    const chance = Math.max(0, .03 - candidate * .005)
-    if (Math.random() < chance) return candidate
+function gearLevelChances(stage: number): Array<{ level: number; weight: number }> {
+  const list: Array<{ level: number; weight: number }> = []
+  let remain = 1
+  for (let candidate = stage; candidate >= 1; candidate -= 1) {
+    const chance = Math.max(0, .035 - candidate * .005)
+    const weight = remain * chance
+    if (weight > 0) list.push({ level: candidate, weight })
+    remain *= 1 - chance
   }
-  return 0
+  return list
 }
-function dropGear(boss: boolean, collect = true): Gear[] {
-  const dropped: Gear[] = []
-  if (!game) return dropped
-  const drops: GearType[] = []
-  if (boss) {
-    if (Math.random() < .35) drops.push(Math.random() < .5 ? 'weapon' : 'armor')
-  } else {
-    // 小怪：武器 2.5%、护甲 2.5%，两者独立判定。
-    if (Math.random() < .025) drops.push('weapon')
-    if (Math.random() < .025) drops.push('armor')
-  }
-  for (const type of drops) {
-    const level = boss ? game.stage : gearDropLevel()
-    if (!level) continue
-    const gear = makeGear(type, level)
-    dropped.push(gear)
-    if (collect) {
-      game.gear.unshift(gear)
-      toast(`${boss ? 'Boss' : '小怪'}掉落：${level} 级${type === 'weapon' ? '武器' : '护甲'}「${gear.name}」`)
-      setLog(`${gear.name}已放入背包，穿戴后生效。`)
-    }
-  }
-  return dropped
+function gearLevelSuccess(stage: number) {
+  return gearLevelChances(stage).reduce((sum, entry) => sum + entry.weight, 0)
 }
-function dropPotions(x: number) {
-  if (!game) return
-  for (const type of ['hp-potion', 'mp-potion'] as const) {
-    if (Math.random() < POTION_DROP_CHANCE) game.drops!.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, type, x: Math.max(MAP_LEFT, Math.min(unlockedWidth - 35, x)) })
+// 按原等级权重随机一个装备等级，避免“先判定掉落类别、再判定等级”重复扣概率。
+function rollGearLevel(stage: number) {
+  const list = gearLevelChances(stage)
+  const total = list.reduce((sum, entry) => sum + entry.weight, 0)
+  if (!total) return 0
+  let roll = Math.random() * total
+  for (const entry of list) {
+    roll -= entry.weight
+    if (roll <= 0) return entry.level
   }
+  return list[list.length - 1].level
 }
-function dropMaterials(x: number) {
+// 原小怪任意装备掉落率 × 20，并限制一只怪最多掉一件。
+function mobEquipmentChance(stage: number) {
+  const perType = .03 * gearLevelSuccess(stage)
+  const anyGear = 1 - (1 - perType) ** 2
+  return Math.min(1, anyGear * 20)
+}
+function dropMobLoot(x: number) {
   if (!game) return
   const stage = game.stage
-  const chance = materialDropChance(stage)
-  for (let variant = 0; variant < 3; variant++) {
-    if (Math.random() >= chance) continue
-    const key = materialKey(stage, variant)
-    game.drops!.push({
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      type: 'material',
-      x: Math.max(MAP_LEFT, Math.min(unlockedWidth - 35, x + (variant - 1) * 22)),
-      materialKey: key,
-    })
+  const gearChance = mobEquipmentChance(stage)
+  const potionChance = .10
+  const materialChance = .15
+  const dropX = Math.max(MAP_LEFT, Math.min(unlockedWidth - 35, x))
+  const roll = Math.random()
+  if (roll < gearChance) {
+    const type: GearType = Math.random() < .5 ? 'weapon' : 'armor'
+    const level = rollGearLevel(stage)
+    if (!level) return
+    const gear = makeGear(type, level)
+    game.gear.unshift(gear)
+    toast(`小怪掉落：${level} 级${type === 'weapon' ? '武器' : '护甲'}「${gear.name}」`)
+    setLog(`${gear.name}已放入背包，穿戴后生效。`)
+    return
   }
+  if (roll < gearChance + potionChance) {
+    const type: 'hp-potion' | 'mp-potion' = Math.random() < .5 ? 'hp-potion' : 'mp-potion'
+    game.drops ??= []
+    game.drops.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, type, x: dropX })
+    return
+  }
+  if (roll < gearChance + potionChance + materialChance) {
+    const variant = Math.floor(Math.random() * 3)
+    game.drops ??= []
+    game.drops.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, type: 'material', x: dropX, materialKey: materialKey(stage, variant) })
+  }
+}
+function dropBossGear(): Gear[] {
+  if (!game) return []
+  if (Math.random() >= .4) return []
+  const type: GearType = Math.random() < .5 ? 'weapon' : 'armor'
+  return [makeGear(type, game.stage)]
 }
 function pickupDrop() {
   if (!game) return
@@ -4578,7 +4786,7 @@ function retreatToTown() {
   if (!game) return
   paused = false
   hiddenBattle = false
-  bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; cloneAttackPulse = 0; cloneCastPulse = 0; cloneStealthTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null; bombClone = null; arcaneOrb = null
+  bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; cloneAttackPulse = 0; cloneCastPulse = 0; cloneStealthTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null; bombClones = []; arcaneOrb = null
   if (tutorialMode) { tutorialMode = false; tutorialStep = 0; game.tutorialDone = true }
   scene = 'town'; game.town = true; game.dead = false
   restoreTownVitals()
@@ -4782,6 +4990,7 @@ function performAction(name: string, target: HTMLElement) {
   }
   if (name === 'open-skill-panel') { resetPanels(); skillPanelOpen = true; renderGame() }
   if (name === 'close-skill-panel') { skillPanelOpen = false; renderGame() }
+  if (name === 'skill-upgrade' && target.dataset.index) { upgradeSkill(Number(target.dataset.index)) }
   if (name === 'bind-key' && target.dataset.bind && BIND_ACTIONS.includes(target.dataset.bind as BindAction)) {
     listeningBind = target.dataset.bind as BindAction
     renderGame()
@@ -4806,16 +5015,16 @@ function performAction(name: string, target: HTMLElement) {
     toast(on ? '音效与音乐已开启。' : '音效与音乐已关闭。')
     renderGame()
   }
-  if (name === 'quit-game') {
-    save()
-    resetPanels()
-    scene = 'title'; paused = false; pendingRole = null; foes = []; projectiles = []; foeShots = []
-    saveSlots = readSaves()
-    renderTitle()
-    setTimeout(() => { try { window.close() } catch { /* ignore */ } }, 80)
-  }
+  if (name === 'quit-game') { quitConfirmOpen = true; renderGame() }
+  if (name === 'cancel-quit') { quitConfirmOpen = false; renderGame() }
+  if (name === 'confirm-quit') performQuitGame()
   if (name === 'npc-menu') { npcView = 'menu'; renderGame() }
   if (name === 'npc-shop') { npcView = 'shop'; renderGame() }
+  if (name === 'shop-category' && target.dataset.category) {
+    const category = target.dataset.category
+    shopCategory = category === 'equipment' || category === 'fashion' || category === 'gem' || category === 'material' || category === 'other' ? category : 'all'
+    npcOpen = true; npcView = 'shop'; renderGame()
+  }
   if (name === 'npc-talent') { npcView = 'talent'; renderGame() }
   if (name === 'npc-enhance') { npcView = 'enhance'; renderGame() }
   if (name === 'npc-quests') { npcView = 'quests'; questTab = 'main'; renderGame() }
@@ -5011,6 +5220,7 @@ window.addEventListener('keydown', (event) => {
   }
   if (pendingDeleteId && key === 'escape') { pendingDeleteId = null; document.querySelector('.delete-confirm')?.remove(); return }
   if (lotteryOpen && key === 'escape') { closeLottery(); return }
+  if (quitConfirmOpen && key === 'escape') { quitConfirmOpen = false; renderGame(); return }
   if (settingsOpen && key === 'escape') { settingsOpen = false; listeningBind = null; renderGame(); return }
   if (creditsOpen && key === 'escape') { creditsOpen = false; renderGame(); return }
   if (storyLogOpen && key === 'escape') { storyLogOpen = false; renderGame(); return }
@@ -5096,19 +5306,18 @@ function updateSkillObjects(dt: number) {
       skyBow.timer = .17
       const x = skyBow.x + (skyBow.shots - 3.5) * 26
       const target = aim
-      projectiles.push({ x, y: world.floor - 280, vx: target ? Math.max(-190, Math.min(190, (target.x - x) * .55)) : 0, vy: 760, life: 1.4, damage: Math.round(stats().attack * 1.1), targetId: -1, kind: 'fall', hitIds: [], label: '满蓄力箭' })
+      projectiles.push({ x, y: world.floor - 280, vx: target ? Math.max(-190, Math.min(190, (target.x - x) * .55)) : 0, vy: 760, life: 1.4, damage: Math.round(stats().attack * (1.1 + .2 * (skillLevel(3, 'bow') - 1))), targetId: -1, kind: 'fall', hitIds: [], label: '满蓄力箭' })
       addFx('muzzle', x, world.floor - 280, 1, .18, '#ffe28a')
     }
     if (skyBow.shots >= 6 && skyBow.timer <= -.4) skyBow = null
   }
-  if (bombClone) {
-    const clone = bombClone
+  for (const clone of [...bombClones]) {
     clone.timer -= dt
     const target = nearestFoeTo(clone.x)
     const goalX = target ? target.x : clone.x + facing * 260
     const dx = goalX - clone.x
-    if (Math.abs(dx) > 6) clone.x += Math.sign(dx) * Math.min(Math.abs(dx), 330 * dt)
-    if ((target && Math.abs(target.x - clone.x) < 40) || clone.timer <= 0) explodeBombClone()
+    if (Math.abs(dx) > 6) clone.x += Math.sign(dx) * Math.min(Math.abs(dx), (clone.source === 'main' ? 330 : 300) * dt)
+    if ((target && Math.abs(target.x - clone.x) < 40) || clone.timer <= 0) explodeBombClone(clone)
   }
   if (arcaneOrb) {
     const orb = arcaneOrb
@@ -5121,24 +5330,28 @@ function updateSkillObjects(dt: number) {
     if (Math.abs(dx) < 26 || orb.timer <= 0) explodeArcaneOrb()
   }
 }
-function explodeBombClone() {
-  if (!bombClone) return
-  const { x, power } = bombClone
-  bombClone = null
-  addFx('arcane-explosion', x, world.floor - 58, 1, 1, '#d6b4ff')
-  addFx('great-quake', x, world.floor - 8, 1, .85, '#d6b4ff')
-  addSparks(x, world.floor - 46, 38, ['#d6b4ff', '#ff9ae0', '#9fe8ff', '#ffffff'], 320)
-  addShake(13)
-  addFlash(.22, '#d6b4ff')
+function explodeBombClone(clone: BombClone) {
+  bombClones = bombClones.filter((entry) => entry !== clone)
+  const { x, power } = clone
+  const main = clone.source === 'main'
+  const color = main ? '#d6b4ff' : '#9fe8ff'
+  addFx('arcane-explosion', x, world.floor - 58, 1, main ? 1 : .8, color)
+  addFx('great-quake', x, world.floor - 8, 1, main ? .85 : .65, color)
+  addSparks(x, world.floor - 46, main ? 38 : 26, [color, '#ff9ae0', '#9fe8ff', '#ffffff'], main ? 320 : 250)
+  addShake(main ? 13 : 8)
+  addFlash(main ? .22 : .14, color)
   playSfx('magic')
-  const targets = foes.filter((foe) => Math.abs(foe.x - x) <= 170)
+  const radius = main ? 170 : 140
+  const targets = foes.filter((foe) => Math.abs(foe.x - x) <= radius)
   targets.forEach((foe) => {
     // 爆炸附带控制：短暂眩晕，并让敌人停止追击本体。
-    foe.stunTimer = Math.max(foe.stunTimer ?? 0, 1.2)
+    foe.stunTimer = Math.max(foe.stunTimer ?? 0, main ? 1.2 : .8)
     foe.dashWindup = undefined; foe.rangedWindup = undefined; foe.skillWindup = undefined; foe.specialWindup = undefined
-    strike(foe, power, '爆裂分身')
+    strike(foe, power, main ? '爆裂分身' : '分身爆裂')
   })
-  setLog(targets.length ? '实体分身冲入敌阵自爆：造成 150% 攻击伤害并眩晕周围敌人。' : '实体分身在远处炸开。')
+  setLog(targets.length
+    ? (main ? '实体分身冲入敌阵自爆：造成 150% 攻击伤害并眩晕周围敌人。' : '分身同步召唤的爆裂分身炸开，眩晕周围敌人。')
+    : (main ? '实体分身在远处炸开。' : '分身召唤的爆裂分身在远处炸开。'))
 }
 function explodeArcaneOrb() {
   if (!arcaneOrb) return
@@ -5196,6 +5409,7 @@ function update(dt: number) {
   if (scene !== 'battle') cameraX = 0
   attackWait = Math.max(0, attackWait - dt); attackSwing = Math.max(0, attackSwing - dt); buffTime = Math.max(0, buffTime - dt)
   invisibleTimer = Math.max(0, invisibleTimer - dt)
+  prisonTimer = Math.max(0, prisonTimer - dt)
   cloneAttackPulse = Math.max(0, cloneAttackPulse - dt)
   cloneCastPulse = Math.max(0, cloneCastPulse - dt)
   cloneStealthTimer = Math.max(0, cloneStealthTimer - dt)
@@ -5311,10 +5525,11 @@ function update(dt: number) {
       }
       if (foe.tutorial) continue
       // 隐匿期间敌人看不到玩家：找不到攻击目标时改为在地图上自由走动。
-      if (invisibleTimer > 0 && !bombClone) { updateFoeWander(foe, dt); continue }
+      if (invisibleTimer > 0 && bombClones.length === 0) { updateFoeWander(foe, dt); continue }
       // 爆裂分身存在时，非镜像敌人会被吸引向其冲锋。
-      const taunted = Boolean(bombClone) && !foe.mirror
-      const distance = (taunted ? bombClone!.x : heroX) - foe.x
+      const taunt = bombClones[0] ?? null
+      const taunted = Boolean(taunt) && !foe.mirror
+      const distance = (taunted ? taunt!.x : heroX) - foe.x
       const directionToHero = Math.sign(distance) || 1
       if (foe.mirror) {
         updateMirrorFoe(foe, dt, distance, directionToHero)
@@ -5434,8 +5649,8 @@ function update(dt: number) {
           const theme = STAGE_THEMES[stageIndex]
           if (taunted) {
             // 仇恨被分身吸引：攻击分身而不是玩家。
-            addFx('enemy-swipe', bombClone!.x, world.floor - 52, -directionToHero, .38)
-            addSparks(bombClone!.x, world.floor - 48, foe.boss ? 8 : 5, [theme.accent, theme.glow], foe.boss ? 150 : 110)
+            addFx('enemy-swipe', taunt!.x, world.floor - 52, -directionToHero, .38)
+            addSparks(taunt!.x, world.floor - 48, foe.boss ? 8 : 5, [theme.accent, theme.glow], foe.boss ? 150 : 110)
             playSfx(foe.boss ? 'boss' : 'slash')
             setLog('实体分身吸引了敌人的仇恨。')
           } else {
@@ -5532,18 +5747,34 @@ function update(dt: number) {
     if (burst > 0) {
       burstWait -= dt
       if (burstWait <= 0) {
-        burstWait = .08
+        burstWait = .09
         const target = foes.find((foe) => foe.id === burstTargetId)
         if (target) {
           burst -= 1
-          strike(target, stats().attack, `能量禁锢 ${5 - burst} / 5`)
-          const hitY = target.flying ? foeWorldY(target) - 24 : world.floor - (target.boss ? 120 : 58)
-          const hitColor = weaponFxColor()
-          addFx('arcane-bolt-hit', target.x, hitY, Math.sign(target.x - heroX) || 1, .38, hitColor)
-          addFx('energy-prison-hit', target.x, hitY, 1, .32)
-          addSparks(target.x, hitY + 10, 7, [hitColor, '#e8ffe8'], 140)
-          if (burst <= 0) burstTargetId = null
-        } else { burst = 0; burstTargetId = null }
+          prisonX = target.x
+          prisonY = target.flying ? foeWorldY(target) - 24 : world.floor - (target.boss ? 120 : 58)
+          strike(target, Math.round(stats().attack * (1 + .2 * (skillLevel(3, 'staff') - 1))), `能量禁锢 ${5 - burst} / 5`)
+          const hitColor = prisonColor
+          addFx('energy-prison-hit', target.x, prisonY, 1, .38, hitColor)
+          addFx('arcane-bolt-hit', target.x, prisonY, Math.sign(target.x - heroX) || 1, .42, hitColor)
+          addSparks(target.x, prisonY + 8, 14, [hitColor, '#e8fff2', '#ffffff', '#b7f0ff'], 190)
+          addShake(3)
+          if (burst <= 0) {
+            addFx('energy-finale', target.x, world.floor - 70, 1, 1.05, hitColor)
+            addFx('great-quake', target.x, world.floor - 8, 1, .8, hitColor)
+            addSparks(target.x, world.floor - 60, 42, [hitColor, '#e8fff2', '#b7f0ff', '#ffffff'], 340)
+            addFlash(.3, hitColor)
+            addShake(15)
+            burstTargetId = null
+          }
+        } else {
+          burst = 0
+          burstTargetId = null
+          addFx('energy-finale', prisonX, prisonY || world.floor - 60, 1, 1, prisonColor)
+          addSparks(prisonX, prisonY || world.floor - 60, 30, [prisonColor, '#e8fff2', '#ffffff'], 280)
+          addFlash(.2, prisonColor)
+          addShake(10)
+        }
       }
     }
     updateCamera()
@@ -6694,12 +6925,48 @@ function drawFx(c: CanvasRenderingContext2D, fx: Fx) {
       c.beginPath(); c.arc(fx.x + Math.cos(angle) * 34, fx.y - 30 + Math.sin(angle) * 14, 3, 0, Math.PI * 2); c.fill()
     }
   } else if (fx.kind === 'twin-fire-pillars') {
+    const now = performance.now()
+    c.shadowColor = '#ff7a3d'; c.shadowBlur = 26
+    // 地面灼烧法阵
+    c.globalAlpha = alpha * .55; c.fillStyle = 'rgba(232, 120, 74, .28)'
+    c.beginPath(); c.ellipse(fx.x, fx.y + 8, 150 + progress * 36, 18, 0, 0, Math.PI * 2); c.fill()
+    c.globalAlpha = alpha * .7; c.strokeStyle = '#ffb066'; c.lineWidth = 2
+    c.beginPath(); c.ellipse(fx.x, fx.y + 8, 64 + progress * 34, 15 + progress * 6, 0, 0, Math.PI * 2); c.stroke()
     for (const [offset, warm] of [[-80, false], [80, true]] as const) {
+      const px = fx.x + offset
+      // 外层火焰
+      c.globalAlpha = alpha
       c.fillStyle = warm ? '#f2a35c' : '#e86e4a'
-      c.beginPath(); c.moveTo(fx.x + offset - 20, fx.y + 10); c.quadraticCurveTo(fx.x + offset - 14, fx.y - 60, fx.x + offset + 4, fx.y - 140); c.quadraticCurveTo(fx.x + offset + 20, fx.y - 52, fx.x + offset + 18, fx.y + 10); c.closePath(); c.fill()
-      c.fillStyle = warm ? '#ffe0a0' : '#ffd07a'; c.fillRect(fx.x + offset - 5, fx.y - 50, 10, 55)
+      c.beginPath(); c.moveTo(px - 24, fx.y + 10); c.quadraticCurveTo(px - 16, fx.y - 65, px + 4, fx.y - 150 - progress * 18); c.quadraticCurveTo(px + 24, fx.y - 56, px + 22, fx.y + 10); c.closePath(); c.fill()
+      // 内焰
+      c.fillStyle = warm ? '#ffe0a0' : '#ffd07a'
+      c.beginPath(); c.moveTo(px - 10, fx.y + 8); c.quadraticCurveTo(px - 4, fx.y - 46, px + 3, fx.y - 96 - progress * 12); c.quadraticCurveTo(px + 12, fx.y - 40, px + 11, fx.y + 8); c.closePath(); c.fill()
+      // 螺旋火舌
+      c.globalAlpha = alpha * .85; c.strokeStyle = warm ? '#ffd27a' : '#ff9a5c'; c.lineWidth = 3
+      for (let swirl = 0; swirl < 3; swirl += 1) {
+        c.beginPath()
+        for (let i = 0; i < 9; i += 1) {
+          const yy = fx.y + 8 - i * 15
+          const xx = px + Math.sin(now / 140 + swirl * 2.1 + i * .65) * (12 + progress * 8 + swirl * 3)
+          if (i === 0) c.moveTo(xx, yy); else c.lineTo(xx, yy)
+        }
+        c.stroke()
+      }
+      // 上升余烬
+      c.fillStyle = '#fff2c0'
+      for (let ember = 0; ember < 7; ember += 1) {
+        const ey = fx.y - ((now / 7 + ember * 41) % 170)
+        const ex = px + Math.sin(ember * 2 + now / 320) * (20 + progress * 16)
+        c.globalAlpha = alpha * (.45 + (ember % 3) * .18)
+        c.beginPath(); c.arc(ex, ey, 1.6 + (ember % 2), 0, Math.PI * 2); c.fill()
+      }
+      // 火柱底部冲击环
+      c.globalAlpha = alpha * .55; c.strokeStyle = '#ffd27a'; c.lineWidth = 2.5
+      c.beginPath(); c.ellipse(px, fx.y + 7, 28 + progress * 40, 9 + progress * 12, 0, 0, Math.PI * 2); c.stroke()
     }
-    c.fillStyle = 'rgba(232, 120, 74, .25)'; c.beginPath(); c.ellipse(fx.x, fx.y + 8, 120, 12, 0, 0, Math.PI * 2); c.fill()
+    // 两根火柱之间的火焰弧
+    c.globalAlpha = alpha * .7; c.strokeStyle = '#ffe0a0'; c.lineWidth = 3
+    c.beginPath(); c.moveTo(fx.x - 80, fx.y - 42); c.quadraticCurveTo(fx.x, fx.y - 128 - progress * 24, fx.x + 80, fx.y - 42); c.stroke()
   } else if (fx.kind === 'blink-rift') {
     const dir = fx.direction ?? 1
     c.strokeStyle = '#b7d9cb'; c.lineWidth = 3
@@ -6712,16 +6979,207 @@ function drawFx(c: CanvasRenderingContext2D, fx: Fx) {
       c.beginPath(); c.moveTo(fx.x - dir * (20 + trail * 18), fx.y - 20 + trail * 12); c.lineTo(fx.x - dir * (55 + trail * 20), fx.y - 20 + trail * 12); c.stroke()
     }
   } else if (fx.kind === 'energy-prison') {
+    const color = fx.color ?? '#a8e0d0'
     const spin = performance.now() / 400
-    c.strokeStyle = '#a8e0d0'; c.lineWidth = 3
-    c.save(); c.translate(fx.x, fx.y); c.rotate(spin)
-    for (let side = 0; side < 4; side++) {
-      c.rotate(Math.PI / 2)
-      c.beginPath(); c.moveTo(0, -70); c.lineTo(18, -20); c.lineTo(0, 30); c.lineTo(-18, -20); c.closePath(); c.stroke()
+    c.shadowColor = color; c.shadowBlur = 22
+    // 双层旋转笼柱
+    for (let layer = 0; layer < 2; layer += 1) {
+      const sides = layer === 0 ? 6 : 4
+      c.save(); c.translate(fx.x, fx.y); c.rotate(spin * (layer ? -1 : 1))
+      c.globalAlpha = alpha * (layer ? .48 : .92)
+      c.strokeStyle = layer ? '#e8fff2' : color; c.lineWidth = layer ? 2 : 3.6
+      for (let side = 0; side < sides; side += 1) {
+        c.rotate((Math.PI * 2) / sides)
+        c.beginPath(); c.moveTo(0, -78); c.lineTo(20, -22); c.lineTo(0, 34); c.lineTo(-20, -22); c.closePath(); c.stroke()
+      }
+      c.restore()
+    }
+    // 垂直光柱与地面法阵
+    c.globalAlpha = alpha * .5; c.strokeStyle = color; c.lineWidth = 1.5
+    for (let i = 0; i < 6; i += 1) {
+      const angle = spin + (i * Math.PI) / 3
+      const px = fx.x + Math.cos(angle) * 44
+      c.beginPath(); c.moveTo(px, fx.y + 46); c.lineTo(px, fx.y - 96); c.stroke()
+    }
+    c.globalAlpha = alpha * .75; c.strokeStyle = color; c.lineWidth = 2
+    c.beginPath(); c.ellipse(fx.x, world.floor - 4, 60 + Math.sin(spin) * 4, 16, 0, 0, Math.PI * 2); c.stroke()
+    c.fillStyle = '#e8fff2'
+    for (let i = 0; i < 6; i += 1) {
+      const angle = spin * .6 + (i * Math.PI) / 3
+      c.beginPath(); c.arc(fx.x + Math.cos(angle) * 54, world.floor - 4 + Math.sin(angle) * 13, 2.6, 0, Math.PI * 2); c.fill()
+    }
+    c.globalAlpha = alpha; c.fillStyle = '#ffffff'
+    c.beginPath(); c.arc(fx.x, fx.y, 6 + Math.sin(spin * 2) * 2, 0, Math.PI * 2); c.fill()
+  } else if (fx.kind === 'arcane-seal') {
+    const color = fx.color ?? '#a8e0d0'
+    const now = performance.now()
+    const groundY = world.floor - 4
+    c.save()
+    c.shadowColor = color; c.shadowBlur = 18
+    c.globalAlpha = alpha * .8; c.strokeStyle = color; c.lineWidth = 2.5
+    c.beginPath(); c.ellipse(fx.x, groundY, 60 + progress * 20, 16 + progress * 5, 0, 0, Math.PI * 2); c.stroke()
+    for (let layer = 0; layer < 2; layer += 1) {
+      c.save(); c.translate(fx.x, groundY); c.rotate(now / 700 * (layer ? -1 : 1)); c.scale(1, .3)
+      c.globalAlpha = alpha * (layer ? .35 : .65); c.lineWidth = layer ? 1.4 : 2
+      c.beginPath()
+      for (let k = 0; k < 6; k += 1) {
+        const angle = (k * Math.PI) / 3
+        const px = Math.cos(angle) * (46 + progress * 22)
+        const py = Math.sin(angle) * (46 + progress * 22)
+        if (k === 0) c.moveTo(px, py); else c.lineTo(px, py)
+      }
+      c.closePath(); c.stroke(); c.restore()
+    }
+    c.globalAlpha = alpha * .9; c.fillStyle = '#e8fff2'
+    for (let i = 0; i < 8; i += 1) {
+      const angle = now / 900 + (i * Math.PI) / 4
+      c.beginPath(); c.arc(fx.x + Math.cos(angle) * (56 + progress * 16), groundY + Math.sin(angle) * (14 + progress * 4), 2.2, 0, Math.PI * 2); c.fill()
     }
     c.restore()
-    c.strokeStyle = 'rgba(215, 244, 234, .7)'; c.lineWidth = 2
-    c.beginPath(); c.ellipse(fx.x, world.floor - 4, 52, 13, 0, 0, Math.PI * 2); c.stroke()
+  } else if (fx.kind === 'energy-chain') {
+    const dir = fx.direction ?? 1
+    const span = fx.radius ?? 220
+    const color = fx.color ?? '#a8e0d0'
+    const now = performance.now()
+    const startX = fx.x - dir * span / 2
+    const endX = fx.x + dir * span / 2
+    c.shadowColor = color; c.shadowBlur = 26
+    c.globalAlpha = alpha * .9; c.strokeStyle = color; c.lineWidth = 6
+    c.beginPath(); c.moveTo(startX, fx.y)
+    const segments = 14
+    for (let i = 1; i <= segments; i += 1) {
+      const t = i / segments
+      const px = startX + (endX - startX) * t
+      const py = fx.y + Math.sin(now / 70 + i * 1.4) * 7 * (1 - t * .3)
+      c.lineTo(px, py)
+    }
+    c.stroke()
+    c.globalAlpha = alpha; c.strokeStyle = '#ffffff'; c.lineWidth = 2
+    c.beginPath(); c.moveTo(startX, fx.y); c.lineTo(endX, fx.y); c.stroke()
+    c.globalAlpha = alpha * .7; c.strokeStyle = '#e8fff2'; c.lineWidth = 1.6
+    for (let i = 0; i < 9; i += 1) {
+      const px = startX + (endX - startX) * (i / 8)
+      c.beginPath(); c.ellipse(px, fx.y, 5, 3, 0, 0, Math.PI * 2); c.stroke()
+    }
+    const pulseX = startX + (endX - startX) * ((now / 260) % 1)
+    c.globalAlpha = alpha; c.fillStyle = '#ffffff'
+    c.beginPath(); c.arc(pulseX, fx.y, 5.5, 0, Math.PI * 2); c.fill()
+  } else if (fx.kind === 'energy-finale') {
+    const color = fx.color ?? '#a8e0d0'
+    const now = performance.now()
+    c.shadowColor = color; c.shadowBlur = 30
+    for (let ring = 0; ring < 3; ring += 1) {
+      const p = Math.min(1, progress + ring * .08)
+      c.globalAlpha = alpha * (.9 - ring * .22)
+      c.strokeStyle = ring === 0 ? '#ffffff' : color; c.lineWidth = 5 - ring
+      c.beginPath(); c.arc(fx.x, fx.y, 20 + p * 130, 0, Math.PI * 2); c.stroke()
+    }
+    const radius = 50 + progress * 70
+    c.globalAlpha = alpha * .85; c.strokeStyle = color; c.lineWidth = 3
+    for (let layer = 0; layer < 2; layer += 1) {
+      c.save(); c.translate(fx.x, fx.y); c.rotate(now / 400 + layer * Math.PI / 6)
+      c.beginPath()
+      for (let k = 0; k < 6; k += 1) {
+        const angle = (k * Math.PI) / 3
+        const px = Math.cos(angle) * radius
+        const py = Math.sin(angle) * radius
+        if (k === 0) c.moveTo(px, py); else c.lineTo(px, py)
+      }
+      c.closePath(); c.stroke(); c.restore()
+    }
+    c.globalAlpha = alpha * .7
+    for (let i = 0; i < 16; i += 1) {
+      const angle = (i / 16) * Math.PI * 2 + progress
+      const inner = 20 + progress * 50
+      const outer = 60 + progress * 150
+      c.beginPath(); c.moveTo(fx.x + Math.cos(angle) * inner, fx.y + Math.sin(angle) * inner)
+      c.lineTo(fx.x + Math.cos(angle) * outer, fx.y + Math.sin(angle) * outer); c.stroke()
+    }
+    c.globalAlpha = alpha; c.fillStyle = '#ffffff'
+    c.beginPath(); c.arc(fx.x, fx.y, 10 + progress * 28, 0, Math.PI * 2); c.fill()
+  } else if (fx.kind === 'arcane-empower') {
+    const color = fx.color ?? '#b9e0d2'
+    const now = performance.now()
+    c.shadowColor = color; c.shadowBlur = 24
+    c.globalAlpha = alpha * .8; c.strokeStyle = color; c.lineWidth = 2.5
+    c.beginPath(); c.ellipse(fx.x, fx.y + 8, 40 + progress * 54, 14 + progress * 18, 0, 0, Math.PI * 2); c.stroke()
+    c.globalAlpha = alpha * .55; c.lineWidth = 1.5
+    for (let ring = 0; ring < 2; ring += 1) {
+      c.save(); c.translate(fx.x, fx.y - 28); c.rotate(now / 600 + ring * Math.PI / 3)
+      c.beginPath()
+      for (let k = 0; k < 6; k += 1) {
+        const angle = (k * Math.PI) / 3
+        const px = Math.cos(angle) * (38 + progress * 26)
+        const py = Math.sin(angle) * (38 + progress * 26) * .55
+        if (k === 0) c.moveTo(px, py); else c.lineTo(px, py)
+      }
+      c.closePath(); c.stroke(); c.restore()
+    }
+    c.globalAlpha = alpha * .5
+    for (let i = 0; i < 6; i += 1) {
+      const angle = now / 800 + (i * Math.PI) / 3
+      const px = fx.x + Math.cos(angle) * 36
+      c.beginPath(); c.moveTo(px, fx.y - 6); c.lineTo(px, fx.y - 140 - progress * 50); c.stroke()
+    }
+    c.fillStyle = color
+    for (let i = 0; i < 8; i += 1) {
+      const angle = now / 700 + (i * Math.PI) / 4
+      const px = fx.x + Math.cos(angle) * (44 + progress * 20)
+      const py = fx.y - 55 + Math.sin(angle) * (18 + progress * 10)
+      c.beginPath(); c.moveTo(px, py - 3); c.lineTo(px + 2.4, py); c.lineTo(px, py + 3); c.lineTo(px - 2.4, py); c.closePath(); c.fill()
+    }
+    c.globalAlpha = alpha; c.fillStyle = '#ffffff'
+    c.beginPath(); c.arc(fx.x, fx.y - 60, 10 + progress * 26, 0, Math.PI * 2); c.fill()
+  } else if (fx.kind === 'blink-burst') {
+    const color = fx.color ?? '#b7e8ff'
+    c.shadowColor = color; c.shadowBlur = 26
+    for (let ring = 0; ring < 3; ring += 1) {
+      c.globalAlpha = alpha * (.85 - ring * .2)
+      c.strokeStyle = ring === 0 ? '#ffffff' : color; c.lineWidth = 4 - ring
+      c.beginPath(); c.arc(fx.x, fx.y, 18 + progress * 70 + ring * 8, 0, Math.PI * 2); c.stroke()
+    }
+    c.globalAlpha = alpha * .7; c.strokeStyle = color; c.lineWidth = 3
+    for (let slit = -1; slit <= 1; slit += 1) {
+      c.beginPath(); c.moveTo(fx.x + slit * 10, fx.y - 72)
+      c.quadraticCurveTo(fx.x + slit * 26, fx.y, fx.x + slit * 10, fx.y + 62); c.stroke()
+    }
+    c.fillStyle = '#ffffff'
+    for (let i = 0; i < 8; i += 1) {
+      const angle = performance.now() / 300 + (i * Math.PI) / 4
+      c.beginPath(); c.arc(fx.x + Math.cos(angle) * (30 + progress * 24), fx.y + Math.sin(angle) * (30 + progress * 18), 2, 0, Math.PI * 2); c.fill()
+    }
+  } else if (fx.kind === 'blink-trail') {
+    const dir = fx.direction ?? 1
+    const span = fx.radius ?? 140
+    const color = fx.color ?? '#b7e8ff'
+    c.shadowColor = color; c.shadowBlur = 20
+    c.globalAlpha = alpha * .8; c.strokeStyle = color; c.lineWidth = 7
+    c.beginPath(); c.moveTo(fx.x - dir * span / 2, fx.y); c.lineTo(fx.x + dir * span / 2, fx.y); c.stroke()
+    c.globalAlpha = alpha; c.strokeStyle = '#ffffff'; c.lineWidth = 2
+    c.beginPath(); c.moveTo(fx.x - dir * span / 2, fx.y); c.lineTo(fx.x + dir * span / 2, fx.y); c.stroke()
+    c.globalAlpha = alpha * .6; c.strokeStyle = color; c.lineWidth = 2
+    for (let i = 0; i < 6; i += 1) {
+      const px = fx.x - dir * span / 2 + dir * ((i + 1) * span / 7)
+      c.beginPath(); c.moveTo(px, fx.y - 20); c.lineTo(px, fx.y + 20); c.stroke()
+    }
+  } else if (fx.kind === 'fire-nova') {
+    const color = fx.color ?? '#ffd27a'
+    c.shadowColor = '#ff7a3d'; c.shadowBlur = 26
+    for (let ring = 0; ring < 3; ring += 1) {
+      const p = Math.min(1, progress + ring * .1)
+      c.globalAlpha = alpha * (.9 - ring * .22)
+      c.strokeStyle = ring === 0 ? '#fff2c0' : '#ff9a5c'; c.lineWidth = 5 - ring
+      c.beginPath(); c.ellipse(fx.x, fx.y, 30 + p * 150, 15 + p * 56, 0, 0, Math.PI * 2); c.stroke()
+    }
+    c.globalAlpha = alpha * .85; c.fillStyle = '#fff6d0'
+    c.beginPath(); c.arc(fx.x, fx.y, 14 + progress * 22, 0, Math.PI * 2); c.fill()
+    for (let i = 0; i < 24; i += 1) {
+      const angle = (i / 24) * Math.PI * 2 + progress
+      const radius = 20 + progress * 140
+      c.globalAlpha = alpha * (.4 + (i % 3) * .18)
+      c.fillStyle = i % 2 ? color : '#ff9a5c'
+      c.beginPath(); c.arc(fx.x + Math.cos(angle) * radius, fx.y + Math.sin(angle) * radius * .6, 2 + (i % 3), 0, Math.PI * 2); c.fill()
+    }
   } else if (fx.kind === 'shield-break') {
     const color = fx.color ?? '#b9e0d2'
     c.strokeStyle = color; c.lineWidth = 3
@@ -7313,30 +7771,35 @@ function drawBowSkillObjects(c: CanvasRenderingContext2D) {
   }
 }
 function drawBombClone(c: CanvasRenderingContext2D) {
-  if (!game || !bombClone) return
+  if (!game || bombClones.length === 0) return
   const now = performance.now()
-  const bob = Math.sin(now / 120) * 2
-  const pulse = .6 + Math.sin(now / 90) * .35
-  c.save()
-  // 冲锋残影
-  c.globalAlpha = .18; c.fillStyle = '#d6b4ff'
-  for (let ghost = 1; ghost <= 3; ghost++) c.fillRect(bombClone.x - 14 - ghost * 16, world.floor - 62, 10, 56)
-  c.globalAlpha = .85
-  c.translate(bombClone.x, world.floor + bombClone.y + bob)
-  c.scale(facing * .9, .9)
-  c.shadowColor = '#ff9ae0'; c.shadowBlur = 20
-  drawMageHero(c, now, 0)
-  c.restore()
-  // 引信光环
-  c.save(); c.translate(bombClone.x, world.floor - 60)
-  c.globalAlpha = .55 + pulse * .3; c.strokeStyle = '#ff9ae0'; c.lineWidth = 3; c.shadowColor = '#ff9ae0'; c.shadowBlur = 16
-  c.beginPath(); c.arc(0, 0, 30 + pulse * 8, 0, Math.PI * 2); c.stroke()
-  c.restore()
-  const barY = world.floor - 132
-  c.save(); c.fillStyle = 'rgba(24, 14, 30, .85)'; c.fillRect(bombClone.x - 46, barY, 92, 18)
-  c.fillStyle = '#f0c4ff'; c.font = "700 10px 'Microsoft YaHei', sans-serif"; c.textAlign = 'center'
-  c.fillText(`爆裂分身 ${bombClone.timer.toFixed(1)}s`, bombClone.x, barY + 12)
-  c.restore()
+  for (const clone of bombClones) {
+    const main = clone.source === 'main'
+    const color = main ? '#ff9ae0' : '#9fe8ff'
+    const bob = Math.sin(now / 120) * 2
+    const pulse = .6 + Math.sin(now / 90) * .35
+    c.save()
+    // 冲锋残影
+    c.globalAlpha = main ? .18 : .13; c.fillStyle = main ? '#d6b4ff' : '#9fe8ff'
+    for (let ghost = 1; ghost <= 3; ghost++) c.fillRect(clone.x - 14 - ghost * 16, world.floor - 62, 10, 56)
+    c.globalAlpha = main ? .85 : .68
+    const scale = main ? .9 : .74
+    c.translate(clone.x, world.floor + clone.y + bob)
+    c.scale(facing * scale, scale)
+    c.shadowColor = color; c.shadowBlur = main ? 20 : 14
+    drawMageHero(c, now, 0)
+    c.restore()
+    // 引信光环
+    c.save(); c.translate(clone.x, world.floor - 60)
+    c.globalAlpha = .55 + pulse * .3; c.strokeStyle = color; c.lineWidth = main ? 3 : 2; c.shadowColor = color; c.shadowBlur = main ? 16 : 10
+    c.beginPath(); c.arc(0, 0, (main ? 30 : 22) + pulse * 8, 0, Math.PI * 2); c.stroke()
+    c.restore()
+    const barY = world.floor - (main ? 132 : 116)
+    c.save(); c.fillStyle = 'rgba(24, 14, 30, .85)'; c.fillRect(clone.x - 46, barY, 92, 18)
+    c.fillStyle = main ? '#f0c4ff' : '#c8f0ff'; c.font = "700 10px 'Microsoft YaHei', sans-serif"; c.textAlign = 'center'
+    c.fillText(`${main ? '爆裂分身' : '分身爆裂'} ${clone.timer.toFixed(1)}s`, clone.x, barY + 12)
+    c.restore()
+  }
 }
 function drawArcaneOrb(c: CanvasRenderingContext2D) {
   if (!arcaneOrb) return
@@ -7355,45 +7818,62 @@ function drawArcaneOrb(c: CanvasRenderingContext2D) {
   c.restore()
 }
 // 隐身特效：残影、薄雾光环与环绕符文，让隐匿状态一眼可见。
-function drawStealthAura(c: CanvasRenderingContext2D) {
-  if (!game || invisibleTimer <= 0) return
+// 奥术强化持续期间的小型环绕符文，不叠加到隐身特效上。
+function drawArcaneBuff(c: CanvasRenderingContext2D) {
+  if (!game || game.role !== 'mage' || buffTime <= 0 || invisibleTimer > 0) return
   const now = performance.now()
+  const color = weaponFxColor()
   const baseY = world.floor + heroY
-  const centerY = baseY - 55
   c.save()
-  for (let ghost = 1; ghost <= 2; ghost++) {
-    c.globalAlpha = .08 / ghost
-    c.save(); c.translate(heroX - facing * ghost * 14, baseY + Math.sin(now / 300 + ghost) * 2); c.scale(facing * .96, .96)
-    if (game.role === 'mage') drawMageHero(c, now - ghost * 140, 0)
-    else drawWarriorHero(c, now - ghost * 140, 0)
+  c.globalAlpha = .32; c.strokeStyle = color; c.lineWidth = 1.5; c.shadowColor = color; c.shadowBlur = 10
+  c.beginPath(); c.ellipse(heroX, baseY - 4, 28 + Math.sin(now / 420) * 3, 9, 0, 0, Math.PI * 2); c.stroke()
+  for (let i = 0; i < 5; i += 1) {
+    const angle = now / 760 + (i * Math.PI * 2) / 5
+    const px = heroX + Math.cos(angle) * 26
+    const py = baseY - 52 + Math.sin(angle) * 14
+    c.globalAlpha = .55
+    c.fillStyle = i % 2 ? color : '#e6ddb0'
+    c.beginPath(); c.moveTo(px, py - 3); c.lineTo(px + 2.4, py); c.lineTo(px, py + 3); c.lineTo(px - 2.4, py); c.closePath(); c.fill()
+  }
+  c.restore()
+}
+// 能量禁锢的残留法阵与笼柱。
+function drawPrisonEffect(c: CanvasRenderingContext2D) {
+  if (!game || scene !== 'battle' || prisonTimer <= 0) return
+  const now = performance.now()
+  const alpha = Math.min(1, prisonTimer / .6)
+  const color = prisonColor
+  c.save()
+  c.shadowColor = color; c.shadowBlur = 18
+  c.globalAlpha = .55 * alpha; c.strokeStyle = color; c.lineWidth = 2
+  c.beginPath(); c.ellipse(prisonX, world.floor - 5, 56, 15, 0, 0, Math.PI * 2); c.stroke()
+  c.beginPath(); c.ellipse(prisonX, world.floor - 5, 34, 9, 0, 0, Math.PI * 2); c.stroke()
+  for (let i = 0; i < 6; i += 1) {
+    const angle = now / 600 + (i * Math.PI) / 3
+    c.beginPath(); c.moveTo(prisonX + Math.cos(angle) * 34, world.floor - 5 + Math.sin(angle) * 9)
+    c.lineTo(prisonX + Math.cos(angle) * 56, world.floor - 5 + Math.sin(angle) * 15); c.stroke()
+  }
+  for (let layer = 0; layer < 2; layer += 1) {
+    const sides = layer === 0 ? 6 : 4
+    c.save(); c.translate(prisonX, prisonY); c.rotate(now / 500 * (layer ? -1 : 1))
+    c.globalAlpha = alpha * (layer ? .3 : .5); c.strokeStyle = layer ? '#e8fff2' : color; c.lineWidth = layer ? 1.5 : 2.2
+    for (let side = 0; side < sides; side += 1) {
+      c.rotate((Math.PI * 2) / sides)
+      c.beginPath(); c.moveTo(0, -72); c.lineTo(18, -20); c.lineTo(0, 30); c.lineTo(-18, -20); c.closePath(); c.stroke()
+    }
     c.restore()
   }
-  c.globalAlpha = .22 + Math.sin(now / 360) * .05
-  c.strokeStyle = '#9fe8ff'; c.lineWidth = 2; c.shadowColor = '#9fe8ff'; c.shadowBlur = 20
-  c.beginPath(); c.ellipse(heroX, centerY, 34 + Math.sin(now / 420) * 4, 58, 0, 0, Math.PI * 2); c.stroke()
-  c.globalAlpha = .12
-  c.strokeStyle = '#d6b4ff'; c.lineWidth = 1.4
-  c.beginPath(); c.ellipse(heroX, centerY, 44 + Math.sin(now / 520) * 5, 68, 0, 0, Math.PI * 2); c.stroke()
-  for (let i = 0; i < 8; i++) {
-    const angle = now / 850 + i * Math.PI * 2 / 8
-    const radiusX = 32 + Math.sin(now / 500 + i) * 5
-    const radiusY = 42 + Math.cos(now / 550 + i) * 7
-    c.globalAlpha = .18 + Math.sin(now / 260 + i * 1.7) * .1
-    c.fillStyle = i % 2 ? '#d6b4ff' : '#9fe8ff'
-    c.beginPath(); c.arc(heroX + Math.cos(angle) * radiusX, centerY + Math.sin(angle) * radiusY, 2 + (i % 3) * .7, 0, Math.PI * 2); c.fill()
-  }
-  // 上身薄雾
-  const mist = c.createLinearGradient(0, centerY - 46, 0, centerY + 46)
-  mist.addColorStop(0, 'rgba(159, 232, 255, 0)'); mist.addColorStop(.5, 'rgba(159, 232, 255, .12)'); mist.addColorStop(1, 'rgba(159, 232, 255, 0)')
-  c.globalAlpha = 1; c.fillStyle = mist
-  c.beginPath(); c.ellipse(heroX, centerY, 26, 50, 0, 0, Math.PI * 2); c.fill()
+  c.globalAlpha = alpha * .7; c.fillStyle = '#ffffff'
+  c.beginPath(); c.arc(prisonX, prisonY, 5 + Math.sin(now / 160) * 2, 0, Math.PI * 2); c.fill()
   c.restore()
-  // 状态条
-  const labelY = baseY - 132
+}
+function drawStealthAura(c: CanvasRenderingContext2D) {
+  if (!game || invisibleTimer <= 0) return
+  // 只保留身体透明与剩余时间，不再叠加残影、光环与薄雾。
+  const labelY = world.floor + heroY - 132
   c.save()
-  c.fillStyle = 'rgba(13, 28, 28, .82)'; c.fillRect(heroX - 40, labelY - 14, 80, 20)
-  c.strokeStyle = 'rgba(159, 232, 255, .55)'; c.lineWidth = 1; c.strokeRect(heroX - 40, labelY - 14, 80, 20)
-  c.fillStyle = '#c8f0ff'; c.font = "700 11px 'Microsoft YaHei', sans-serif"; c.textAlign = 'center'
+  c.fillStyle = 'rgba(13, 28, 28, .72)'; c.fillRect(heroX - 34, labelY - 13, 68, 18)
+  c.fillStyle = '#c8f0ff'; c.font = "700 10px 'Microsoft YaHei', sans-serif"; c.textAlign = 'center'
   c.fillText(`隐匿 ${invisibleTimer.toFixed(1)}s`, heroX, labelY)
   c.restore()
 }
@@ -7424,17 +7904,6 @@ function drawClone(c: CanvasRenderingContext2D) {
   c.shadowColor = stealth ? '#9fe8ff' : '#d6b4ff'; c.shadowBlur = stealth ? 24 : 16
   drawMageHero(c, now, 0)
   c.restore()
-  if (stealth) {
-    c.save(); c.globalAlpha = .4 + Math.sin(now / 300) * .12
-    c.strokeStyle = '#9fe8ff'; c.lineWidth = 2; c.shadowColor = '#9fe8ff'; c.shadowBlur = 16
-    c.beginPath(); c.ellipse(cloneX, world.floor + cloneY - 54, 30 + Math.sin(now / 420) * 4, 52, 0, 0, Math.PI * 2); c.stroke()
-    for (let i = 0; i < 5; i++) {
-      const angle = now / 900 + i * Math.PI * 2 / 5
-      c.fillStyle = i % 2 ? '#d6b4ff' : '#9fe8ff'
-      c.beginPath(); c.arc(cloneX + Math.cos(angle) * 28, world.floor + cloneY - 54 + Math.sin(angle) * 34, 2.2, 0, Math.PI * 2); c.fill()
-    }
-    c.restore()
-  }
   const barY = world.floor + cloneY - 116
   c.save(); c.fillStyle = 'rgba(13, 25, 25, .82)'; c.fillRect(cloneX - 34, barY, 68, 18)
   c.fillStyle = stealth ? '#9fe8ff' : '#d6b4ff'; c.font = "700 9px 'Microsoft YaHei', sans-serif"; c.textAlign = 'center'
@@ -7524,11 +7993,13 @@ function draw() {
   drawBowSkillObjects(ctx)
   if (scene === 'battle') drawBossChest(ctx)
   for (const foe of foes) drawFoe(ctx, foe)
+  drawPrisonEffect(ctx)
   if (scene === 'town') { drawTownWaypoint(ctx); drawTownNpc(ctx); drawTownCompanions(ctx); drawSecondNpc(ctx) }
-  ctx.save(); if (invisibleTimer > 0) ctx.globalAlpha = .12
+  ctx.save(); if (invisibleTimer > 0) ctx.globalAlpha = .16
   drawHero(ctx)
   ctx.restore()
   drawStealthAura(ctx)
+  drawArcaneBuff(ctx)
   drawClone(ctx)
   drawBombClone(ctx)
   drawArcaneOrb(ctx)
@@ -7621,7 +8092,7 @@ function draw() {
     ctx.fillStyle = '#e6d5a2'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(notice, 480, noticeY + 24, 320)
   }
 }
-function frame(now: number) { const dt = Math.min((now - lastTime) / 1000, .045); lastTime = now; update(dt); draw(); requestAnimationFrame(frame) }
+function frame(now: number) { if (gameClosed) return; const dt = Math.min((now - lastTime) / 1000, .045); lastTime = now; update(dt); draw(); requestAnimationFrame(frame) }
 document.querySelector('#rotate-lock')?.addEventListener('click', () => { void enterLandscape() })
 window.addEventListener('resize', () => { if (canvas && scene !== 'title') { setupCanvas(); paintHudPortrait() } })
 window.addEventListener('pointerdown', () => document.querySelector('#rotate-hint')?.classList.add('dismissed'), { once: true })
