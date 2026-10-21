@@ -6,16 +6,18 @@ import { audioEnabled, playSfx, playSkillSfx, setMusicMode, toggleAudio, unlockA
 type Role = 'warrior' | 'mage'
 type Scene = 'title' | 'town' | 'battle' | 'defeat' | 'ending'
 type GearType = 'weapon' | 'armor' | 'fashion'
-type Gear = { id: string; name: string; level: number; type?: GearType; hp: number; mp?: number; attack: number; defense: number }
+type WeaponStyle = 'sword' | 'axe' | 'blade' | 'bow' | 'staff' | 'book'
+type SkillSetKey = 'sword' | 'bow' | 'staff' | 'book'
+type Gear = { id: string; name: string; level: number; type?: GearType; style?: WeaponStyle; hp: number; mp?: number; attack: number; defense: number }
 type WorldDrop = { id: string; type: 'hp-potion' | 'mp-potion' | 'material'; x: number; materialKey?: string }
 type AttributeStat = 'hp' | 'attack' | 'mp' | 'defense'
 type AttributeAllocation = Record<AttributeStat, number>
 type StageProgress = { kills: number; bossDefeated: boolean; pointsClaimed?: number }
-type Save = { role: Role; stage: number; unlockedStage: number; kills: number; stageProgress?: Record<string, StageProgress>; hp: number; mp: number; gear: Gear[]; equipped: string | null; weaponId?: string | null; weapon2Id?: string | null; armorId?: string | null; fashionId?: string | null; level?: number; exp?: number; drops?: WorldDrop[]; bossDefeated?: boolean; attributePoints?: number; attributeAllocation?: AttributeAllocation; soul?: number; normalTalent?: number; normalTalentLevels?: number[]; advancedTalent?: number; advancedTalentLevel?: number; talentFragments?: number; talentCoins?: number; lotteryChances?: number; shopFashionBought?: boolean; reviveCoins?: number; reviveUsed?: boolean; fragmentBuyDay?: string; reviveBuyAt?: number; materials?: Record<string, number>; stones?: number[]; enhance?: { weapon: number; armor: number; weapon2: number; failWeapon: number; failArmor: number; failWeapon2: number }; nightmareCleared?: number[]; stamps?: number; tutorialDone?: boolean; hiddenCleared?: boolean; rivalTrust?: boolean; stage8Choice?: 'save' | 'chase' | 'together' | null; rescuedRock?: boolean; rescuedXiaoman?: boolean; rescuedZhou?: boolean; seenStories?: string[]; forgeIntroSeen?: boolean; shopIntroSeen?: boolean; lotteryIntroSeen?: boolean; townIntroSeen?: boolean; town: boolean; completed: boolean; dead: boolean }
+type Save = { role: Role; stage: number; unlockedStage: number; kills: number; stageProgress?: Record<string, StageProgress>; hp: number; mp: number; gear: Gear[]; equipped: string | null; weaponId?: string | null; weapon2Id?: string | null; armorId?: string | null; armor2Id?: string | null; fashionId?: string | null; extraSlot?: 'weapon' | 'armor'; level?: number; exp?: number; drops?: WorldDrop[]; bossDefeated?: boolean; attributePoints?: number; attributeAllocation?: AttributeAllocation; soul?: number; normalTalent?: number; normalTalentLevels?: number[]; advancedTalent?: number; advancedTalentLevel?: number; talentFragments?: number; talentCoins?: number; lotteryChances?: number; shopFashionBought?: boolean; reviveCoins?: number; reviveUsed?: boolean; fragmentBuyDay?: string; reviveBuyAt?: number; materials?: Record<string, number>; stones?: number[]; enhance?: { weapon: number; armor: number; armor2: number; weapon2: number; failWeapon: number; failArmor: number; failArmor2: number; failWeapon2: number }; nightmareCleared?: number[]; stamps?: number; tutorialDone?: boolean; hiddenCleared?: boolean; rivalTrust?: boolean; stage8Choice?: 'save' | 'chase' | 'together' | null; rescuedRock?: boolean; rescuedXiaoman?: boolean; rescuedZhou?: boolean; seenStories?: string[]; forgeIntroSeen?: boolean; shopIntroSeen?: boolean; lotteryIntroSeen?: boolean; townIntroSeen?: boolean; town: boolean; completed: boolean; dead: boolean }
 type SaveSlot = { id: string; label: string; data: Save; updatedAt: number }
 type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; flyPhase?: number; flyAmplitude?: number; flySpeed?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number; specialTimer?: number; specialWindup?: number; specialKind?: 'pierce' | 'exclusive'; specialNext?: 'pierce' | 'exclusive'; mobSkillTimer?: number; skillWindup?: number; skillKind?: 'lunge' | 'slam'; tutorial?: boolean; mirror?: boolean; mirrorRole?: Role; mp?: number; mirrorSkillTimer?: number; mirrorWindup?: number; mirrorSkill?: number; mirrorBuffTimer?: number; mirrorBurst?: number; mirrorBurstWait?: number }
 type Fx = { x: number; y: number; life: number; kind: string; direction?: number; text?: string; damage?: number; duration?: number; vx?: number; vy?: number; color?: string; radius?: number }
-type Projectile = { x: number; y: number; vx: number; life: number; damage: number; targetId: number }
+type Projectile = { x: number; y: number; vx: number; vy?: number; life: number; damage: number; targetId: number; kind?: 'homing' | 'arrow' | 'book' | 'charged' | 'fall'; pierce?: boolean; hitIds?: number[]; maxDistance?: number; startX?: number; label?: string }
 type FoeShot = { x: number; y: number; vx: number; vy: number; damage: number; radius: number; color: string; life: number }
 type BossVictory = { stage: number; bossX: number; rewards: string[]; time: number; ending: boolean; nightmare?: boolean }
 type BossChestLoot = { soul: number; gear: Gear[]; stamps: number; lottery: number; fragments: number; rewards: string[] }
@@ -29,11 +31,24 @@ type BattlePlatform = { x: number; w: number; height: number; kind: 'tree' | 'ro
 const SAVE_KEY = 'elemental-expedition-save-v2'
 const DEMO_MODE = import.meta.env.MODE === 'demo'
 const DEMO_SAVE_KEY = `${SAVE_KEY}:demo`
-const GAME_VERSION = '1.73'
+const GAME_VERSION = '1.74'
 const stageNames = ['苔痕边境', '沉钟矿道', '赤岩峡谷', '风蚀高原', '幽蓝沼泽', '断星回廊', '灰烬王庭', '深渊裂谷', '苍白圣所', '终焉之门']
 const roleLabels: Record<Role, string> = { warrior: '战士', mage: '法师' }
-const skillLabels: Record<Role, string[]> = { warrior: ['前斩', '旋风斩', '突刺', '蓄力重斩'], mage: ['奥术强化', '双生火柱', '闪现', '能量禁锢'] }
-const gearNames: Record<GearType, string[]> = { weapon: ['巡林者长剑', '碎岩战斧', '星火法杖', '守誓者之刃'], armor: ['苔纹护甲', '沉钟胸甲', '赤岩重铠', '星辉法袍'], fashion: ['时装'] }
+const SKILL_LABELS: Record<SkillSetKey, string[]> = {
+  sword: ['前斩', '旋风斩', '突刺', '蓄力重斩'],
+  bow: ['蓄力箭', '箭雨腾空', '花炸弹', '猎鹰坠击'],
+  staff: ['奥术强化', '双生火柱', '闪现', '能量禁锢'],
+  book: ['隐匿', '镜像分身', '闪现', '魔典爆炸'],
+}
+const WEAPON_NAMES: Record<WeaponStyle, string[]> = {
+  sword: ['巡林者长剑'],
+  axe: ['碎岩战斧'],
+  blade: ['守誓者之刃'],
+  bow: ['风语长弓', '逐日猎弓'],
+  staff: ['星火法杖'],
+  book: ['星辉魔典', '秘仪之书'],
+}
+const gearNames: Record<GearType, string[]> = { weapon: [], armor: ['苔纹护甲', '沉钟胸甲', '赤岩重铠', '星辉法袍'], fashion: ['时装'] }
 const xpThresholds = [200, 500, 1200, 2700]
 
 // ── 可调数值集中区 ─────────────────────────────────────────────
@@ -42,8 +57,18 @@ const ROLE_BASE: Record<Role, { hp: number; mp: number; attack: number; defense:
   mage: { hp: 800, mp: 450, attack: 120, defense: 8 },
 }
 const MAGE_GROWTH_RATE = 0.8
-const SKILL_COSTS: Record<Role, number[]> = { warrior: [20, 30, 20, 50], mage: [40, 30, 10, 50] }
-const SKILL_MULTIPLIERS: Record<Role, number[]> = { warrior: [1.5, 1.5, 1, 2], mage: [0, 1.6, 0, 0] }
+const SKILL_COSTS: Record<SkillSetKey, number[]> = {
+  sword: [20, 30, 20, 50],
+  bow: [30, 30, 40, 60],
+  staff: [40, 30, 10, 50],
+  book: [30, 20, 10, 50],
+}
+const SKILL_MULTIPLIERS: Record<SkillSetKey, number[]> = {
+  sword: [1.5, 1.5, 1, 2],
+  bow: [0, 0, 1.5, 0],
+  staff: [0, 1.6, 0, 0],
+  book: [0, 0, 0, 2],
+}
 const SKILL_COOLDOWNS = [0, 0, 0, 0]
 // ── 可自定义按键 ─────────────────────────────────────────────
 type BindAction = 'left' | 'right' | 'attack' | 'jump' | 'skill1' | 'skill2' | 'skill3' | 'skill4'
@@ -134,7 +159,10 @@ function addStone(tier: number, amount = 1) {
 function stoneName(tier: number) { return STONE_NAMES[tier - 1] ?? `${tier} 阶强化石` }
 function materialDropChance(stage: number) { return stage >= 7 ? .1 : stage >= 5 ? .15 : .2 }
 function secondNpcUnlocked() { return Boolean(game && (game.unlockedStage > 5 || game.stageProgress?.['5']?.bossDefeated)) }
-function nightmareUnlocked(stage: number) { return Boolean(game?.stageProgress?.[String(stage)]?.bossDefeated) }
+function nightmareUnlocked(stage: number) {
+  if (!game?.stageProgress?.[String(stage)]?.bossDefeated) return false
+  return stage === 1 || Boolean(game.nightmareCleared?.includes(stage - 1))
+}
 function baseEnhanceChance(level: number) {
   const table = [100, 90, 80, 70, 60, 50, 40, 30, 20, 15, 10, 5, 1]
   return level < table.length ? table[level] : 1
@@ -180,13 +208,14 @@ function advancedSkillDamagePct(level: number) { return (2 * level + 8) / 100 }
 function advancedMpPct(level: number) { return (2 * level + 3) / 100 }
 function advancedConvertPct(level: number) { return (level + 1) * .005 }
 function advancedEquipPct(level: number) { return level >= 2 ? .02 * (level - 1) : 0 }
-function dualWieldUnlocked() { return game?.advancedTalent === 3 && advancedTalentLevel() >= 1 }
+function dualWieldUnlocked() { return game?.advancedTalent === 3 && advancedTalentLevel() >= 1 && (game?.extraSlot ?? 'weapon') === 'weapon' }
+function extraArmorUnlocked() { return game?.advancedTalent === 3 && advancedTalentLevel() >= 1 && game?.extraSlot === 'armor' }
 function advancedEffectText(id: number, level: number) {
   if (level <= 0) return ''
   if (id === 1) return `法力上限 +${Math.round(advancedMpPct(level) * 100)}%，技能伤害 +${Math.round(advancedSkillDamagePct(level) * 100)}%`
   if (id === 2) return `生命上限的 ${(advancedConvertPct(level) * 100).toFixed(1)}% 转化为法力上限（生命不减少）`
-  if (level <= 1) return '可额外装备一把武器（升级后提高装备属性）'
-  return `可额外装备一把武器，装备属性 +${Math.round(advancedEquipPct(level) * 100)}%`
+  if (level <= 1) return '可额外装备武器或护甲（二选一，升级后提高装备属性）'
+  return `可额外装备武器或护甲（二选一），装备属性 +${Math.round(advancedEquipPct(level) * 100)}%`
 }
 // 时装阶级可无限向上合成：每阶生命/攻击/蓝量各 +5%，防御额外多 5%。
 function fashionTierStats(tier: number) {
@@ -358,6 +387,18 @@ let buffTime = 0
 let burst = 0
 let burstWait = 0
 let burstTargetId: number | null = null
+let invisibleTimer = 0
+let cloneTimer = 0
+let cloneX = 0
+let cloneY = 0
+let cloneHp = 0
+let cloneMaxHp = 0
+let bowCharging = false
+let bowCharge = 0
+let bowChargeSource: 'attack' | 'skill1' | null = null
+let bowAirLocked = false
+let flowerBomb: { x: number; y: number; timer: number } | null = null
+let skyBow: { x: number; timer: number; shots: number } | null = null
 let shake = 0
 let flashTime = 0
 let flashColor = '#ffe6a8'
@@ -377,7 +418,7 @@ let gameMenuOpen = false
 let settingsOpen = false
 let secondNpcOpen = false
 let secondView: 'menu' | 'dungeon' | 'enhance' = 'menu'
-let enhanceSlot: 'weapon' | 'weapon2' | 'armor' = 'weapon'
+let enhanceSlot: 'weapon' | 'weapon2' | 'armor' | 'armor2' = 'weapon'
 let nightmareStage: number | null = null
 let attrHoldTimer: number | null = null
 let attrRepeatTimer: number | null = null
@@ -476,15 +517,19 @@ function normalizeSave(data: Save): Save {
   } else {
     data.stones = data.stones.slice(0, 5).map((count) => Math.max(0, Math.floor(Number(count) || 0)))
   }
-  data.enhance ??= { weapon: 0, armor: 0, weapon2: 0, failWeapon: 0, failArmor: 0, failWeapon2: 0 }
+  data.enhance ??= { weapon: 0, armor: 0, armor2: 0, weapon2: 0, failWeapon: 0, failArmor: 0, failArmor2: 0, failWeapon2: 0 }
   data.enhance = {
     weapon: Math.max(0, Math.floor(Number(data.enhance.weapon) || 0)),
     armor: Math.max(0, Math.floor(Number(data.enhance.armor) || 0)),
+    armor2: Math.max(0, Math.floor(Number(data.enhance.armor2) || 0)),
     weapon2: Math.max(0, Math.floor(Number(data.enhance.weapon2) || 0)),
     failWeapon: Math.max(0, Math.floor(Number(data.enhance.failWeapon) || 0)),
     failArmor: Math.max(0, Math.floor(Number(data.enhance.failArmor) || 0)),
+    failArmor2: Math.max(0, Math.floor(Number(data.enhance.failArmor2) || 0)),
     failWeapon2: Math.max(0, Math.floor(Number(data.enhance.failWeapon2) || 0)),
   }
+  data.extraSlot = data.extraSlot === 'armor' ? 'armor' : 'weapon'
+  data.armor2Id ??= null
   data.nightmareCleared = Array.isArray(data.nightmareCleared) ? [...new Set(data.nightmareCleared.map((stage) => Math.floor(Number(stage))).filter((stage) => stage >= 1 && stage <= 10))] : []
   data.talentFragments ??= 0
   data.talentCoins ??= 0
@@ -550,6 +595,7 @@ function equippedGear() {
     gear.id === game?.weaponId
     || (dualWieldUnlocked() && gear.id === game?.weapon2Id)
     || gear.id === game?.armorId
+    || (extraArmorUnlocked() && gear.id === game?.armor2Id)
     || gear.id === game?.fashionId
     || (!gear.type && gear.id === game?.equipped)
   )
@@ -587,24 +633,28 @@ function stats() {
   const legacy = gear.find((entry) => !entry.type)
   const mainWeapon = gear.find((entry) => entry.type === 'weapon' && entry.id === game?.weaponId)
   const offWeapon = dualWieldUnlocked() ? gear.find((entry) => entry.type === 'weapon' && entry.id === game?.weapon2Id) : undefined
-  const armor = gear.find((entry) => entry.type === 'armor')
+  const armor = gear.find((entry) => entry.type === 'armor' && entry.id === game?.armorId)
+  const armor2 = extraArmorUnlocked() ? gear.find((entry) => entry.type === 'armor' && entry.id === game?.armor2Id) : undefined
   const fashion = gear.find((entry) => entry.type === 'fashion')
   const gearMultiplier = roleGearMultiplier(role)
   const allocation = game?.attributeAllocation ?? { hp: 0, attack: 0, mp: 0, defense: 0 }
-  const enhanceData = game?.enhance ?? { weapon: 0, armor: 0, weapon2: 0, failWeapon: 0, failArmor: 0, failWeapon2: 0 }
+  const enhanceData = game?.enhance ?? { weapon: 0, armor: 0, armor2: 0, weapon2: 0, failWeapon: 0, failArmor: 0, failArmor2: 0, failWeapon2: 0 }
   const weaponEnhance = enhanceWeaponBonus(enhanceData.weapon)
   const offEnhance = enhanceWeaponBonus(enhanceData.weapon2)
   const armorEnhance = enhanceArmorBonus(enhanceData.armor)
+  const armor2Enhance = enhanceArmorBonus(enhanceData.armor2 ?? 0)
   const mainAtkBase = Math.round((mainWeapon?.attack ?? 0) * gearMultiplier)
   const mainMpBase = Math.round((mainWeapon?.mp ?? 0) * gearMultiplier)
   const offAtkBase = Math.round((offWeapon?.attack ?? 0) * gearMultiplier)
   const offMpBase = Math.round((offWeapon?.mp ?? 0) * gearMultiplier)
   const armorHpBase = Math.round((armor?.hp ?? legacy?.hp ?? 0) * gearMultiplier)
   const armorDefenseBase = Math.round((armor?.defense ?? legacy?.defense ?? 0) * gearMultiplier)
-  const gearHp = armorHpBase + (armor ? Math.round(armorHpBase * armorEnhance.hpPct) : 0)
+  const armor2HpBase = Math.round((armor2?.hp ?? 0) * gearMultiplier)
+  const armor2DefenseBase = Math.round((armor2?.defense ?? 0) * gearMultiplier)
+  const gearHp = armorHpBase + (armor ? Math.round(armorHpBase * armorEnhance.hpPct) : 0) + armor2HpBase + (armor2 ? Math.round(armor2HpBase * armor2Enhance.hpPct) : 0)
   const gearMp = mainMpBase + Math.round(mainMpBase * weaponEnhance.mpPct) + offMpBase + Math.round(offMpBase * offEnhance.mpPct)
   const gearAttack = mainAtkBase + Math.round(mainAtkBase * weaponEnhance.attackPct) + offAtkBase + Math.round(offAtkBase * offEnhance.attackPct) + Math.round((legacy?.attack ?? 0) * gearMultiplier)
-  const gearDefense = armorDefenseBase + (armor ? Math.round(armorDefenseBase * armorEnhance.defensePct) : 0)
+  const gearDefense = armorDefenseBase + (armor ? Math.round(armorDefenseBase * armorEnhance.defensePct) : 0) + armor2DefenseBase + (armor2 ? Math.round(armor2DefenseBase * armor2Enhance.defensePct) : 0)
   let hp = base.hp + growth.hp + allocation.hp * ATTRIBUTE_STEP.hp + gearHp
   let mp = base.mp + growth.mp + allocation.mp * ATTRIBUTE_STEP.mp + gearMp
   let attack = base.attack + growth.attack + allocation.attack * ATTRIBUTE_STEP.attack + gearAttack
@@ -634,6 +684,7 @@ function stats() {
   const advLevel = advancedTalentLevel()
   if (game?.advancedTalent === 1 && advLevel) mp = Math.round(mp * (1 + advancedMpPct(advLevel)))
   if (game?.advancedTalent === 2 && advLevel) mp += Math.round(hp * advancedConvertPct(advLevel))
+  if (invisibleTimer > 0) attack = Math.round(attack * 1.05)
   const buffMultiplier = role === 'mage' && buffTime > 0 ? 1.1 : 1
   attack = Math.round(attack * buffMultiplier)
   return { hp: Math.round(hp), mp: Math.round(mp), attack: Math.round(attack), defense: Math.round(defense) }
@@ -748,6 +799,7 @@ function fireShotFan(originX: number, originY: number, targetX: number, count: n
 }
 function hurtPlayer(rawDamage: number, shakeAmount = 0) {
   if (!game) return 0
+  if (invisibleTimer > 0) return 0
   const scaledDamage = nightmareStage !== null ? rawDamage * 1.5 : rawDamage
   const dealt = Math.max(3, Math.round(scaledDamage - effectiveDefense()))
   game.hp = Math.max(0, game.hp - dealt)
@@ -927,7 +979,7 @@ function beginTutorial() {
   tutorialMode = true
   tutorialStep = 0
   hiddenBattle = false
-  bossChest = null; lootReveal = null; nightmareStage = null
+  bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null
   if (game) game.reviveUsed = false
   scene = 'battle'
   game.town = false; game.dead = false; game.completed = false
@@ -954,7 +1006,7 @@ function beginHiddenBattle() {
   if (!hiddenUnlocked()) { toast(`集齐 ${STAMP_UNLOCK} 枚王印印章后才能挑战宿敌。`); return }
   hiddenBattle = true
   tutorialMode = false
-  bossChest = null; lootReveal = null; nightmareStage = null
+  bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null
   if (game) game.reviveUsed = false
   scene = 'battle'
   game.town = true; game.dead = false
@@ -995,7 +1047,7 @@ function executeMirrorSkill(foe: Foe, skill: number) {
       addFx('ground-break', foe.x + direction * 60, world.floor - 70, direction, .8)
       addShake(14)
     }
-    setLog(`宿敌释放「${skillLabels.warrior[skill]}」！`)
+    setLog(`宿敌释放「${SKILL_LABELS[role === 'warrior' ? 'sword' : 'staff'][skill]}」！`)
   } else {
     if (skill === 0) {
       foe.mirrorBuffTimer = 7
@@ -1061,8 +1113,9 @@ function updateMirrorFoe(foe: Foe, dt: number, distance: number, direction: numb
   if (foe.mirrorSkillTimer <= 0 && Math.abs(distance) < 560) {
     const role = foe.mirrorRole ?? 'mage'
     let skill = ((foe.mirrorSkill ?? -1) + 1) % 4
-    let cost = SKILL_COSTS[role][skill]
-    if ((foe.mp ?? 0) < cost) { skill = 0; cost = SKILL_COSTS[role][0] }
+    const mirrorSet = role === 'warrior' ? 'sword' : 'staff'
+    let cost = SKILL_COSTS[mirrorSet][skill]
+    if ((foe.mp ?? 0) < cost) { skill = 0; cost = SKILL_COSTS[mirrorSet][0] }
     if ((foe.mp ?? 0) >= cost) {
       foe.mp = Math.max(0, (foe.mp ?? 0) - cost)
       foe.mirrorSkill = skill
@@ -1070,9 +1123,9 @@ function updateMirrorFoe(foe: Foe, dt: number, distance: number, direction: numb
       foe.mirrorSkillTimer = 3.6 + Math.random() * 1.2
       foe.flash = .18; foe.attackAnim = .4
       const color = '#c9a7e8'
-      effects.push({ kind: 'mirror-charge', x: foe.x, y: world.floor - 86, direction, life: .5, duration: .5, color, text: skillLabels[role][skill] })
+      effects.push({ kind: 'mirror-charge', x: foe.x, y: world.floor - 86, direction, life: .5, duration: .5, color, text: SKILL_LABELS[role === 'warrior' ? 'sword' : 'staff'][skill] })
       addSparks(foe.x, world.floor - 80, 8, [color, '#ffffff'], 100)
-      setLog(`宿敌正在蓄力「${skillLabels[role][skill]}」...`)
+      setLog(`宿敌正在蓄力「${SKILL_LABELS[role === 'warrior' ? 'sword' : 'staff'][skill]}」...`)
       playSfx('boss')
     } else {
       foe.mirrorSkillTimer = 2
@@ -1082,7 +1135,7 @@ function updateMirrorFoe(foe: Foe, dt: number, distance: number, direction: numb
 function beginStage(stage: number, mode: 'continue' | 'restart' | 'boss' = 'continue') {
   if (!game) return
   hiddenBattle = false
-  bossChest = null; lootReveal = null; nightmareStage = null
+  bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null
   game.reviveUsed = false
   tutorialMode = false; tutorialStep = 0
   const progress = getStageProgress(stage)
@@ -1111,7 +1164,7 @@ function beginStage(stage: number, mode: 'continue' | 'restart' | 'boss' = 'cont
 }
 function start(role: Role, previous?: Save) {
   game = previous ? structuredClone(previous) : freshSave(role)
-  bossChest = null; lootReveal = null; nightmareStage = null
+  bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null
   applyDemoUnlock(game)
   if (!game.tutorialDone) { beginTutorial(); return }
   game.unlockedStage = Math.min(10, Math.max(game.unlockedStage ?? 1, game.stage))
@@ -1132,7 +1185,7 @@ function start(role: Role, previous?: Save) {
 }
 function freshSave(role: Role): Save {
   const base = ROLE_BASE[role]
-  return { role, stage: 1, unlockedStage: 1, kills: 0, hp: base.hp, mp: base.mp, gear: [], equipped: null, weaponId: null, weapon2Id: null, armorId: null, fashionId: null, level: 1, exp: 0, drops: [], bossDefeated: false, attributePoints: 0, attributeAllocation: { hp: 0, attack: 0, mp: 0, defense: 0 }, soul: 0, normalTalent: 0, normalTalentLevels: [0, 0, 0, 0], advancedTalent: 0, advancedTalentLevel: 0, talentFragments: 0, talentCoins: 0, lotteryChances: 0, shopFashionBought: false, reviveCoins: 0, reviveUsed: false, fragmentBuyDay: '', reviveBuyAt: 0, materials: {}, stones: [0, 0, 0, 0, 0], enhance: { weapon: 0, armor: 0, weapon2: 0, failWeapon: 0, failArmor: 0, failWeapon2: 0 }, nightmareCleared: [], stamps: 0, tutorialDone: false, hiddenCleared: false, rivalTrust: false, stage8Choice: null, rescuedRock: false, rescuedXiaoman: false, rescuedZhou: false, seenStories: [], forgeIntroSeen: false, shopIntroSeen: false, lotteryIntroSeen: false, townIntroSeen: false, town: true, completed: false, dead: false }
+  return { role, stage: 1, unlockedStage: 1, kills: 0, hp: base.hp, mp: base.mp, gear: [], equipped: null, weaponId: null, weapon2Id: null, armorId: null, armor2Id: null, fashionId: null, extraSlot: 'weapon', level: 1, exp: 0, drops: [], bossDefeated: false, attributePoints: 0, attributeAllocation: { hp: 0, attack: 0, mp: 0, defense: 0 }, soul: 0, normalTalent: 0, normalTalentLevels: [0, 0, 0, 0], advancedTalent: 0, advancedTalentLevel: 0, talentFragments: 0, talentCoins: 0, lotteryChances: 0, shopFashionBought: false, reviveCoins: 0, reviveUsed: false, fragmentBuyDay: '', reviveBuyAt: 0, materials: {}, stones: [0, 0, 0, 0, 0], enhance: { weapon: 0, armor: 0, armor2: 0, weapon2: 0, failWeapon: 0, failArmor: 0, failArmor2: 0, failWeapon2: 0 }, nightmareCleared: [], stamps: 0, tutorialDone: false, hiddenCleared: false, rivalTrust: false, stage8Choice: null, rescuedRock: false, rescuedXiaoman: false, rescuedZhou: false, seenStories: [], forgeIntroSeen: false, shopIntroSeen: false, lotteryIntroSeen: false, townIntroSeen: false, town: true, completed: false, dead: false }
 }
 function awardExperience(amount: number) {
   if (!game) return
@@ -1473,14 +1526,20 @@ function gearMarkup(canEquip: boolean) {
         : gear.type === 'armor'
           ? `生命 +${scaled(gear.hp)} · 防御 +${scaled(gear.defense)}`
           : `生命 +${scaled(gear.hp)} · 攻击 +${scaled(gear.attack)} · 防御 +${scaled(gear.defense)}`
+    const compatible = gear.type !== 'weapon' || canUseWeapon(gear)
     let actions = ''
-    if (gear.type === 'weapon' && dualWieldUnlocked()) {
+    if (!compatible) actions = '<i class="equipped">职业不符</i>'
+    else if (gear.type === 'armor' && extraArmorUnlocked()) {
+      const isMain = gear.id === game!.armorId
+      const isOff = gear.id === game!.armor2Id
+      actions = `${isMain ? '<i class="equipped">主护甲</i>' : `<button data-action="equip" data-id="${gear.id}" ${canEquip ? '' : 'disabled'}>主护甲</button>`}${isOff ? '<i class="equipped">副护甲</i>' : `<button data-action="equip-armor2" data-id="${gear.id}" ${canEquip ? '' : 'disabled'}>副护甲</button>`}`
+    } else if (gear.type === 'weapon' && dualWieldUnlocked()) {
       const isMain = gear.id === game!.weaponId
       const isOff = gear.id === game!.weapon2Id
       actions = `${isMain ? '<i class="equipped">主手</i>' : `<button data-action="equip-main" data-id="${gear.id}" ${canEquip ? '' : 'disabled'}>主手</button>`}${isOff ? '<i class="equipped">副手</i>' : `<button data-action="equip-off" data-id="${gear.id}" ${canEquip ? '' : 'disabled'}>副手</button>`}`
     } else if (equipped) actions = '<i class="equipped">已装备</i>'
     else {
-      actions = `<button data-action="equip" data-id="${gear.id}" ${canEquip ? '' : 'disabled'}>${canEquip ? '穿戴' : '小镇可穿'}</button>`
+      actions = `<button data-action="equip" data-id="${gear.id}" ${canEquip && compatible ? '' : 'disabled'}>${!compatible ? '职业不符' : canEquip ? '穿戴' : '小镇可穿'}</button>`
     }
     return `<article class="gear-row ${equipped ? 'active-gear' : ''}"><span class="gear-glyph ${gear.type ?? 'legacy'}">${icon}</span><span class="gear-copy"><b>${gear.name}</b><small>${type} · ${gear.level} 级 · ${details}</small></span><span class="gear-actions">${actions}</span></article>`
   }).join('')
@@ -1493,7 +1552,7 @@ function forgeSlotLimit() {
   const first = forgeSlotItems()[0]
   return first?.type === 'fashion' ? 3 : 5
 }
-type ForgeRecipe = { valid: boolean; required: number; resultName: string; reason: string; type?: GearType; level?: number }
+type ForgeRecipe = { valid: boolean; required: number; resultName: string; reason: string; type?: GearType; level?: number; style?: WeaponStyle }
 function forgeRecipe(): ForgeRecipe {
   const items = forgeSlotItems()
   if (!items.length) return { valid: false, required: 5, resultName: '生成物', reason: '将未穿戴的装备放入左侧孔位' }
@@ -1501,7 +1560,8 @@ function forgeRecipe(): ForgeRecipe {
   const level = items[0].level
   if (!type) return { valid: false, required: 5, resultName: '生成物', reason: '该物品无法用于合成' }
   const required = type === 'fashion' ? 3 : 5
-  const same = items.every((gear) => gear.type === type && gear.level === level)
+  const style = type === 'weapon' ? weaponStyleOf(items[0]) : undefined
+  const same = items.every((gear) => gear.type === type && gear.level === level && (type !== 'weapon' || weaponStyleOf(gear) === style))
   if (!same) return { valid: false, required, resultName: '生成物', reason: '只能放入同类同等级的装备' }
   const valid = items.length === required
   const label = type === 'weapon' ? '武器' : type === 'armor' ? '护甲' : '时装'
@@ -1510,6 +1570,7 @@ function forgeRecipe(): ForgeRecipe {
     required,
     type,
     level,
+    style,
     resultName: type === 'fashion' ? `${fashionTierName(level + 1)}（下一阶时装）` : `${level + 1} 级${label}`,
     reason: valid ? '可以合成' : `还需要 ${required - items.length} 件同类同等级材料`,
   }
@@ -1521,7 +1582,7 @@ function forgeAddItem(id: string) {
   if (forgeSlots.includes(id)) return
   if (forgeSlots.length >= forgeSlotLimit()) { toast('当前孔位已经放满。'); return }
   const first = forgeSlotItems()[0]
-  if (first && (first.type !== gear.type || first.level !== gear.level)) { toast('只能放入同类同等级的装备。'); return }
+  if (first && (first.type !== gear.type || first.level !== gear.level || (first.type === 'weapon' && weaponStyleOf(first) !== weaponStyleOf(gear)))) { toast('只能放入同类同等级的装备。'); return }
   forgeSlots.push(id)
   renderGame()
 }
@@ -1538,7 +1599,7 @@ function forgeCombine() {
   game.soul = (game.soul ?? 0) - 1000
   const consumed = new Set(forgeSlots)
   game.gear = game.gear.filter((gear) => !consumed.has(gear.id))
-  const result = recipe.type === 'fashion' ? makeFashion(recipe.level + 1) : makeGear(recipe.type, recipe.level + 1)
+  const result = recipe.type === 'fashion' ? makeFashion(recipe.level + 1) : makeGear(recipe.type, recipe.level + 1, recipe.style)
   game.gear.unshift(result)
   forgeSlots = []
   save(); craftingOpen = true; renderGame()
@@ -1555,7 +1616,7 @@ function forgeTabsMarkup() {
 }
 function forgeGearMarkup() {
   if (!game) return ''
-  const worn = new Set([game.weaponId, game.weapon2Id, game.armorId, game.fashionId])
+  const worn = new Set([game.weaponId, game.weapon2Id, game.armorId, game.armor2Id, game.fashionId])
   const recipe = forgeRecipe()
   const slotLimit = forgeSlotLimit()
   const cost = 1000
@@ -1658,8 +1719,8 @@ function forgeSpecialMarkup() {
 }
 function stoneCombine(tier: number) {
   if (!game || tier < 1 || tier >= 5) return
-  if (stoneCount(tier) < 3) { toast('需要 3 个同阶强化石。'); return }
-  addStone(tier, -3)
+  if (stoneCount(tier) < 4) { toast('需要 4 个同阶强化石。'); return }
+  addStone(tier, -4)
   addStone(tier + 1, 1)
   save(); craftingOpen = true; renderGame()
   toast(`合成成功：${stoneName(tier + 1)} ×1`)
@@ -1670,11 +1731,11 @@ function forgeStoneMarkup() {
     const tier = index + 1
     const count = stoneCount(tier)
     const nextTier = tier + 1
-    const canCombine = tier < 5 && count >= 3
+    const canCombine = tier < 5 && count >= 4
     const bonus = tier === 1 ? '基础强化概率' : `比一阶强化石 +${(tier - 1) * 20}% 概率`
-    return `<article class="forge-item"><span class="gear-glyph">${itemIcon('enhance')}</span><span class="gear-copy"><b>${name}</b><small>持有 ${count} · ${bonus}${tier < 5 ? ` · 3 个合成 1 个${stoneName(nextTier)}` : ''}</small></span>${tier < 5 ? `<button data-action="stone-combine" data-tier="${tier}" ${canCombine ? '' : 'disabled'}>合成</button>` : '<i class="forge-placed">最高阶</i>'}</article>`
+    return `<article class="forge-item"><span class="gear-glyph">${itemIcon('enhance')}</span><span class="gear-copy"><b>${name}</b><small>持有 ${count} · ${bonus}${tier < 5 ? ` · 4 个合成 1 个${stoneName(nextTier)}` : ''}</small></span>${tier < 5 ? `<button data-action="stone-combine" data-tier="${tier}" ${canCombine ? '' : 'disabled'}>合成</button>` : '<i class="forge-placed">最高阶</i>'}</article>`
   }).join('')
-  return `<div class="forge-layout stone-layout"><section class="forge-workbench"><h3>强化石合成</h3><p class="forge-note">3 个同阶强化石合成 1 个高一阶强化石。强化石可在「铸魂师·霍恩」处用于强化装备位置。</p><div class="forge-result ready"><b>强化石规则</b><small>一阶为基础概率；二阶 +20%，三阶 +40%，四阶 +60%，五阶 +80%。</small></div></section><aside class="forge-bag"><header><h3>强化石库存</h3><small>击败噩梦 Boss 获得</small></header><div class="forge-bag-list">${rows}</div></aside></div>`
+  return `<div class="forge-layout stone-layout"><section class="forge-workbench"><h3>强化石合成</h3><p class="forge-note">4 个同阶强化石合成 1 个高一阶强化石。强化石可在「铸魂师·霍恩」处用于强化装备位置。</p><div class="forge-result ready"><b>强化石规则</b><small>一阶为基础概率；二阶 +20%，三阶 +40%，四阶 +60%，五阶 +80%。</small></div></section><aside class="forge-bag"><header><h3>强化石库存</h3><small>击败噩梦 Boss 获得</small></header><div class="forge-bag-list">${rows}</div></aside></div>`
 }
 function craftingMarkup() {
   if (!game) return ''
@@ -1685,27 +1746,30 @@ function openSecondNpcMenu() {
   if (!game || scene !== 'town' || !secondNpcUnlocked()) return
   resetPanels(); secondNpcOpen = true; secondView = 'menu'; renderGame()
 }
-function enhanceSlotData(slot: 'weapon' | 'weapon2' | 'armor') {
-  const enh = game?.enhance ?? { weapon: 0, armor: 0, weapon2: 0, failWeapon: 0, failArmor: 0, failWeapon2: 0 }
-  const level = slot === 'weapon' ? enh.weapon : slot === 'weapon2' ? enh.weapon2 : enh.armor
-  const fail = slot === 'weapon' ? enh.failWeapon : slot === 'weapon2' ? enh.failWeapon2 : enh.failArmor
+function enhanceSlotData(slot: 'weapon' | 'weapon2' | 'armor' | 'armor2') {
+  const enh = game?.enhance ?? { weapon: 0, armor: 0, armor2: 0, weapon2: 0, failWeapon: 0, failArmor: 0, failArmor2: 0, failWeapon2: 0 }
+  const level = slot === 'weapon' ? enh.weapon : slot === 'weapon2' ? enh.weapon2 : slot === 'armor2' ? enh.armor2 : enh.armor
+  const fail = slot === 'weapon' ? enh.failWeapon : slot === 'weapon2' ? enh.failWeapon2 : slot === 'armor2' ? enh.failArmor2 : enh.failArmor
   const item = slot === 'armor'
     ? game?.gear.find((gear) => gear.id === game?.armorId)
-    : game?.gear.find((gear) => gear.id === (slot === 'weapon' ? game?.weaponId : game?.weapon2Id))
+    : slot === 'armor2'
+      ? game?.gear.find((gear) => gear.id === game?.armor2Id)
+      : game?.gear.find((gear) => gear.id === (slot === 'weapon' ? game?.weaponId : game?.weapon2Id))
   return { level, fail, item }
 }
 function enhancementMarkup() {
   if (!game) return ''
-  const slots: Array<{ slot: 'weapon' | 'weapon2' | 'armor'; label: string }> = [
+  const slots: Array<{ slot: 'weapon' | 'weapon2' | 'armor' | 'armor2'; label: string }> = [
     { slot: 'weapon', label: '主武器槽' },
     { slot: 'armor', label: '护甲槽' },
   ]
   if (dualWieldUnlocked()) slots.push({ slot: 'weapon2', label: '副武器槽' })
+  if (extraArmorUnlocked()) slots.push({ slot: 'armor2', label: '副护甲槽' })
   if (!slots.some((entry) => entry.slot === enhanceSlot)) enhanceSlot = slots[0].slot
   const slotRows = slots.map((entry) => {
     const data = enhanceSlotData(entry.slot)
     const active = enhanceSlot === entry.slot
-    const bonus = entry.slot === 'armor'
+    const bonus = entry.slot === 'armor' || entry.slot === 'armor2'
       ? `生命 +${data.level * 2}% · 防御 +${data.level * 2 + 3}%`
       : `攻击 +${data.level * 2}% · 蓝量 +${data.level * 2 + 3}%`
     return `<button class="enhance-slot ${active ? 'active' : ''}" data-action="enhance-slot" data-slot="${entry.slot}"><span><b>${entry.label} <i>+${data.level}</i></b><small>${data.item?.name ?? '未装备'} · ${bonus}</small></span><i>选择</i></button>`
@@ -1716,7 +1780,7 @@ function enhancementMarkup() {
     const tier = index + 1
     return `<button class="${enhanceStoneTier === tier ? 'active' : ''}" data-action="enhance-stone" data-tier="${tier}" ${stoneCount(tier) > 0 ? '' : 'disabled'}>${name}<small>×${stoneCount(tier)}</small></button>`
   }).join('')
-  const bonusPreview = enhanceSlot === 'armor'
+  const bonusPreview = enhanceSlot === 'armor' || enhanceSlot === 'armor2'
     ? `当前强化：生命 +${data.level * 2}%、防御 +${data.level * 2 + 3}%`
     : `当前强化：攻击 +${data.level * 2}%、蓝量 +${data.level * 2 + 3}%`
   return `<p>强化的是装备槽位而不是具体装备，更换装备后强化等级会保留。</p><div class="enhance-slots">${slotRows}</div><div class="enhance-chance"><span>当前槽位：<b>+${data.level}</b> · ${bonusPreview}</span><span>成功概率 <b>${chance}%</b>${data.fail > 0 ? `（失败加成 +${data.fail * 5}%）` : ''}</span></div><div class="enhance-stones">${tierButtons}</div><button class="forge-combine" data-action="enhance-do" ${stoneCount(enhanceStoneTier) > 0 ? '' : 'disabled'}>使用${stoneName(enhanceStoneTier)}强化</button><p class="bag-note">一阶强化石基础概率：+0→+1 100%、之后 90/80/70/60/50/40/30/20%，再往后每次 -5% 直到 1%。二阶 +20%、三阶 +40%、四阶 +60%、五阶 +80%。失败后下一次成功概率 +5%，成功后重置。</p>`
@@ -1744,14 +1808,15 @@ function performEnhance() {
   const data = enhanceSlotData(enhanceSlot)
   const chance = enhanceChance(data.level, enhanceStoneTier, data.fail)
   addStone(enhanceStoneTier, -1)
-  const enh = game.enhance ??= { weapon: 0, armor: 0, weapon2: 0, failWeapon: 0, failArmor: 0, failWeapon2: 0 }
+  const enh = game.enhance ??= { weapon: 0, armor: 0, armor2: 0, weapon2: 0, failWeapon: 0, failArmor: 0, failArmor2: 0, failWeapon2: 0 }
   const success = Math.random() * 100 < chance
   const levelKey = enhanceSlot
-  const failKey = enhanceSlot === 'weapon' ? 'failWeapon' : enhanceSlot === 'weapon2' ? 'failWeapon2' : 'failArmor'
+  const failKey = enhanceSlot === 'weapon' ? 'failWeapon' : enhanceSlot === 'weapon2' ? 'failWeapon2' : enhanceSlot === 'armor2' ? 'failArmor2' : 'failArmor'
   if (success) {
     enh[levelKey] += 1
     enh[failKey] = 0
-    toast(`强化成功：${enhanceSlot === 'armor' ? '护甲槽' : enhanceSlot === 'weapon2' ? '副武器槽' : '主武器槽'} +${enh[levelKey]}`)
+    const slotLabel = enhanceSlot === 'armor' ? '护甲槽' : enhanceSlot === 'armor2' ? '副护甲槽' : enhanceSlot === 'weapon2' ? '副武器槽' : '主武器槽'
+    toast(`强化成功：${slotLabel} +${enh[levelKey]}`)
   } else {
     enh[failKey] += 1
     toast(`强化失败，下次成功概率 +5%（当前 ${Math.min(100, enhanceChance(enh[levelKey], enhanceStoneTier, enh[failKey]))}%）。`)
@@ -1762,7 +1827,7 @@ function performEnhance() {
 function beginNightmare(stage: number) {
   if (!game || !secondNpcUnlocked() || !nightmareUnlocked(stage)) return
   resetPanels()
-  hiddenBattle = false; tutorialMode = false; bossChest = null; lootReveal = null; nightmareStage = null
+  hiddenBattle = false; tutorialMode = false; bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null
   nightmareStage = stage
   game.stage = stage
   game.kills = 0; game.bossDefeated = false; game.dead = false; game.town = true
@@ -2097,11 +2162,13 @@ function bagMarkup() {
   const main = game.gear.find((gear) => gear.id === game?.weaponId)
   const off = dualWieldUnlocked() ? game.gear.find((gear) => gear.id === game?.weapon2Id) : undefined
   const armor = game.gear.find((gear) => gear.id === game?.armorId)
+  const armor2 = extraArmorUnlocked() ? game.gear.find((gear) => gear.id === game?.armor2Id) : undefined
   const fashion = game.gear.find((gear) => gear.id === game?.fashionId)
   const chips = [
     `${itemIcon('weapon')} ${main?.name ?? '无武器'}`,
     off ? `${itemIcon('weapon')} ${off.name}（副手）` : '',
     `${itemIcon('armor')} ${armor?.name ?? '无护甲'}`,
+    armor2 ? `${itemIcon('armor')} ${armor2.name}（副护甲）` : '',
     `${itemIcon('fashion')} ${fashion?.name ?? '无时装'}`,
   ].filter(Boolean).map((text) => `<span>${text}</span>`).join('')
   const tabs = [['gear', `${itemIcon('weapon')} 装备`], ['talent', `${itemIcon('coin')} 天赋币`], ['other', `${itemIcon('soul')} 其他`], ['skill', '✦ 技能']] as const
@@ -2179,7 +2246,7 @@ function talentMarkup() {
     if (advId === talent.id) {
       const cost = advancedTalentUpgradeCost(advLevel)
       const refund = advancedTalentRefund(advLevel)
-      return `<article class="talent-row active"><span class="gear-glyph">${itemIcon('coin')}</span><span class="gear-copy"><b>${talent.name} <i>Lv.${advLevel}</i></b><small>${advancedEffectText(talent.id, advLevel)} · 下一级：${advancedEffectText(talent.id, advLevel + 1)}</small></span><span class="talent-actions"><button data-action="talent-advanced-up" ${coins >= cost ? '' : 'disabled'}>升级 ${itemIcon('coin')}${cost}</button><button class="talent-undo" data-action="talent-advanced-undo">撤销 ${itemIcon('coin')}${refund}</button><button class="talent-undo" data-action="talent-advanced-reset">重置 ${itemIcon('coin')}${advancedTalentSpent(advLevel)}</button></span></article>`
+      return `<article class="talent-row active"><span class="gear-glyph">${itemIcon('coin')}</span><span class="gear-copy"><b>${talent.name} <i>Lv.${advLevel}</i></b><small>${advancedEffectText(talent.id, advLevel)} · 下一级：${advancedEffectText(talent.id, advLevel + 1)}</small></span><span class="talent-actions">${talent.id === 3 ? `<button data-action="extra-slot" data-slot="weapon" class="${(game!.extraSlot ?? 'weapon') === 'weapon' ? 'active' : ''}">额外武器</button><button data-action="extra-slot" data-slot="armor" class="${game!.extraSlot === 'armor' ? 'active' : ''}">额外护甲</button>` : ''}<button data-action="talent-advanced-up" ${coins >= cost ? '' : 'disabled'}>升级 ${itemIcon('coin')}${cost}</button><button class="talent-undo" data-action="talent-advanced-undo">撤销 ${itemIcon('coin')}${refund}</button><button class="talent-undo" data-action="talent-advanced-reset">重置 ${itemIcon('coin')}${advancedTalentSpent(advLevel)}</button></span></article>`
     }
     const can = advId === 0 && coins >= ADVANCED_TALENT_COST
     const hint = advId !== 0 ? `请先重置当前高级天赋 · 激活后：${advancedEffectText(talent.id, 1)}` : `激活后：${advancedEffectText(talent.id, 1)}`
@@ -2585,18 +2652,30 @@ function drawTownNpc(c: CanvasRenderingContext2D) {
   c.restore()
   drawCompanionNameplates(c, TOWN_NPC_NAME, x, near, world.floor - 120 + bob)
 }
-const SKILL_DESCRIPTIONS: Record<Role, string[]> = {
-  warrior: [
+const SKILL_DESCRIPTIONS: Record<SkillSetKey, string[]> = {
+  sword: [
     '向前挥出剑气，造成 150% 攻击伤害，并小幅击退命中的敌人。',
     '旋转斩击范围内全部敌人，造成 150% 攻击伤害。',
     '向当前方向突进，对路径上的敌人造成 100% 攻击伤害，并把非 Boss 敌人带到落点前方。',
     '蓄力后斩出巨型剑气，对范围内全部敌人造成 200% 攻击伤害。',
   ],
-  mage: [
+  bow: [
+    '按住普通攻击或技能 1 蓄力，最长 5 秒，松开射出穿透箭；蓄力越久伤害越高，消耗 30 MP。',
+    '向下方连续射出 6 支无蓄力箭，同时让角色腾空约 1.5 个身位；落地前不能再次使用，消耗 30 MP。',
+    '在当前位置放置花炸弹，0.7 秒后爆炸，造成 150% 攻击伤害；施放后向上翻滚并向左右突进 1.5 个身位，消耗 40 MP。',
+    '向敌人上方丢出旋转的弓，连续向下射出 6 支满蓄力箭，消耗 60 MP。',
+  ],
+  staff: [
     '攻击力 +10%、攻击速度 +10%，持续 7 秒；角色头顶会显示剩余时间。',
     '在固定前方距离生成双生火柱，造成 160% 攻击伤害，并把范围内的非 Boss 敌人拉向火柱中间。',
     '向当前方向瞬间移动，不造成伤害，可以用来躲避攻击或调整站位。',
     '禁锢目标 1 秒，并立刻打出 5 次带命中特效的普通攻击。',
+  ],
+  book: [
+    '隐身 5 秒，攻击力 +5%，敌人无法看到或攻击；命中敌人后隐身立即解除，消耗 30 MP。',
+    '在身边召唤一个拥有本体 10% 生命的分身，持续 10 秒，复制移动、攻击和技能，造成本体 40% 的伤害；分身存在时施放技能额外消耗 50% 法力，消耗 20 MP。',
+    '向当前方向瞬间移动，不造成伤害。',
+    '在前方制造范围爆炸，造成 200% 攻击伤害，消耗 50 MP。',
   ],
 }
 function hudMarkup() {
@@ -2679,7 +2758,8 @@ function settingsMarkup() {
 }
 function skillBagMarkup() {
   if (!game) return ''
-  return `<div class="skill-bag">${skillLabels[game.role].map((name, index) => `<article class="skill-card"><header><b>${index + 1}</b><strong>${name}</strong><small>${keyLabel(keyBinds[`skill${index + 1}` as BindAction])}</small></header><p>${SKILL_DESCRIPTIONS[game!.role][index]}</p><footer><span>${skillSummary(game!.role, index)}</span></footer></article>`).join('')}<p class="bag-note">技能按键可以在“设置 · 按键设置”中修改。战士与法师的技能消耗和效果按当前总攻击力计算。</p></div>`
+  const set = activeSkillSet()
+  return `<div class="skill-bag">${SKILL_LABELS[set].map((name, index) => `<article class="skill-card"><header><b>${index + 1}</b><strong>${name}</strong><small>${keyLabel(keyBinds[`skill${index + 1}` as BindAction])}</small></header><p>${SKILL_DESCRIPTIONS[set][index]}</p><footer><span>${skillSummary(index, set)}</span></footer></article>`).join('')}<p class="bag-note">当前技能组由装备的武器决定。技能按键可以在“设置 · 按键设置”中修改，伤害按当前总攻击力计算。</p></div>`
 }
 function paintHudPortrait() {
   const canvas = document.querySelector<HTMLCanvasElement>('#hud-portrait')
@@ -2746,7 +2826,7 @@ function renderGame() {
   const townOverlay = ''
   const deathOverlay = scene === 'defeat' ? `<div class="overlay death-overlay"><small>EXPEDITION PAUSED</small><h2>你倒在了遗迹深处</h2><p>继续战斗会以半血复活并保留当前进度；复活币可以满状态复活，每个关卡限用一次；重新开始会恢复满状态并从本关第一波重新挑战；回到小镇会恢复满状态。</p><div class="death-actions">${(game.reviveCoins ?? 0) > 0 && !game.reviveUsed ? `<button data-action="revive-coin" class="revive-button">${itemIcon('revive')} 使用复活币（满状态） · ${game.reviveCoins}</button>` : ''}<button data-action="respawn-fight" class="primary">继续战斗（半血）</button><button data-action="restart-stage" class="secondary">重新开始（满状态）</button><button data-action="respawn-town" class="secondary">回到小镇</button></div></div>` : ''
   const endingOverlay = scene === 'ending' ? '<div class="overlay"><small>THE FRONTIER IS YOURS</small><h2>十片遗迹，皆已沉寂</h2><p>你完成了元素远征。</p><button data-action="town" class="primary">返回小镇　↗</button></div>' : ''
-  app.innerHTML = `<main class="game-shell ${isTown ? 'town-mode' : ''}"><header class="game-header"><a data-action="town" class="wordmark"><b>A</b> 成王之路 <i>／</i> ${isTown ? '冒险者小镇' : '元素远征'}</a>${DEMO_MODE ? '<span class="demo-badge">体验版 · 全关卡</span>' : ''}<span class="save-state"><i></i>${isTown ? '小镇安全区' : '进度已自动保存'}</span><span class="soul-badge" title="灵魂">${itemIcon('soul')} ${displayNumber(game.soul ?? 0)}</span><button class="bag-button" data-action="bag">${itemIcon('bag')} 背包 <span>${game.gear.length}</span></button><button class="save-button" data-action="save" title="保存进度">▣</button></header><section class="overview"><div><small>${isTown ? '冒险者小镇' : chapterLabel}</small><h1>${isTown ? '营火集市' : areaName}</h1><p>${isTown ? '缓冲区 · 整备装备与选择关卡' : tutorialMode ? '新手试炼 · 完成引导目标' : hiddenBattle ? '宿敌对决 · 没有退路' : `遗迹入口 · 击败 ${MAX_SMALL_KILLS} 只守卫后迎战 Boss`}</p></div><div class="metrics"><div><small>职业</small><b>${roleLabels[game.role]}</b></div><div><small>已击杀</small><b>${isTown ? `开放至第 ${game.unlockedStage} 关` : countText}</b></div><div><small>当前装备</small><b>${item()?.name ?? '无'}</b></div></div></section><section class="game-grid"><div class="battle-column"><div class="arena-label"><span>◆ ${isTown ? '冒险者小镇 · 补给站' : `${areaName} · 深层区域`}</span><b id="enemy-name">${isTown ? '安全区域' : tutorialMode ? '训练傀儡正在等待' : hiddenBattle ? '宿敌正在等待' : boss ? `${bossLabel}冲刺准备中` : `${foes.length} 只守卫正在逼近`}</b></div><div class="arena-stage"><div class="arena"><canvas id="arena" aria-label="横版战斗场景"></canvas><div class="coords"><span>${isTown ? 'TOWN · SAFE ZONE' : tutorialMode ? 'NEW PLAYER · TRAINING' : hiddenBattle ? 'SECRET · RIVAL' : `遗迹远征 · ${String(game.stage).padStart(2, '0')}`}</span><span>${boss ? 'BOSS ENCOUNTER' : isTown ? 'REST & PREPARE' : 'WAVE ENCOUNTER'}</span></div>${townOverlay}${deathOverlay}${endingOverlay}${bossVictoryMarkup()}${lootRevealMarkup()}${tutorialHintMarkup()}<div class="mobile-control-deck"><div class="mobile-rail mobile-move-rail"><button class="mobile-pad" data-move="left" aria-label="向左移动" title="向左移动" ${canControl ? '' : 'disabled'}>←</button><button class="mobile-pad" data-move="right" aria-label="向右移动" title="向右移动" ${canControl ? '' : 'disabled'}>→</button></div><div class="mobile-rail mobile-action-rail"><div class="mobile-skills">${[2, 3, 0, 1].map((index) => `<button class="mobile-skill" data-action="skill" data-index="${index}" aria-label="技能 ${index + 1}" ${canControl ? '' : 'disabled'}>${index + 1}</button>`).join('')}</div><div class="mobile-utils"><button class="mobile-skill mobile-pickup" data-action="pickup" aria-label="拾取" title="拾取药水 / 与商人对话" ${canControl ? '' : 'disabled'}>S</button><button class="mobile-skill mobile-shield" data-shield aria-label="护盾" title="按住生成护盾" ${canControl ? '' : 'disabled'}>L</button></div><button class="mobile-pad attack-pad" data-action="attack" aria-label="攻击" title="攻击" ${canControl ? '' : 'disabled'}>⚔</button><button class="mobile-pad jump-pad" data-action="jump" aria-label="跳跃" title="跳跃" ${canControl ? '' : 'disabled'}>↟</button></div></div></div></div><div class="foe-health"><div><span>${isTown ? '冒险者状态' : boss ? bossLabel : '本批守卫'}</span><b id="foe-hp">${isTown ? '安全休整' : boss ? `${Math.ceil(foes[0]?.hp ?? 0)} / ${foes[0]?.maxHp ?? 0}` : `${foes.length} 名敌人 · 已击败 ${game.kills} / ${MAX_SMALL_KILLS}`}</b></div><div><i id="foe-fill" style="width:${boss ? `${Math.max(0, foes[0].hp / foes[0].maxHp * 100)}%` : '100%'}"></i></div></div><div class="combat-bar"><button data-action="attack" class="attack" ${canControl ? '' : 'disabled'}><b>${game.role === 'warrior' ? '⚔' : '✦'}</b><span><strong>${game.role === 'warrior' ? '剑刃斩击' : '法杖射击'}</strong><small>J · ${game.role === 'warrior' ? '近战' : '远程'}</small></span></button><button data-action="jump" ${canControl ? '' : 'disabled'}><b>↟</b><span><strong>跳跃</strong><small>K ×2</small></span></button>${skillLabels[game.role].map((label, i) => `<button data-action="skill" data-index="${i}" ${canControl ? '' : 'disabled'}><i>${i + 1}</i><span><strong>${label}</strong><small>${skillSummary(game!.role, i)}</small></span></button>`).join('')}</div><div class="combat-log"><b>✦</b><span>${logText}</span></div></div><aside class="side-column">${isTown ? townPanelMarkup() : ''}<section class="panel status-panel"><header><span>角色状态</span><small>${String(game.stage).padStart(2, '0')}</small></header><div class="hero-card"><b class="avatar ${game.role}">${game.role === 'warrior' ? '刃' : '✦'}</b><span><strong>${roleLabels[game.role]}</strong><small>${game.role === 'warrior' ? '钢铁誓约 · 剑士' : '星辉学派 · 法杖'}</small></span></div><div class="resource-label"><span>生命</span><b id="hp-text">${displayNumber(game.hp)} <i>/ ${displayNumber(s.hp)}</i></b><em>♥</em></div><div class="resource"><i id="hp-fill" style="width:${game.hp / s.hp * 100}%"></i></div><div class="resource-label mana-label"><span>法力</span><b id="mp-text">${displayNumber(game.mp)} <i>/ ${displayNumber(s.mp)}</i></b><em>✦</em></div><div class="resource"><i id="mp-fill" style="width:${game.mp / s.mp * 100}%"></i></div><div class="stats"><div><small>攻击</small><b>${displayNumber(s.attack)}</b></div><div><small>防御</small><b>${displayNumber(s.defense)}</b></div><div><small>增益</small><b id="buff-stat">${buffTime > 0 ? `${buffTime.toFixed(1)}s` : '—'}</b></div></div></section><section class="panel gear-panel"><header><span>装备栏</span><small>${item()?.name ?? '未装备'}</small></header><div class="gear-summary">${item() ? `生命 +${item()!.hp}　攻击 +${item()!.attack}　防御 +${item()!.defense}` : '装备不会自动穿戴，请在小镇打开背包手动更换。'}</div><button class="open-bag" data-action="bag">打开背包　↗</button><div class="camp-hint">⌂　${isTown ? '安全区内可自由更换装备' : '击败 Boss 后回到小镇整备'}</div></section></aside></section><footer class="game-footer"><span>WASD / ← → 移动　·　J 攻击　·　K 跳跃 / 二段跳　·　1–4 技能　·　L 护盾</span><b>LOCAL SAVE　●</b></footer>${bagOpen ? bagMarkup() : ''}</main>`
+  app.innerHTML = `<main class="game-shell ${isTown ? 'town-mode' : ''}"><header class="game-header"><a data-action="town" class="wordmark"><b>A</b> 成王之路 <i>／</i> ${isTown ? '冒险者小镇' : '元素远征'}</a>${DEMO_MODE ? '<span class="demo-badge">体验版 · 全关卡</span>' : ''}<span class="save-state"><i></i>${isTown ? '小镇安全区' : '进度已自动保存'}</span><span class="soul-badge" title="灵魂">${itemIcon('soul')} ${displayNumber(game.soul ?? 0)}</span><button class="bag-button" data-action="bag">${itemIcon('bag')} 背包 <span>${game.gear.length}</span></button><button class="save-button" data-action="save" title="保存进度">▣</button></header><section class="overview"><div><small>${isTown ? '冒险者小镇' : chapterLabel}</small><h1>${isTown ? '营火集市' : areaName}</h1><p>${isTown ? '缓冲区 · 整备装备与选择关卡' : tutorialMode ? '新手试炼 · 完成引导目标' : hiddenBattle ? '宿敌对决 · 没有退路' : `遗迹入口 · 击败 ${MAX_SMALL_KILLS} 只守卫后迎战 Boss`}</p></div><div class="metrics"><div><small>职业</small><b>${roleLabels[game.role]}</b></div><div><small>已击杀</small><b>${isTown ? `开放至第 ${game.unlockedStage} 关` : countText}</b></div><div><small>当前装备</small><b>${item()?.name ?? '无'}</b></div></div></section><section class="game-grid"><div class="battle-column"><div class="arena-label"><span>◆ ${isTown ? '冒险者小镇 · 补给站' : `${areaName} · 深层区域`}</span><b id="enemy-name">${isTown ? '安全区域' : tutorialMode ? '训练傀儡正在等待' : hiddenBattle ? '宿敌正在等待' : boss ? `${bossLabel}冲刺准备中` : `${foes.length} 只守卫正在逼近`}</b></div><div class="arena-stage"><div class="arena"><canvas id="arena" aria-label="横版战斗场景"></canvas><div class="coords"><span>${isTown ? 'TOWN · SAFE ZONE' : tutorialMode ? 'NEW PLAYER · TRAINING' : hiddenBattle ? 'SECRET · RIVAL' : `遗迹远征 · ${String(game.stage).padStart(2, '0')}`}</span><span>${boss ? 'BOSS ENCOUNTER' : isTown ? 'REST & PREPARE' : 'WAVE ENCOUNTER'}</span></div>${townOverlay}${deathOverlay}${endingOverlay}${bossVictoryMarkup()}${lootRevealMarkup()}${tutorialHintMarkup()}<div class="mobile-control-deck"><div class="mobile-rail mobile-move-rail"><button class="mobile-pad" data-move="left" aria-label="向左移动" title="向左移动" ${canControl ? '' : 'disabled'}>←</button><button class="mobile-pad" data-move="right" aria-label="向右移动" title="向右移动" ${canControl ? '' : 'disabled'}>→</button></div><div class="mobile-rail mobile-action-rail"><div class="mobile-skills">${[2, 3, 0, 1].map((index) => `<button class="mobile-skill" data-action="skill" data-index="${index}" aria-label="技能 ${index + 1}" ${canControl ? '' : 'disabled'}>${index + 1}</button>`).join('')}</div><div class="mobile-utils"><button class="mobile-skill mobile-pickup" data-action="pickup" aria-label="拾取" title="拾取药水 / 与商人对话" ${canControl ? '' : 'disabled'}>S</button><button class="mobile-skill mobile-shield" data-shield aria-label="护盾" title="按住生成护盾" ${canControl ? '' : 'disabled'}>L</button></div><button class="mobile-pad attack-pad" data-action="attack" aria-label="攻击" title="攻击" ${canControl ? '' : 'disabled'}>⚔</button><button class="mobile-pad jump-pad" data-action="jump" aria-label="跳跃" title="跳跃" ${canControl ? '' : 'disabled'}>↟</button></div></div></div></div><div class="foe-health"><div><span>${isTown ? '冒险者状态' : boss ? bossLabel : '本批守卫'}</span><b id="foe-hp">${isTown ? '安全休整' : boss ? `${Math.ceil(foes[0]?.hp ?? 0)} / ${foes[0]?.maxHp ?? 0}` : `${foes.length} 名敌人 · 已击败 ${game.kills} / ${MAX_SMALL_KILLS}`}</b></div><div><i id="foe-fill" style="width:${boss ? `${Math.max(0, foes[0].hp / foes[0].maxHp * 100)}%` : '100%'}"></i></div></div><div class="combat-bar"><button data-action="attack" class="attack" ${canControl ? '' : 'disabled'}><b>${game.role === 'warrior' ? '⚔' : '✦'}</b><span><strong>${game.role === 'warrior' ? '剑刃斩击' : '法杖射击'}</strong><small>J · ${game.role === 'warrior' ? '近战' : '远程'}</small></span></button><button data-action="jump" ${canControl ? '' : 'disabled'}><b>↟</b><span><strong>跳跃</strong><small>K ×2</small></span></button>${SKILL_LABELS[activeSkillSet()].map((label, i) => `<button data-action="skill" data-index="${i}" ${canControl ? '' : 'disabled'}><i>${i + 1}</i><span><strong>${label}</strong><small>${skillSummary(i)}</small></span></button>`).join('')}</div><div class="combat-log"><b>✦</b><span>${logText}</span></div></div><aside class="side-column">${isTown ? townPanelMarkup() : ''}<section class="panel status-panel"><header><span>角色状态</span><small>${String(game.stage).padStart(2, '0')}</small></header><div class="hero-card"><b class="avatar ${game.role}">${game.role === 'warrior' ? '刃' : '✦'}</b><span><strong>${roleLabels[game.role]}</strong><small>${game.role === 'warrior' ? '钢铁誓约 · 剑士' : '星辉学派 · 法杖'}</small></span></div><div class="resource-label"><span>生命</span><b id="hp-text">${displayNumber(game.hp)} <i>/ ${displayNumber(s.hp)}</i></b><em>♥</em></div><div class="resource"><i id="hp-fill" style="width:${game.hp / s.hp * 100}%"></i></div><div class="resource-label mana-label"><span>法力</span><b id="mp-text">${displayNumber(game.mp)} <i>/ ${displayNumber(s.mp)}</i></b><em>✦</em></div><div class="resource"><i id="mp-fill" style="width:${game.mp / s.mp * 100}%"></i></div><div class="stats"><div><small>攻击</small><b>${displayNumber(s.attack)}</b></div><div><small>防御</small><b>${displayNumber(s.defense)}</b></div><div><small>增益</small><b id="buff-stat">${buffTime > 0 ? `${buffTime.toFixed(1)}s` : '—'}</b></div></div></section><section class="panel gear-panel"><header><span>装备栏</span><small>${item()?.name ?? '未装备'}</small></header><div class="gear-summary">${item() ? `生命 +${item()!.hp}　攻击 +${item()!.attack}　防御 +${item()!.defense}` : '装备不会自动穿戴，请在小镇打开背包手动更换。'}</div><button class="open-bag" data-action="bag">打开背包　↗</button><div class="camp-hint">⌂　${isTown ? '安全区内可自由更换装备' : '击败 Boss 后回到小镇整备'}</div></section></aside></section><footer class="game-footer"><span>WASD / ← → 移动　·　J 攻击　·　K 跳跃 / 二段跳　·　1–4 技能　·　L 护盾</span><b>LOCAL SAVE　●</b></footer>${bagOpen ? bagMarkup() : ''}</main>`
   if (craftingOpen && isTown) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', craftingMarkup())
   if (attributesOpen && isTown) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', attributeMarkup())
   document.querySelector('.arena')?.insertAdjacentHTML('beforeend', hudMarkup())
@@ -2771,7 +2851,7 @@ function renderGame() {
   skillButtons.forEach((button, index) => {
     if (paused) button.disabled = true
     const detail = button.querySelector('small')
-    if (detail) detail.textContent = `${skillSummary(game!.role, index)} · ${index + 1}`
+    if (detail) detail.textContent = `${skillSummary(index)} · ${index + 1}`
   })
   if (paused) document.querySelector<HTMLButtonElement>('.combat-bar button[data-action="attack"]')!.disabled = true
   if (paused) document.querySelector<HTMLButtonElement>('.combat-bar button[data-action="jump"]')!.disabled = true
@@ -2956,21 +3036,29 @@ function syncFoeHeads() {
     if (fill) fill.style.width = `${Math.max(0, foe.hp / foe.maxHp * 100)}%`
   }
 }
-function skillCostFor(role: Role, index: number) {
-  return SKILL_COSTS[role][index]
+function skillCostFor(index: number, set: SkillSetKey = activeSkillSet()) {
+  return SKILL_COSTS[set][index]
 }
-function skillPower(index: number) {
-  const multiplier = SKILL_MULTIPLIERS[game?.role ?? 'warrior'][index]
+function skillPower(index: number, set: SkillSetKey = activeSkillSet()) {
+  const multiplier = SKILL_MULTIPLIERS[set][index]
   const advLevel = advancedTalentLevel()
   const talentMultiplier = game?.advancedTalent === 1 && advLevel ? 1 + advancedSkillDamagePct(advLevel) : 1
   return Math.round(stats().attack * multiplier * talentMultiplier)
 }
-function skillSummary(role: Role, index: number) {
-  const cost = skillCostFor(role, index)
-  if (role === 'mage' && index === 0) return `+10% 攻速/攻击 · 7s · ${cost} MP`
-  if (role === 'mage' && index === 2) return `无伤害位移 · ${cost} MP`
-  if (role === 'mage' && index === 3) return `眩晕 1s · 5 连击 · ${cost} MP`
-  return `${Math.round(SKILL_MULTIPLIERS[role][index] * 100)}% 攻击 · ${cost} MP`
+function skillSummary(index: number, set: SkillSetKey = activeSkillSet()) {
+  const cost = skillCostFor(index, set)
+  if (set === 'staff' && index === 0) return `+10% 攻速/攻击 · 7s · ${cost} MP`
+  if (set === 'staff' && index === 2) return `无伤害位移 · ${cost} MP`
+  if (set === 'staff' && index === 3) return `眩晕 1s · 5 连击 · ${cost} MP`
+  if (set === 'bow' && index === 0) return `蓄力穿透箭 · 最长 5s · ${cost} MP`
+  if (set === 'bow' && index === 1) return `6 连下射 · 腾空 · ${cost} MP`
+  if (set === 'bow' && index === 2) return `花炸弹 150% · 位移 · ${cost} MP`
+  if (set === 'bow' && index === 3) return `6 支满蓄力箭 · ${cost} MP`
+  if (set === 'book' && index === 0) return `隐身 5s · 攻击 +5% · ${cost} MP`
+  if (set === 'book' && index === 1) return `分身 10s · 40% 伤害 · ${cost} MP`
+  if (set === 'book' && index === 2) return `无伤害位移 · ${cost} MP`
+  if (set === 'book' && index === 3) return `范围爆炸 200% · ${cost} MP`
+  return `${Math.round(SKILL_MULTIPLIERS[set][index] * 100)}% 攻击 · ${cost} MP`
 }
 function spend(cost: number) {
   if (!game) return false
@@ -3000,22 +3088,119 @@ function strike(target: Foe, damage: number, label: string) {
   const impactY = target.flying ? foeWorldY(target) - 14 : target.mirror ? world.floor - 68 : target.tutorial ? world.floor - 100 : world.floor - (target.boss ? 120 : 58)
   addFx('impact', target.x, impactY, -1, .22)
   addSparks(target.x, impactY + 8, 4, ['#ffe6a8', '#e8b56f'], 110)
+  if (invisibleTimer > 0) {
+    invisibleTimer = 0
+    addFx('blink-rift', heroX, world.floor - 65 + heroY, 1, .4)
+    setLog('命中敌人，隐身解除。')
+  }
   if (target.hp <= 0) defeatFoe(target)
   else syncHud()
   setLog(`${label} · 命中${target.boss ? '守关者' : '守卫'}`)
 }
 function strikeNearby(damage: number, label: string, range: number, all = false) {
   const targets = all ? foes.filter((foe) => Math.abs(foe.x - heroX) <= range) : [targetForFacing(range)].filter((foe): foe is Foe => Boolean(foe))
-  if (!targets.length) { setLog(foes.length ? '距离太远，攻击没有命中。' : '剑气划过空气。'); return }
+  if (!targets.length) { setLog(foes.length ? '距离太远，攻击没有命中。' : '剑气划过空气。'); return 0 }
   targets.forEach((target) => strike(target, damage, label))
+  return damage * targets.length
+}
+function startBowCharge(source: 'attack' | 'skill1') {
+  if (bowCharging) return
+  bowCharging = true
+  bowCharge = 0
+  bowChargeSource = source
+  attackWait = .2
+  attackSwing = .25
+  addFx('bow-draw', heroX + facing * 28, world.floor - 56 + heroY, facing, .35, weaponFxColor())
+  setLog(source === 'skill1' ? '蓄力箭：按住蓄力，松开射出。' : '按住攻击键蓄力，松开射出蓄力箭。')
+}
+function fireBowProjectile(charged: boolean) {
+  if (!game) return
+  const attack = stats().attack
+  const chargeRatio = bowCharge / 5
+  const damage = Math.round(attack * (charged ? 1 + chargeRatio * .1 : 1))
+  const dir = facing
+  projectiles.push({
+    x: heroX + dir * 24,
+    y: world.floor - 56 + heroY,
+    vx: dir * (charged ? 760 : 700),
+    life: charged ? 1.5 : 1,
+    damage,
+    targetId: -1,
+    kind: charged ? 'charged' : 'arrow',
+    pierce: charged,
+    hitIds: [],
+    maxDistance: charged ? 680 : 430,
+    startX: heroX + dir * 24,
+    label: charged ? '蓄力箭' : '弓箭',
+  })
+  addFx('muzzle', heroX + dir * 24, world.floor - 56 + heroY, dir, .16, weaponFxColor())
+  addSparks(heroX + dir * 24, world.floor - 56 + heroY, charged ? 9 : 4, [weaponFxColor(), '#e8ffe8'], charged ? 150 : 80)
+}
+function releaseBowCharge() {
+  if (!bowCharging || !game || scene !== 'battle') { bowCharging = false; bowCharge = 0; bowChargeSource = null; return }
+  const source = bowChargeSource
+  const charged = source === 'skill1' ? bowCharge > .08 : bowCharge >= .2
+  if (charged && source === 'attack') {
+    if (game.mp < 30) { toast('法力不足，无法射出蓄力箭。'); fireBowProjectile(false) }
+    else { game.mp -= 30; fireBowProjectile(true) }
+  } else if (charged) {
+    fireBowProjectile(true)
+  } else {
+    fireBowProjectile(false)
+  }
+  bowCharging = false
+  bowCharge = 0
+  bowChargeSource = null
+  attackWait = .35
+  attackSwing = .3
+  syncHud(); save()
+}
+function staffLightningAttack() {
+  if (!game) return
+  const dir = facing
+  const range = 230
+  const y = world.floor - 62 + heroY
+  addFx('staff-lightning', heroX + dir * 70, y, dir, .5, weaponFxColor())
+  addSparks(heroX + dir * 120, y, 12, [weaponFxColor(), '#fff2c0'], 180)
+  addFlash(.08, weaponFxColor())
+  const targets = foes.filter((foe) => (foe.x - heroX) * dir >= -30 && Math.abs(foe.x - heroX) <= range)
+  targets.forEach((foe) => strike(foe, stats().attack, '法杖闪电'))
+  if (!targets.length) setLog('横向闪电划过前方。')
+}
+function bookBoltAttack() {
+  if (!game) return
+  const target = targetForFacing(480)
+  const dir = target ? Math.sign(target.x - heroX) || facing : facing
+  projectiles.push({
+    x: heroX + dir * 22,
+    y: world.floor - 54 + heroY,
+    vx: dir * 660,
+    life: 1,
+    damage: stats().attack,
+    targetId: -1,
+    kind: 'book',
+    pierce: true,
+    hitIds: [],
+    maxDistance: 480,
+    startX: heroX + dir * 22,
+    label: '魔法弹',
+  })
+  addFx('muzzle', heroX + dir * 22, world.floor - 54 + heroY, dir, .16, weaponFxColor())
+  if (!target) setLog('魔法弹没入前方的黑暗。')
 }
 function attack() {
-  if ((scene !== 'battle' && scene !== 'town') || paused || bossVictory || storyState || !game || attackWait > 0) return
-  const hasted = game.role === 'mage' && buffTime > 0
-  attackWait = hasted ? .42 / 1.1 : .42; attackSwing = .32
+  if ((scene !== 'battle' && scene !== 'town') || paused || bossVictory || storyState || lootReveal || !game || attackWait > 0) return
+  const mode = activeSkillSet()
+  attackWait = .42; attackSwing = .32
   const nearest = [...foes].sort((a, b) => Math.abs(a.x - heroX) - Math.abs(b.x - heroX))[0]
   if (nearest) facing = Math.sign(nearest.x - heroX) || facing
-  if (game.role === 'warrior') {
+  if (mode === 'bow') {
+    startBowCharge('attack')
+    playSfx('slash')
+    if (tutorialMode && tutorialStep === 1) advanceTutorialStep(2)
+    return
+  }
+  if (mode === 'sword') {
     const style = weaponStyle()
     const fxColor = weaponFxColor()
     const swingY = world.floor - 53 + heroY
@@ -3023,17 +3208,24 @@ function attack() {
     if (!foes.length) addFx('slash-crescent', heroX + facing * 46, swingY - 3, facing, .5)
     addSparks(heroX + facing * 54, swingY + 4, style === 'axe' ? 9 : 5, [fxColor, '#fff2c0'], style === 'axe' ? 140 : 90)
     if (style === 'axe') addShake(3)
-    strikeNearby(stats().attack, '剑刃斩击', 138)
+    const dealt = strikeNearby(stats().attack, '剑刃斩击', 138)
+    if (cloneTimer > 0 && dealt > 0) cloneStrike(dealt * .4, '分身斩击')
+  } else if (mode === 'staff') {
+    staffLightningAttack()
+    if (cloneTimer > 0) cloneStrike(stats().attack * .4, '分身闪电')
   } else {
-    const target = targetForFacing(unlockedWidth - MAP_LEFT)
-    const projectileDirection = target ? Math.sign(target.x - heroX) || facing : facing
-    projectiles.push({ x: heroX + projectileDirection * 20, y: world.floor - 54 + heroY, vx: projectileDirection * 620, life: 1.3, damage: stats().attack, targetId: target?.id ?? -1 })
-    addFx('muzzle', heroX + projectileDirection * 20, world.floor - 54 + heroY, projectileDirection, .16)
-    addSparks(heroX + projectileDirection * 20, world.floor - 54 + heroY, 4, [weaponFxColor(), '#e8ffe8'], 80)
-    if (!target) setLog('法杖光弹向空地上射出。')
+    bookBoltAttack()
+    if (cloneTimer > 0) cloneStrike(stats().attack * .4, '分身魔法弹')
   }
-  playSfx(game.role === 'warrior' ? 'slash' : 'magic')
+  playSfx(mode === 'sword' ? 'slash' : 'magic')
   if (tutorialMode && tutorialStep === 1) advanceTutorialStep(2)
+}
+function cloneStrike(damage: number, label: string) {
+  if (!game || cloneTimer <= 0) return
+  const targets = foes.filter((foe) => Math.abs(foe.x - cloneX) <= 220)
+  if (!targets.length) return
+  addFx('arcane-bolt-hit', cloneX, world.floor - 64, facing, .4, '#d6b4ff')
+  targets.forEach((foe) => strike(foe, Math.max(1, Math.round(damage)), label))
 }
 function jump() {
   if ((scene !== 'battle' && scene !== 'town') || paused || bossVictory || storyState) return
@@ -3049,25 +3241,98 @@ function jump() {
     if (tutorialMode && tutorialStep === 2) advanceTutorialStep(3)
   }
 }
+function castBowSkill(index: number) {
+  if (!game) return
+  if (index === 1) {
+    grounded = false; velocityY = -520; heroY = Math.min(heroY, -70); jumpCount = 2; bowAirLocked = true
+    addFx('double-jump', heroX, world.floor + heroY, facing, .5)
+    addSparks(heroX, world.floor + heroY, 16, ['#c8f0a0', '#ffe28a'], 160)
+    for (let i = 0; i < 6; i++) {
+      projectiles.push({ x: heroX + (i - 2.5) * 24, y: world.floor - 260 - i * 16, vx: 0, vy: 640, life: 1.6, damage: Math.round(stats().attack), targetId: -1, kind: 'fall', hitIds: [], label: '箭雨' })
+    }
+    setLog('箭雨腾空：6 支箭向下射出，落地前无法再次使用。')
+  } else if (index === 2) {
+    const startY = world.floor + heroY
+    flowerBomb = { x: heroX, y: startY, timer: .7 }
+    addFx('great-quake', heroX, startY, facing, .4)
+    heroY = Math.min(heroY, 0) - 50; velocityY = -360; grounded = false; jumpCount = Math.max(jumpCount, 1)
+    heroX = scene === 'town' ? Math.max(TOWN_LEFT, Math.min(TOWN_RIGHT, heroX + facing * 90)) : clampHeroX(heroX + facing * 90)
+    addFx('thrust-dash', heroX, world.floor - 72 + heroY, facing, .45, '#c8f0a0')
+    addSparks(heroX, world.floor - 60 + heroY, 10, ['#c8f0a0', '#ffe28a'], 150)
+    setLog('花炸弹已放置，向上翻滚并向前突进。')
+  } else if (index === 3) {
+    const target = foes.slice().sort((a, b) => Number(b.boss) - Number(a.boss) || Math.abs(a.x - heroX) - Math.abs(b.x - heroX))[0]
+    const x = target?.x ?? heroX + facing * 180
+    skyBow = { x, timer: 0, shots: 0 }
+    addFx('sky-bow', x, world.floor - 240, facing, 1.2, '#ffe28a')
+    setLog('猎鹰坠击：旋转的弓在敌人头顶展开。')
+  }
+}
+function castBookSkill(index: number, power: number) {
+  if (!game) return
+  if (index === 0) {
+    invisibleTimer = 5
+    addFx('blink-rift', heroX, world.floor - 65 + heroY, facing, .5, '#d6b4ff')
+    addSparks(heroX, world.floor - 60 + heroY, 12, ['#d6b4ff', '#9fe8ff'], 110)
+    setLog('隐匿：5 秒内敌人无法看到或攻击你；命中敌人会解除隐身。')
+  } else if (index === 1) {
+    cloneTimer = 10
+    cloneMaxHp = Math.max(1, Math.round(stats().hp * .1))
+    cloneHp = cloneMaxHp
+    cloneX = heroX + (facing > 0 ? -46 : 46)
+    cloneY = heroY
+    addFx('arcane-blessing', cloneX, world.floor - 88, facing, 1, '#d6b4ff')
+    addSparks(cloneX, world.floor - 60, 14, ['#d6b4ff', '#9fe8ff'], 130)
+    setLog('镜像分身已召唤，持续 10 秒；分身存在时技能法力消耗 +50%。')
+  } else if (index === 2) {
+    addFx('blink-rift', heroX, world.floor - 65, facing, .35, '#d6b4ff')
+    heroX = scene === 'town' ? Math.max(TOWN_LEFT, Math.min(TOWN_RIGHT, heroX + facing * 210)) : clampHeroX(heroX + facing * 210)
+    addFx('blink-rift', heroX, world.floor - 65, -facing, .45, '#d6b4ff')
+    addSparks(heroX, world.floor - 65, 10, ['#d6b4ff', '#9fe8ff'], 130)
+    setLog('闪现穿过前方，未造成伤害。')
+  } else {
+    addFx('great-slash', heroX + facing * 86, world.floor - 80 + heroY, facing, 1.1, '#d6b4ff')
+    addFx('great-quake', heroX + facing * 70, world.floor - 8, facing, .9)
+    addSparks(heroX + facing * 70, world.floor - 30, 28, ['#d6b4ff', '#9fe8ff', '#fff2c0'], 260)
+    addShake(10)
+    const targets = foes.filter((foe) => (foe.x - heroX) * facing >= -20 && Math.abs(foe.x - heroX) <= 230)
+    targets.forEach((foe) => strike(foe, power, '魔典爆炸'))
+    if (cloneTimer > 0) cloneStrike(power * .4, '分身爆炸')
+    if (!targets.length) setLog('魔典在前方炸开。')
+  }
+}
 function cast(index: number) {
-  if ((scene !== 'battle' && scene !== 'town') || paused || bossVictory || storyState || !game || index < 0 || index > 3) return
+  if ((scene !== 'battle' && scene !== 'town') || paused || bossVictory || storyState || lootReveal || !game || index < 0 || index > 3) return
+  const skillSet = activeSkillSet()
+  if (skillSet === 'bow' && index === 0) {
+    if (bowCharging) return
+    if (!spend(30)) return
+    startBowCharge('skill1')
+    syncHud(); save(); return
+  }
+  if (skillSet === 'bow' && index === 1 && (!grounded || bowAirLocked)) { toast('落地后才能再次使用箭雨腾空。'); return }
   if (skillWait[index] > 0) { toast('技能还在冷却中。'); return }
-  if (!spend(skillCostFor(game.role, index))) return
+  const cost = skillCostFor(index, skillSet) * (cloneTimer > 0 ? 1.5 : 1)
+  if (!spend(Math.ceil(cost))) return
   skillWait[index] = SKILL_COOLDOWNS[index]
   attackSwing = .32
   playSkillSfx(game.role, index)
-  const power = skillPower(index)
+  const power = skillPower(index, skillSet)
   // 技能 3：按 A + 3 向左、D + 3 向右；没按方向键时沿当前视角方向。
   if (index === 2) {
     const left = keys.has(keyBinds.left) || keys.has('arrowleft')
     const right = keys.has(keyBinds.right) || keys.has('arrowright')
     if (left !== right) facing = right ? 1 : -1
-  } else if (!(game.role === 'mage' && index === 1)) {
+  } else if (!(skillSet === 'staff' && index === 1)) {
     // 法师双生火柱固定在当前朝向前方，不再自动转向最近的敌人。
     const nearest = [...foes].sort((a, b) => Math.abs(a.x - heroX) - Math.abs(b.x - heroX))[0]
     if (nearest) facing = Math.sign(nearest.x - heroX) || facing
   }
-  if (game.role === 'warrior') {
+  if (skillSet === 'bow') {
+    castBowSkill(index)
+  } else if (skillSet === 'book') {
+    castBookSkill(index, power)
+  } else if (skillSet === 'sword') {
     const style = weaponStyle()
     const fxColor = weaponFxColor()
     if (index === 0) {
@@ -3345,8 +3610,52 @@ function awardKillPoints() {
   game.attributePoints = (game.attributePoints ?? 0) + gain
   toast(`获得 ${gain} 点属性点 · 本关 ${target} / ${ATTRIBUTE_POINT_CAP_PER_STAGE}`)
 }
-function makeGear(type: GearType, level: number): Gear {
+function weaponStyleRole(style: WeaponStyle): Role { return style === 'staff' || style === 'book' ? 'mage' : 'warrior' }
+function weaponStyleMultiplier(style: WeaponStyle) { return style === 'bow' ? .9 : style === 'book' ? .95 : 1 }
+function styleSkillSet(style: WeaponStyle): SkillSetKey {
+  if (style === 'bow') return 'bow'
+  if (style === 'book') return 'book'
+  if (style === 'staff') return 'staff'
+  return 'sword'
+}
+function randomWeaponStyle(role: Role): WeaponStyle {
+  const styles: WeaponStyle[] = role === 'mage' ? ['staff', 'book'] : ['sword', 'axe', 'bow']
+  return styles[Math.floor(Math.random() * styles.length)]
+}
+function weaponStyleOf(gear?: Gear): WeaponStyle {
+  if (gear?.style) return gear.style
+  const name = gear?.name ?? ''
+  if (name.includes('战斧')) return 'axe'
+  if (name.includes('法杖')) return 'staff'
+  if (name.includes('之刃')) return 'blade'
+  if (name.includes('长弓') || name.includes('猎弓') || name.includes('弓')) return 'bow'
+  if (name.includes('魔典') || name.includes('之书')) return 'book'
+  return 'sword'
+}
+function activeWeaponStyle(): WeaponStyle {
+  const weapon = equippedWeapon()
+  if (weapon) return weaponStyleOf(weapon)
+  return game?.role === 'mage' ? 'staff' : 'sword'
+}
+function activeSkillSet(): SkillSetKey { return styleSkillSet(activeWeaponStyle()) }
+function canUseWeapon(gear: Gear) { return !game || weaponStyleRole(weaponStyleOf(gear)) === game.role }
+function makeGear(type: GearType, level: number, style?: WeaponStyle): Gear {
   const values = gearStats(level)
+  if (type === 'weapon') {
+    const weaponStyle = style ?? randomWeaponStyle(game?.role ?? 'warrior')
+    const names = WEAPON_NAMES[weaponStyle]
+    return {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      name: names[Math.floor(Math.random() * names.length)],
+      level,
+      type,
+      style: weaponStyle,
+      hp: 0,
+      mp: values.mp,
+      attack: Math.round(values.attack * weaponStyleMultiplier(weaponStyle)),
+      defense: 0,
+    }
+  }
   const names = gearNames[type]
   return {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -3354,8 +3663,8 @@ function makeGear(type: GearType, level: number): Gear {
     level,
     type,
     hp: type === 'armor' ? values.hp : 0,
-    mp: type === 'weapon' ? values.mp : 0,
-    attack: type === 'weapon' ? values.attack : 0,
+    mp: 0,
+    attack: 0,
     defense: type === 'armor' ? values.defense : 0,
   }
 }
@@ -3452,11 +3761,11 @@ function pickupDrop() {
     toast(`拾取专属材料：${info?.name ?? '未知材料'} ×1`)
     setLog(`获得 ${info?.name ?? '专属材料'}，可在合成台进行专属合成。`)
   } else if (nearest.drop.type === 'hp-potion') {
-    const recovered = Math.min(stats().hp - game.hp, Math.ceil(stats().hp * .35))
+    const recovered = Math.min(stats().hp - game.hp, Math.ceil(stats().hp * .175))
     game.hp = Math.min(stats().hp, game.hp + recovered)
     setLog(`拾取并使用血瓶，恢复 ${recovered} 点生命。`)
   } else {
-    const recovered = Math.min(stats().mp - game.mp, Math.ceil(stats().mp * .35))
+    const recovered = Math.min(stats().mp - game.mp, Math.ceil(stats().mp * .175))
     game.mp = Math.min(stats().mp, game.mp + recovered)
     setLog(`拾取并使用蓝瓶，恢复 ${recovered} 点法力。`)
   }
@@ -3484,6 +3793,7 @@ function equip(id: string) {
   if (!game || scene !== 'town') { toast('请回到小镇后更换装备。'); return }
   const gear = game.gear.find((entry) => entry.id === id)
   if (!gear) return
+  if (gear.type === 'weapon' && !canUseWeapon(gear)) { toast(`当前职业无法使用${gear.name}。`); return }
   const before = stats()
   game.equipped = id
   if (gear.type === 'fashion') game.fashionId = id
@@ -3495,7 +3805,7 @@ function equip(id: string) {
       if (game.weapon2Id === id) game.weapon2Id = null
       game.weaponId = id
     }
-  } else if (gear.type === 'armor') game.armorId = id
+  } else if (gear.type === 'armor') { if (game.armor2Id === id) game.armor2Id = null; game.armorId = id }
   else { game.weaponId = null; game.weapon2Id = null; game.armorId = null; game.fashionId = null }
   const after = stats()
   game.hp = Math.min(after.hp, game.hp + after.hp - before.hp)
@@ -3506,7 +3816,8 @@ function equipSlot(id: string, slot: 'main' | 'off') {
   if (!game || scene !== 'town') { toast('请回到小镇后更换装备。'); return }
   const gear = game.gear.find((entry) => entry.id === id)
   if (!gear || gear.type !== 'weapon') return
-  if (slot === 'off' && game.advancedTalent !== 3) { toast('需要双持专精天赋才能装备副武器。'); return }
+  if (!canUseWeapon(gear)) { toast(`当前职业无法使用${gear.name}。`); return }
+  if (slot === 'off' && !dualWieldUnlocked()) { toast('需要双持专精天赋才能装备副武器。'); return }
   const before = stats()
   if (slot === 'off') {
     if (game.weaponId === id) game.weaponId = null
@@ -3521,6 +3832,20 @@ function equipSlot(id: string, slot: 'main' | 'off') {
   game.mp = Math.min(after.mp, game.mp + after.mp - before.mp)
   save(); bagOpen = true; renderGame(); toast(`已装备 ${gear.name}（${slot === 'main' ? '主手' : '副手'}）`)
 }
+function equipArmor2(id: string) {
+  if (!game || scene !== 'town') { toast('请回到小镇后更换装备。'); return }
+  if (!extraArmorUnlocked()) { toast('需要双持专精的额外护甲能力。'); return }
+  const gear = game.gear.find((entry) => entry.id === id)
+  if (!gear || gear.type !== 'armor') return
+  const before = stats()
+  if (game.armorId === id) game.armorId = null
+  game.armor2Id = id
+  game.equipped = id
+  const after = stats()
+  game.hp = Math.min(after.hp, game.hp + after.hp - before.hp)
+  game.mp = Math.min(after.mp, game.mp + after.mp - before.mp)
+  save(); bagOpen = true; renderGame(); toast(`已装备 ${gear.name}（副护甲）`)
+}
 function continueCurrentProgress() {
   if (!game || scene !== 'town' || game.kills <= 0 || game.bossDefeated) return
   scene = 'battle'; game.town = false; game.dead = false; paused = false
@@ -3532,7 +3857,7 @@ function retreatToTown() {
   if (!game) return
   paused = false
   hiddenBattle = false
-  bossChest = null; lootReveal = null; nightmareStage = null
+  bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null
   if (tutorialMode) { tutorialMode = false; tutorialStep = 0; game.tutorialDone = true }
   scene = 'town'; game.town = true; game.dead = false
   restoreTownVitals()
@@ -3687,6 +4012,7 @@ function performAction(name: string, target: HTMLElement) {
     if (tab === 'gear' || tab === 'talent' || tab === 'other' || tab === 'skill') { bagTab = tab; bagOpen = true; renderGame() }
   }
   if (name === 'equip' && target.dataset.id) equip(target.dataset.id)
+  if (name === 'equip-armor2' && target.dataset.id) equipArmor2(target.dataset.id)
   if (name === 'equip-main' && target.dataset.id) equipSlot(target.dataset.id, 'main')
   if (name === 'equip-off' && target.dataset.id) equipSlot(target.dataset.id, 'off')
   if (name === 'open-npc' && game && scene === 'town' && npcUnlocked()) { openNpcMenu() }
@@ -3754,6 +4080,18 @@ function performAction(name: string, target: HTMLElement) {
   if (name === 'talent-advanced-up') upgradeAdvancedTalent()
   if (name === 'talent-advanced-undo') undoAdvancedTalent()
   if (name === 'talent-advanced-reset') resetAdvancedTalent()
+  if (name === 'extra-slot' && (target.dataset.slot === 'weapon' || target.dataset.slot === 'armor')) {
+    if (!game || game.advancedTalent !== 3 || advancedTalentLevel() < 1) return
+    const before = stats()
+    game.extraSlot = target.dataset.slot
+    if (game.extraSlot === 'weapon') game.armor2Id = null
+    else game.weapon2Id = null
+    const after = stats()
+    game.hp = Math.min(after.hp, game.hp + Math.max(0, after.hp - before.hp))
+    game.mp = Math.min(after.mp, game.mp + Math.max(0, after.mp - before.mp))
+    save(); npcOpen = true; npcView = 'talent'; renderGame()
+    toast(game.extraSlot === 'weapon' ? '双持专精：额外武器槽已启用。' : '双持专精：额外护甲槽已启用。')
+  }
   if (name === 'talent-craft') craftTalentCoin()
   if (name === 'open-lottery') openLottery()
   if (name === 'close-lottery') closeLottery()
@@ -3866,6 +4204,7 @@ function releaseTouchPointer(event: PointerEvent) {
 // 窗口失焦或指针被系统取消时，只清理没有其它手指按住的键。
 window.addEventListener('pointerup', releaseTouchPointer)
 window.addEventListener('pointercancel', releaseTouchPointer)
+window.addEventListener('pointerup', () => { if (bowCharging) releaseBowCharge() })
 window.addEventListener('keydown', (event) => {
   const key = event.key.toLowerCase()
   if (listeningBind) {
@@ -3915,10 +4254,11 @@ window.addEventListener('keydown', (event) => {
 })
 window.addEventListener('keyup', (event) => {
   const key = event.key.toLowerCase()
+  if (bowCharging && (key === keyBinds.attack || key === keyBinds.skill1)) releaseBowCharge()
   keys.delete(key)
   if (key === 'l') shieldLocked = false
 })
-window.addEventListener('blur', () => { keys.clear(); touchPointers.clear(); shieldActive = false; shieldLocked = false })
+window.addEventListener('blur', () => { keys.clear(); touchPointers.clear(); shieldActive = false; shieldLocked = false; bowCharging = false; bowCharge = 0; bowChargeSource = null })
 function setupCanvas() {
   canvas = document.querySelector<HTMLCanvasElement>('#arena')
   if (!canvas) return
@@ -3942,6 +4282,16 @@ function update(dt: number) {
   if (scene !== 'battle' || bossVictory) shieldActive = false
   if (scene !== 'battle') cameraX = 0
   attackWait = Math.max(0, attackWait - dt); attackSwing = Math.max(0, attackSwing - dt); buffTime = Math.max(0, buffTime - dt)
+  invisibleTimer = Math.max(0, invisibleTimer - dt)
+  if (cloneTimer > 0) {
+    cloneTimer = Math.max(0, cloneTimer - dt)
+    const offset = facing > 0 ? -46 : 46
+    cloneX += (heroX + offset - cloneX) * Math.min(1, dt * 6)
+    cloneY = heroY
+    if (cloneTimer <= 0) cloneHp = 0
+  }
+  if (bowCharging && bowChargeSource) bowCharge = Math.min(5, bowCharge + dt)
+  if (grounded) bowAirLocked = false
   skillWait = skillWait.map((time) => Math.max(0, time - dt))
   if (scene === 'town' && game) {
     const left = keys.has(keyBinds.left) || keys.has('arrowleft')
@@ -3974,6 +4324,29 @@ function update(dt: number) {
     if (bossChest && !bossChest.opened && bossChest.opening > 0) {
       bossChest.opening -= dt
       if (bossChest.opening <= 0) { openBossChest(); return }
+    }
+    if (flowerBomb) {
+      flowerBomb.timer -= dt
+      flowerBomb.y += (world.floor - flowerBomb.y) * Math.min(1, dt * 3)
+      if (flowerBomb.timer <= 0) {
+        const bombX = flowerBomb.x
+        const bombPower = skillPower(2, 'bow')
+        addFx('great-quake', bombX, world.floor - 8, 1, .9)
+        addSparks(bombX, world.floor - 20, 30, ['#ff9a5c', '#ffd27a', '#fff2c0'], 260)
+        addShake(8)
+        foes.filter((foe) => Math.abs(foe.x - bombX) <= 150).forEach((foe) => strike(foe, bombPower, '花炸弹'))
+        flowerBomb = null
+      }
+    }
+    if (skyBow) {
+      skyBow.timer -= dt
+      if (skyBow.shots < 6 && skyBow.timer <= 0) {
+        skyBow.shots += 1
+        skyBow.timer = .17
+        const x = skyBow.x + (skyBow.shots - 3.5) * 26
+        projectiles.push({ x, y: world.floor - 280, vx: 0, vy: 760, life: 1.4, damage: Math.round(stats().attack * 1.1), targetId: -1, kind: 'fall', hitIds: [], label: '满蓄力箭' })
+      }
+      if (skyBow.shots >= 6 && skyBow.timer <= -.4) skyBow = null
     }
     const holdingShield = keys.has('l') && !shieldLocked && !bossVictory && game.mp > 0
     shieldActive = holdingShield
@@ -4170,15 +4543,36 @@ function update(dt: number) {
       }
     }
     for (const projectile of [...projectiles]) {
-      const target = foes.find((foe) => foe.id === projectile.targetId)
-      if (target) {
-        const distance = target.x - projectile.x
-        projectile.x += Math.sign(distance) * Math.min(Math.abs(distance), Math.abs(projectile.vx) * dt)
-      } else projectile.x += projectile.vx * dt
-      projectile.life -= dt
-      if (!target || projectile.life <= 0 || Math.abs(target.x - projectile.x) < 22 || projectile.x < MAP_LEFT - 100 || projectile.x > unlockedWidth + 100) {
-        if (target) strike(target, projectile.damage, '法杖光弹')
-        projectiles = projectiles.filter((entry) => entry !== projectile)
+      if (projectile.kind) {
+        projectile.x += projectile.vx * dt
+        projectile.y += (projectile.vy ?? 0) * dt
+        projectile.life -= dt
+        let remove = projectile.life <= 0
+        if (projectile.maxDistance && Math.abs(projectile.x - (projectile.startX ?? projectile.x)) > projectile.maxDistance) remove = true
+        if (projectile.x < MAP_LEFT - 100 || projectile.x > unlockedWidth + 100 || projectile.y > world.floor + 60 || projectile.y < -300) remove = true
+        for (const foe of [...foes]) {
+          if (projectile.hitIds?.includes(foe.id)) continue
+          const foeY = foe.flying ? foeWorldY(foe) - 8 : world.floor - (foe.boss ? 96 : 46)
+          const hit = projectile.kind === 'fall'
+            ? Math.abs(foe.x - projectile.x) < (foe.boss ? 58 : 30) && projectile.y >= foeY - 90 && projectile.y <= foeY + 78
+            : Math.abs(foe.x - projectile.x) < (foe.boss ? 56 : 28) && Math.abs(foeY - projectile.y) < (foe.boss ? 110 : 66)
+          if (!hit) continue
+          strike(foe, projectile.damage, projectile.label ?? '箭矢')
+          if (projectile.pierce) { projectile.hitIds ??= []; projectile.hitIds.push(foe.id) }
+          else { remove = true; break }
+        }
+        if (remove) projectiles = projectiles.filter((entry) => entry !== projectile)
+      } else {
+        const target = foes.find((foe) => foe.id === projectile.targetId)
+        if (target) {
+          const distance = target.x - projectile.x
+          projectile.x += Math.sign(distance) * Math.min(Math.abs(distance), Math.abs(projectile.vx) * dt)
+        } else projectile.x += projectile.vx * dt
+        projectile.life -= dt
+        if (!target || projectile.life <= 0 || Math.abs(target.x - projectile.x) < 22 || projectile.x < MAP_LEFT - 100 || projectile.x > unlockedWidth + 100) {
+          if (target) strike(target, projectile.damage, '法杖光弹')
+          projectiles = projectiles.filter((entry) => entry !== projectile)
+        }
       }
     }
     for (const shot of [...foeShots]) {
@@ -4529,13 +4923,7 @@ function equippedLevel(type: GearType) {
   return game?.gear.find((gear) => gear.id === id)?.level ?? 0
 }
 function equippedWeapon() { return game?.gear.find((gear) => gear.id === game?.weaponId) }
-function weaponStyle(): 'sword' | 'axe' | 'staff' | 'blade' {
-  const name = equippedWeapon()?.name ?? ''
-  if (name.includes('战斧')) return 'axe'
-  if (name.includes('法杖')) return 'staff'
-  if (name.includes('之刃')) return 'blade'
-  return 'sword'
-}
+function weaponStyle(): WeaponStyle { return activeWeaponStyle() }
 function weaponFxColor() {
   const weapon = equippedWeapon()
   const level = weapon?.level ?? 1
@@ -4545,6 +4933,8 @@ function weaponFxColor() {
     axe: ['#ffb066', '#ff9a4d', '#ffc78a', '#ff7a3d', '#ffd6a0', '#ffb066'],
     staff: ['#c7b3ff', '#9fe8ff', '#ffb3e6', '#b3ffcf', '#fff0a8', '#c7b3ff'],
     blade: ['#9fe8ff', '#c7b3ff', '#b3ffcf', '#ffd6a0', '#ffb3e6', '#9fe8ff'],
+    bow: ['#c8f0a0', '#8fdf7a', '#ffe28a', '#a7f0d2', '#d4f5a8', '#9fe8b0'],
+    book: ['#d6b4ff', '#9fe8ff', '#ffb3e6', '#c7f0ff', '#e6d0ff', '#b3f0d8'],
   }
   const palette = colors[style] ?? colors.sword
   return palette[(Math.max(1, level) - 1) % palette.length]
@@ -4704,6 +5094,18 @@ function drawWarriorHero(c: CanvasRenderingContext2D, now: number, walk: number)
   c.fillStyle = '#7e2f2a'; c.beginPath(); c.moveTo(-8, -93); c.quadraticCurveTo(-10, -103, -2, -100); c.quadraticCurveTo(-4, -97, -8, -93); c.fill()
   c.fillStyle = '#d4543f'; c.beginPath(); c.moveTo(4, -96); c.quadraticCurveTo(10, -105, 12, -97); c.quadraticCurveTo(8, -99, 4, -96); c.fill()
   c.fillStyle = '#e3c985'; c.fillRect(-13, -88, 26, 2)
+  // 弓箭
+  if (weaponStyle() === 'bow') {
+    c.save(); c.translate(15, -54); if (attackSwing > 0) c.rotate(-.32)
+    c.strokeStyle = bladeTint.dark; c.lineWidth = 3.2
+    c.beginPath(); c.arc(7, -1, 28, -Math.PI / 2.4, Math.PI / 2.4); c.stroke()
+    c.strokeStyle = bladeTint.light; c.lineWidth = 1.2
+    c.beginPath(); c.moveTo(17, -27); c.lineTo(17, 25); c.stroke()
+    c.fillStyle = bladeTint.glow || '#e7cf8e'; c.fillRect(2, -4, 5, 9)
+    if (bowCharging) { c.strokeStyle = '#f7ffd8'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(2, 0); c.lineTo(34, 0); c.stroke() }
+    c.restore()
+    return
+  }
   // 剑
   c.save(); c.translate(15, -54); if (attackSwing > 0) c.rotate(-.8)
   if (attackSwing > 0) {
@@ -4785,6 +5187,18 @@ function drawMageHero(c: CanvasRenderingContext2D, now: number, walk: number) {
   c.strokeStyle = `${gem}cc`; c.lineWidth = 1.2; c.beginPath(); c.arc(0, 0, 8, 0, Math.PI * 2); c.stroke()
   c.fillStyle = gem; c.beginPath(); c.moveTo(0, -9); c.lineTo(2.4, 0); c.lineTo(0, 9); c.lineTo(-2.4, 0); c.closePath(); c.fill()
   c.restore()
+  // 魔法书
+  if (weaponStyle() === 'book') {
+    c.save(); c.translate(18, -38 + Math.sin(now / 420) * 2); c.rotate(-.12)
+    c.shadowColor = gem; c.shadowBlur = 14
+    c.fillStyle = '#3a2c55'; c.fillRect(-11, -14, 22, 28)
+    c.fillStyle = gem; c.fillRect(-9, -12, 18, 24)
+    c.fillStyle = '#f4eaff'; c.fillRect(-5, -8, 10, 16)
+    c.strokeStyle = trim; c.lineWidth = 1.2; c.strokeRect(-11, -14, 22, 28)
+    for (let i = 0; i < 3; i++) c.fillRect(-3, -5 + i * 5, 6, 1)
+    c.restore()
+    return
+  }
   // 法杖（攻击/施法时整体挥动）
   c.save(); c.translate(18, -8)
   if (attackSwing > 0) c.rotate(-.42)
@@ -5628,6 +6042,73 @@ function drawPotionDrops(c: CanvasRenderingContext2D) {
     c.fillStyle = '#e6d7a4'; c.font = '11px sans-serif'; c.textAlign = 'center'; c.fillText('S 拾取', heroX, world.floor - 127)
   }
 }
+function drawBowCharge(c: CanvasRenderingContext2D) {
+  if (!bowCharging || scene !== 'battle') return
+  const ratio = Math.max(0, Math.min(1, bowCharge / 5))
+  const x = heroX
+  const y = world.floor - 128 + heroY
+  c.save()
+  c.fillStyle = 'rgba(13, 28, 28, .88)'; c.fillRect(x - 52, y - 14, 104, 24)
+  c.strokeStyle = 'rgba(200, 240, 160, .65)'; c.lineWidth = 1; c.strokeRect(x - 52, y - 14, 104, 24)
+  c.fillStyle = 'rgba(30, 46, 32, .9)'; c.fillRect(x - 46, y + 2, 92, 4)
+  c.fillStyle = ratio >= 1 ? '#ffe28a' : '#c8f0a0'; c.fillRect(x - 46, y + 2, 92 * ratio, 4)
+  c.fillStyle = '#e7f5d4'; c.font = "700 10px 'Microsoft YaHei', sans-serif"; c.textAlign = 'center'
+  c.fillText(`蓄力 ${bowCharge.toFixed(1)} / 5.0`, x, y - 2)
+  c.restore()
+}
+function drawBowSkillObjects(c: CanvasRenderingContext2D) {
+  if (scene !== 'battle') return
+  const now = performance.now()
+  if (flowerBomb) {
+    const x = flowerBomb.x
+    const y = flowerBomb.y
+    const pulse = .7 + Math.sin(now / 90) * .3
+    c.save(); c.translate(x, y)
+    c.shadowColor = '#ff9a5c'; c.shadowBlur = 16
+    for (let i = 0; i < 6; i++) {
+      const angle = (i / 6) * Math.PI * 2 + now / 900
+      c.fillStyle = i % 2 ? '#ffd27a' : '#e46f5a'
+      c.beginPath(); c.ellipse(Math.cos(angle) * 10, Math.sin(angle) * 7 - 4, 4.5, 7, angle, 0, Math.PI * 2); c.fill()
+    }
+    c.fillStyle = '#fff2c0'; c.beginPath(); c.arc(0, -4, 5 * pulse, 0, Math.PI * 2); c.fill()
+    c.strokeStyle = '#ffd27a'; c.lineWidth = 1.5; c.beginPath(); c.arc(0, 0, 20, -Math.PI / 2, -Math.PI / 2 + (flowerBomb.timer / .7) * Math.PI * 2); c.stroke()
+    c.restore()
+  }
+  if (skyBow) {
+    const x = skyBow.x
+    const y = world.floor - 235
+    c.save(); c.translate(x, y); c.rotate(now / 220)
+    c.strokeStyle = '#ffe28a'; c.lineWidth = 3; c.shadowColor = '#ffe28a'; c.shadowBlur = 12
+    c.beginPath(); c.arc(0, 0, 26, -Math.PI / 2.2, Math.PI / 2.2); c.stroke()
+    c.strokeStyle = 'rgba(255, 242, 192, .7)'; c.lineWidth = 1.2
+    c.beginPath(); c.moveTo(12, -24); c.lineTo(12, 24); c.stroke()
+    c.restore()
+    c.save(); c.fillStyle = '#f7ffd8'; c.shadowColor = '#ffe28a'; c.shadowBlur = 8
+    for (let i = 0; i < 6; i++) {
+      const px = x + (i - 2.5) * 26
+      c.fillRect(px - 1, y + 18, 2, 22)
+      c.beginPath(); c.moveTo(px, y + 46); c.lineTo(px - 4, y + 38); c.lineTo(px + 4, y + 38); c.closePath(); c.fill()
+    }
+    c.restore()
+  }
+}
+function drawClone(c: CanvasRenderingContext2D) {
+  if (!game || scene !== 'battle' || cloneTimer <= 0) return
+  const now = performance.now()
+  const bob = Math.sin(now / 380) * 1.6
+  c.save(); c.globalAlpha = .58 + Math.sin(now / 260) * .08
+  c.translate(cloneX, world.floor + cloneY + bob); c.scale(facing * .8, .8)
+  c.shadowColor = '#d6b4ff'; c.shadowBlur = 16
+  drawMageHero(c, now, 0)
+  c.restore()
+  const barY = world.floor + cloneY - 116
+  c.save(); c.fillStyle = 'rgba(13, 25, 25, .82)'; c.fillRect(cloneX - 34, barY, 68, 18)
+  c.fillStyle = '#d6b4ff'; c.font = "700 9px 'Microsoft YaHei', sans-serif"; c.textAlign = 'center'
+  c.fillText(`分身 ${cloneTimer.toFixed(1)}s`, cloneX, barY + 8)
+  c.fillStyle = 'rgba(40, 30, 50, .9)'; c.fillRect(cloneX - 30, barY + 11, 60, 3)
+  c.fillStyle = '#d6b4ff'; c.fillRect(cloneX - 30, barY + 11, 60 * Math.max(0, cloneHp / Math.max(1, cloneMaxHp)), 3)
+  c.restore()
+}
 function drawBossChest(c: CanvasRenderingContext2D) {
   if (!bossChest) return
   const x = bossChest.x
@@ -5706,14 +6187,41 @@ function draw() {
   drawBattleScenery(ctx)
   drawPlatforms(ctx)
   drawPotionDrops(ctx)
+  drawBowSkillObjects(ctx)
   if (scene === 'battle') drawBossChest(ctx)
   for (const foe of foes) drawFoe(ctx, foe)
   if (scene === 'town') { drawTownWaypoint(ctx); drawTownNpc(ctx); drawTownCompanions(ctx); drawSecondNpc(ctx) }
+  ctx.save(); if (invisibleTimer > 0) ctx.globalAlpha = .35
   drawHero(ctx)
+  ctx.restore()
+  drawClone(ctx)
   drawShield(ctx)
+  drawBowCharge(ctx)
   for (const projectile of projectiles) {
     const projectileColor = weaponFxColor()
-    ctx.fillStyle = projectileColor; ctx.shadowColor = projectileColor; ctx.shadowBlur = 15; ctx.beginPath(); ctx.arc(projectile.x, projectile.y, 7, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0
+    ctx.save()
+    if (projectile.kind === 'arrow' || projectile.kind === 'charged' || projectile.kind === 'fall') {
+      const angle = projectile.kind === 'fall' ? Math.PI / 2 : Math.atan2(projectile.vy ?? 0, projectile.vx)
+      const length = projectile.kind === 'charged' ? 26 : 20
+      ctx.translate(projectile.x, projectile.y); ctx.rotate(angle)
+      ctx.shadowColor = projectileColor; ctx.shadowBlur = projectile.kind === 'charged' ? 16 : 8
+      ctx.strokeStyle = projectile.kind === 'charged' ? '#f7ffd8' : projectileColor; ctx.lineWidth = projectile.kind === 'charged' ? 3 : 2
+      ctx.beginPath(); ctx.moveTo(-length, 0); ctx.lineTo(4, 0); ctx.stroke()
+      ctx.fillStyle = projectile.kind === 'charged' ? '#f7ffd8' : projectileColor
+      ctx.beginPath(); ctx.moveTo(8, 0); ctx.lineTo(-1, -4); ctx.lineTo(-1, 4); ctx.closePath(); ctx.fill()
+      if (projectile.kind === 'charged') {
+        ctx.globalAlpha = .35; ctx.strokeStyle = projectileColor; ctx.lineWidth = 6
+        ctx.beginPath(); ctx.moveTo(-length - 8, 0); ctx.lineTo(2, 0); ctx.stroke()
+      }
+    } else if (projectile.kind === 'book') {
+      ctx.shadowColor = projectileColor; ctx.shadowBlur = 16; ctx.fillStyle = projectileColor
+      ctx.beginPath(); ctx.arc(projectile.x, projectile.y, 8, 0, Math.PI * 2); ctx.fill()
+      ctx.globalAlpha = .4; ctx.strokeStyle = projectileColor; ctx.lineWidth = 4
+      ctx.beginPath(); ctx.moveTo(projectile.x - Math.sign(projectile.vx || 1) * 26, projectile.y); ctx.lineTo(projectile.x, projectile.y); ctx.stroke()
+    } else {
+      ctx.fillStyle = projectileColor; ctx.shadowColor = projectileColor; ctx.shadowBlur = 15; ctx.beginPath(); ctx.arc(projectile.x, projectile.y, 7, 0, Math.PI * 2); ctx.fill()
+    }
+    ctx.restore()
   }
   if (scene === 'battle') {
     for (const shot of foeShots) {
