@@ -1040,4 +1040,51 @@ body { background: #0d1717; }
   .talent-actions { justify-content: flex-start; }
   .talent-actions button { min-width: 0; font-size: 9px; }
 }
+/* ── 1.73 手机布局微调 / Boss 血条 ─────────────────── */
+.hud-center .hud-enemy.boss { order: -1; margin-top: 0; margin-bottom: 4px; }
+.hud-enemy.boss { width: min(560px, 58vw); gap: 4px; margin-top: 5px; padding: 6px 12px 7px; border: 1px solid rgba(226, 197, 126, .38); border-radius: 3px; background: linear-gradient(180deg, rgba(48, 30, 18, .88), rgba(22, 16, 12, .82)); backdrop-filter: blur(4px); }
+.hud-enemy.boss span { color: #f2dfae; font-size: 12px; text-align: center; }
+.hud-enemy.boss > div { height: 11px; background: rgba(40, 24, 20, .9); }
+.hud-enemy.boss i { background: linear-gradient(90deg, #9c3a2c, #e38a6b); }
+@media (max-width: 760px) and (pointer: coarse) {
+  .mobile-move-rail .mobile-pad { width: clamp(108px, 28vw, 124px); height: clamp(108px, 28vw, 124px); font-size: 28px; }
+  .mobile-action-rail { width: min(118px, 28vw); margin-right: clamp(38px, 12vw, 52px); }
+  .mobile-skill { min-height: clamp(28px, 8vw, 34px); font-size: 10px; }
+  .mobile-action-rail .mobile-pad { height: clamp(34px, 9vw, 40px); font-size: 17px; }
+  .hud-bag { width: 48px; min-height: 42px; padding: 4px 3px; gap: 1px; }
+  .hud-bag b { font-size: 10px; }
+  .hud-bag .item-icon { width: 16px; height: 16px; }
+  .hud-bag > #hud-bag-count { top: -5px; right: -5px; min-width: 16px; height: 16px; line-height: 16px; font-size: 9px; }
+  .hud-enemy.boss { width: min(320px, 68vw); }
+  .hud-enemy.boss span { font-size: 11px; }
+}
+@media (max-width: 400px) and (pointer: coarse) {
+  .mobile-move-rail .mobile-pad { width: clamp(96px, 27vw, 108px); height: clamp(96px, 27vw, 108px); font-size: 26px; }
+  .mobile-action-rail { width: 94px; margin-right: 30px; }
+  .hud-bag { width: 42px; min-height: 38px; }
+}
+/* ── 1.73 专属合成 / 强化石 / 第二 NPC ─────────────── */
+.forge-note { margin: 0 0 4px; color: #d9c49a; font-size: 11px; line-height: 1.8; text-align: center; }
+.stone-layout .forge-workbench { justify-content: center; }
+.second-npc-dialog { width: min(96vw, 1000px); }
+.enhance-slots { display: grid; gap: 7px; margin: 10px 0; }
+.enhance-slot { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 11px 13px; border: 1px solid rgba(191, 202, 169, .24); background: rgba(20, 35, 35, .66); color: #e1e6d6; text-align: left; cursor: pointer; }
+.enhance-slot:hover { border-color: #c9b273; }
+.enhance-slot.active { border-color: #e2c57e; background: rgba(66, 56, 30, .58); }
+.enhance-slot span { display: grid; gap: 3px; }
+.enhance-slot b { color: #f0dfb2; font-size: 13px; font-weight: 500; }
+.enhance-slot b i { color: #ffdda0; font-size: 11px; font-style: normal; }
+.enhance-slot small { color: #aeb9ac; font-size: 10px; }
+.enhance-slot > i { color: #c9b273; font-size: 10px; font-style: normal; }
+.enhance-chance { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin: 10px 0; padding: 9px 11px; border: 1px solid rgba(226, 197, 126, .28); background: rgba(54, 34, 19, .55); color: #d9c49a; font-size: 11px; }
+.enhance-chance b { color: #ffe2a0; }
+.enhance-stones { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; margin: 10px 0; }
+.enhance-stones button { min-height: 44px; padding: 4px 2px; border: 1px solid rgba(191, 202, 169, .24); background: rgba(20, 35, 35, .66); color: #cfd8c8; font-size: 9px; cursor: pointer; }
+.enhance-stones button.active { border-color: #e2c57e; background: rgba(66, 56, 30, .66); color: #ffe2a0; }
+.enhance-stones button:disabled { opacity: .4; cursor: not-allowed; }
+.enhance-stones small { display: block; margin-top: 2px; color: #9fb0a3; font-family: var(--mono); font-size: 8px; }
+.dungeon-list { max-height: 56vh; }
+@media (max-width: 760px) {
+  .enhance-stones { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
