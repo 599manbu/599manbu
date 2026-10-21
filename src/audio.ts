@@ -19,12 +19,13 @@ function ensureContext(): AudioContext | null {
     ctx = new Ctor()
     // 轻量压缩器避免叠加的音符和音效削波，同时让整体响度更饱满。
     const compressor = ctx.createDynamicsCompressor()
-    compressor.threshold.value = -16; compressor.knee.value = 24; compressor.ratio.value = 5
+    compressor.threshold.value = -10; compressor.knee.value = 22; compressor.ratio.value = 4
     compressor.attack.value = .003; compressor.release.value = .25
     compressor.connect(ctx.destination)
-    master = ctx.createGain(); master.gain.value = enabled ? 1 : 0; master.connect(compressor)
-    musicBus = ctx.createGain(); musicBus.gain.value = .72; musicBus.connect(master)
-    sfxBus = ctx.createGain(); sfxBus.gain.value = 1; sfxBus.connect(master)
+    master = ctx.createGain(); master.gain.value = enabled ? 1.15 : 0; master.connect(compressor)
+    // 整体音量提高，并让音乐总线明显高于音效总线（用户要求音乐比音效大声）。
+    musicBus = ctx.createGain(); musicBus.gain.value = 1; musicBus.connect(master)
+    sfxBus = ctx.createGain(); sfxBus.gain.value = .64; sfxBus.connect(master)
   }
   if (ctx.state === 'suspended') void ctx.resume()
   return ctx
@@ -51,7 +52,7 @@ export function toggleAudio() {
   enabled = !enabled
   try { localStorage.setItem(STORE_KEY, enabled ? 'on' : 'off') } catch { /* ignore */ }
   const context = ensureContext()
-  if (master && context) master.gain.setTargetAtTime(enabled ? 1 : 0, context.currentTime, .03)
+  if (master && context) master.gain.setTargetAtTime(enabled ? 1.15 : 0, context.currentTime, .03)
   if (!enabled) stopMusic()
   else void unlockAudio()
   return enabled
@@ -77,19 +78,19 @@ type MusicCfg = {
 // 16 步一小节：主旋律、低音、铺底和弦与鼓点分层，战斗与 Boss 曲更密集、更有推进感。
 const MUSIC: Record<MusicMode, MusicCfg> = {
   title: {
-    root: 196, scale: [0, 2, 3, 5, 7, 8, 10, 12], stepMs: 205, wave: 'triangle', volume: .1, leadOctave: 2,
+    root: 196, scale: [0, 2, 3, 5, 7, 8, 10, 12], stepMs: 205, wave: 'triangle', volume: .16, leadOctave: 2,
     progression: [0, 5, 3, 7], leadSteps: [0, 2, 4, 6, 8, 10, 12, 14], bassSteps: [0, 8], padSteps: [0], drums: false,
   },
   town: {
-    root: 262, scale: [0, 2, 4, 5, 7, 9, 11, 12], stepMs: 235, wave: 'triangle', volume: .09, leadOctave: 2,
+    root: 262, scale: [0, 2, 4, 5, 7, 9, 11, 12], stepMs: 235, wave: 'triangle', volume: .15, leadOctave: 2,
     progression: [0, 4, 5, 3], leadSteps: [0, 3, 6, 8, 11, 14], bassSteps: [0, 8], padSteps: [0, 8], drums: false,
   },
   battle: {
-    root: 165, scale: [0, 2, 3, 5, 7, 8, 10, 12], stepMs: 120, wave: 'sawtooth', volume: .1, leadOctave: 2,
+    root: 165, scale: [0, 2, 3, 5, 7, 8, 10, 12], stepMs: 120, wave: 'sawtooth', volume: .18, leadOctave: 2,
     progression: [0, 5, 3, 7], leadSteps: [0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14], bassSteps: [0, 2, 4, 6, 8, 10, 12, 14], padSteps: [0], drums: true,
   },
   boss: {
-    root: 123.47, scale: [0, 1, 3, 5, 6, 8, 10, 12], stepMs: 102, wave: 'sawtooth', volume: .11, leadOctave: 2,
+    root: 123.47, scale: [0, 1, 3, 5, 6, 8, 10, 12], stepMs: 102, wave: 'sawtooth', volume: .19, leadOctave: 2,
     progression: [0, 1, 5, 4], leadSteps: [0, 1, 2, 3, 4, 6, 7, 8, 10, 11, 12, 14, 15], bassSteps: [0, 2, 3, 4, 6, 8, 10, 11, 12, 14], padSteps: [0, 8], drums: true,
   },
 }
