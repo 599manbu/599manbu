@@ -33,7 +33,7 @@ type BattlePlatform = { x: number; w: number; height: number; kind: 'tree' | 'ro
 const SAVE_KEY = 'elemental-expedition-save-v2'
 const DEMO_MODE = import.meta.env.MODE === 'demo'
 const DEMO_SAVE_KEY = `${SAVE_KEY}:demo`
-const GAME_VERSION = '1.80'
+const GAME_VERSION = '1.81'
 const stageNames = ['苔痕边境', '沉钟矿道', '赤岩峡谷', '风蚀高原', '幽蓝沼泽', '断星回廊', '灰烬王庭', '深渊裂谷', '苍白圣所', '终焉之门']
 const roleLabels: Record<Role, string> = { warrior: '战士', mage: '法师' }
 const SKILL_LABELS: Record<SkillSetKey, string[]> = {
@@ -568,6 +568,12 @@ let hiddenBattle = false
 let heroSupportTop = world.floor
 // 当前战斗用时（秒），进入战场或开始新战斗时重置。
 let battleTime = 0
+// 战斗连击：命中累计，5 秒不命中或被击中 2 次后清零。
+let comboCount = 0
+let comboTimer = 0
+let comboHitsTaken = 0
+let comboPop = 0
+let joystickPointerId: number | null = null
 
 function readSaves(key = currentSaveKey): SaveSlot[] {
   try {
@@ -733,6 +739,50 @@ function noteMoveTap(direction: -1 | 1) {
 }
 function battleMoveSpeed(running: boolean) { return running ? 322 : 190 }
 function townMoveSpeed(running: boolean) { return running ? 296 : 172 }
+function comboBuffPct() {
+  if (comboCount >= 600) return 10
+  if (comboCount >= 250) return 5
+  if (comboCount >= 100) return 2
+  return 0
+}
+function comboAttackMultiplier() {
+  return scene === 'battle' ? 1 + comboBuffPct() / 100 : 1
+}
+function resetCombo() {
+  comboCount = 0
+  comboTimer = 0
+  comboHitsTaken = 0
+  comboPop = 0
+}
+function addComboHit() {
+  comboCount += 1
+  comboTimer = 5
+  comboPop = .18
+}
+function takeComboHit() {
+  if (comboCount <= 0) return
+  comboHitsTaken += 1
+  if (comboHitsTaken >= 2) resetCombo()
+}
+function syncComboHud() {
+  const display = document.querySelector<HTMLElement>('#combo-display')
+  if (!display) return
+  const active = scene === 'battle' && comboCount > 0
+  display.style.display = active ? 'grid' : 'none'
+  if (!active) return
+  display.style.opacity = String(Math.min(1, comboTimer / 2))
+  display.classList.toggle('tier-1', comboCount >= 100 && comboCount < 250)
+  display.classList.toggle('tier-2', comboCount >= 250 && comboCount < 600)
+  display.classList.toggle('tier-3', comboCount >= 600)
+  const count = display.querySelector<HTMLElement>('#combo-count')
+  if (count) {
+    count.textContent = String(comboCount)
+    count.style.fontSize = `${44 + Math.min(30, comboCount * .05)}px`
+    count.style.transform = `scale(${1 + comboPop * .6})`
+  }
+  const buff = display.querySelector<HTMLElement>('#combo-buff')
+  if (buff) buff.textContent = comboBuffPct() > 0 ? `攻击 +${comboBuffPct()}%` : ''
+}
 function formatBattleTime(seconds: number) {
   const total = Math.max(0, Math.floor(seconds))
   const hours = Math.floor(total / 3600)
@@ -850,6 +900,7 @@ function stats() {
   if (invisibleTimer > 0) attack = Math.round(attack * (1.05 + .1 * (skillLevel(0, 'book') - 1)))
   const buffMultiplier = role === 'mage' && buffTime > 0 ? 1 + .1 * skillLevel(0, 'staff') : 1
   attack = Math.round(attack * buffMultiplier)
+  attack = Math.round(attack * comboAttackMultiplier())
   return { hp: Math.round(hp), mp: Math.round(mp), attack: Math.round(attack), defense: Math.round(defense) }
 }
 function equippedGemBonus() {
@@ -987,6 +1038,7 @@ function hurtPlayer(rawDamage: number, shakeAmount = 0) {
   const scaledDamage = nightmareStage !== null ? rawDamage * 1.5 : rawDamage
   const dealt = Math.max(3, Math.round(scaledDamage - effectiveDefense()))
   game.hp = Math.max(0, game.hp - dealt)
+  takeComboHit()
   effects.push({ kind: 'damage-number', x: heroX, y: world.floor - 90 + heroY, life: .85, duration: .85, text: `-${displayNumber(dealt)}`, damage: dealt })
   armorHitFx()
   if (shakeAmount) addShake(shakeAmount)
@@ -1113,6 +1165,7 @@ function armNextWave() {
 function enterBattlefield() {
   if (!game) return
   battleTime = 0
+  resetCombo()
   refreshMap()
   foes = []
   waveReady = false
@@ -1162,6 +1215,7 @@ function advanceTutorialStep(next: number) {
 function beginTutorial() {
   if (!game) return
   battleTime = 0
+  resetCombo()
   tutorialMode = true
   tutorialStep = 0
   hiddenBattle = false
@@ -1191,6 +1245,7 @@ function beginHiddenBattle() {
   if (!game) return
   if (!hiddenUnlocked()) { toast(`集齐 ${STAMP_UNLOCK} 枚王印印章后才能挑战宿敌。`); return }
   battleTime = 0
+  resetCombo()
   hiddenBattle = true
   tutorialMode = false
   bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; cloneAttackPulse = 0; cloneCastPulse = 0; cloneStealthTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null; bombClones = []; arcaneOrb = null
@@ -2089,6 +2144,7 @@ function beginNightmare(stage: number) {
   if (!game || !secondNpcUnlocked() || !nightmareUnlocked(stage)) return
   resetPanels()
   battleTime = 0
+  resetCombo()
   hiddenBattle = false; tutorialMode = false; bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; cloneAttackPulse = 0; cloneCastPulse = 0; cloneStealthTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null; bombClones = []; arcaneOrb = null
   nightmareStage = stage
   game.stage = stage
@@ -3288,6 +3344,7 @@ function hudMarkup() {
         <div><i id="hud-foe-fill" style="width:${boss ? Math.max(0, boss.hp / boss.maxHp * 100) : 100}%"></i></div>
       </div>
     </section>
+    ${isTown ? '' : '<div class="combo-display" id="combo-display" style="display:none"><small>连击</small><b id="combo-count">0</b><span id="combo-buff"></span></div>'}
     <section class="hud-tools">
       <div class="hud-currency"><span>${itemIcon('soul')} <b id="hud-soul">${displayCurrency(game.soul ?? 0)}</b></span></div>
       <div class="hud-buttons">
@@ -3488,7 +3545,7 @@ function renderGame() {
   const townOverlay = ''
   const deathOverlay = scene === 'defeat' ? `<div class="overlay death-overlay"><small>EXPEDITION PAUSED</small><h2>你倒在了遗迹深处</h2><p>继续战斗会以半血复活并保留当前进度；复活币可以满状态复活，每个关卡限用一次；重新开始会恢复满状态并从本关第一波重新挑战；回到小镇会恢复满状态。</p><div class="death-actions">${(game.reviveCoins ?? 0) > 0 && !game.reviveUsed ? `<button data-action="revive-coin" class="revive-button">${itemIcon('revive')} 使用复活币（满状态） · ${game.reviveCoins}</button>` : ''}<button data-action="respawn-fight" class="primary">继续战斗（半血）</button><button data-action="restart-stage" class="secondary">重新开始（满状态）</button><button data-action="respawn-town" class="secondary">回到小镇</button></div></div>` : ''
   const endingOverlay = scene === 'ending' ? '<div class="overlay"><small>THE FRONTIER IS YOURS</small><h2>十片遗迹，皆已沉寂</h2><p>你完成了元素远征。</p><button data-action="town" class="primary">返回小镇　↗</button></div>' : ''
-  app.innerHTML = `<main class="game-shell ${isTown ? 'town-mode' : ''}"><header class="game-header"><a data-action="town" class="wordmark"><b>A</b> 成王之路 <i>／</i> ${isTown ? '冒险者小镇' : '元素远征'}</a>${DEMO_MODE ? '<span class="demo-badge">体验版 · 全关卡</span>' : ''}<span class="save-state"><i></i>${isTown ? '小镇安全区' : '进度已自动保存'}</span><span class="soul-badge" title="灵魂">${itemIcon('soul')} ${displayNumber(game.soul ?? 0)}</span><button class="bag-button" data-action="bag">${itemIcon('bag')} 背包 <span>${game.gear.length}</span></button><button class="save-button" data-action="save" title="保存进度">▣</button></header><section class="overview"><div><small>${isTown ? '冒险者小镇' : chapterLabel}</small><h1>${isTown ? '营火集市' : areaName}</h1><p>${isTown ? '缓冲区 · 整备装备与选择关卡' : tutorialMode ? '新手试炼 · 完成引导目标' : hiddenBattle ? '宿敌对决 · 没有退路' : `遗迹入口 · 击败 ${MAX_SMALL_KILLS} 只守卫后迎战 Boss`}</p></div><div class="metrics"><div><small>职业</small><b>${roleLabels[game.role]}</b></div><div><small>已击杀</small><b>${isTown ? `开放至第 ${game.unlockedStage} 关` : countText}</b></div><div><small>当前装备</small><b>${item()?.name ?? '无'}</b></div></div></section><section class="game-grid"><div class="battle-column"><div class="arena-label"><span>◆ ${isTown ? '冒险者小镇 · 补给站' : `${areaName} · 深层区域`}</span><b id="enemy-name">${isTown ? '安全区域' : tutorialMode ? '训练傀儡正在等待' : hiddenBattle ? '宿敌正在等待' : boss ? `${bossLabel}冲刺准备中` : `${foes.length} 只守卫正在逼近`}</b></div><div class="arena-stage"><div class="arena"><canvas id="arena" aria-label="横版战斗场景"></canvas><div class="coords"><span>${isTown ? 'TOWN · SAFE ZONE' : tutorialMode ? 'NEW PLAYER · TRAINING' : hiddenBattle ? 'SECRET · RIVAL' : `遗迹远征 · ${String(game.stage).padStart(2, '0')}`}</span><span>${boss ? 'BOSS ENCOUNTER' : isTown ? 'REST & PREPARE' : 'WAVE ENCOUNTER'}</span></div>${townOverlay}${deathOverlay}${endingOverlay}${bossVictoryMarkup()}${lootRevealMarkup()}${tutorialHintMarkup()}<div class="mobile-control-deck"><div class="mobile-rail mobile-move-rail"><button class="mobile-pad" data-move="left" aria-label="向左移动" title="向左移动" ${canControl ? '' : 'disabled'}>←</button><button class="mobile-pad" data-move="right" aria-label="向右移动" title="向右移动" ${canControl ? '' : 'disabled'}>→</button></div><div class="mobile-rail mobile-action-rail"><div class="mobile-skills">${[2, 3, 0, 1].map((index) => `<button class="mobile-skill" data-action="skill" data-index="${index}" aria-label="技能 ${index + 1}" ${canControl ? '' : 'disabled'}>${index + 1}</button>`).join('')}</div><div class="mobile-utils"><button class="mobile-skill mobile-pickup" data-action="pickup" aria-label="拾取" title="拾取药水 / 与商人对话" ${canControl ? '' : 'disabled'}>S</button><button class="mobile-skill mobile-shield" data-shield aria-label="护盾" title="按住生成护盾" ${canControl ? '' : 'disabled'}>L</button></div><button class="mobile-pad attack-pad" data-action="attack" aria-label="攻击" title="攻击" ${canControl ? '' : 'disabled'}>⚔</button><button class="mobile-pad jump-pad" data-action="jump" aria-label="跳跃" title="跳跃" ${canControl ? '' : 'disabled'}>↟</button></div></div></div></div><div class="foe-health"><div><span>${isTown ? '冒险者状态' : boss ? bossLabel : '本批守卫'}</span><b id="foe-hp">${isTown ? '安全休整' : boss ? `${Math.ceil(foes[0]?.hp ?? 0)} / ${foes[0]?.maxHp ?? 0}` : `${foes.length} 名敌人 · 已击败 ${game.kills} / ${MAX_SMALL_KILLS}`}</b></div><div><i id="foe-fill" style="width:${boss ? `${Math.max(0, foes[0].hp / foes[0].maxHp * 100)}%` : '100%'}"></i></div></div><div class="combat-bar"><button data-action="attack" class="attack" ${canControl ? '' : 'disabled'}><b>${game.role === 'warrior' ? '⚔' : '✦'}</b><span><strong>${game.role === 'warrior' ? '剑刃斩击' : '法杖射击'}</strong><small>J · ${game.role === 'warrior' ? '近战' : '远程'}</small></span></button><button data-action="jump" ${canControl ? '' : 'disabled'}><b>↟</b><span><strong>跳跃</strong><small>K ×2</small></span></button>${SKILL_LABELS[activeSkillSet()].map((label, i) => `<button data-action="skill" data-index="${i}" ${canControl ? '' : 'disabled'}><i>${i + 1}</i><span><strong>${label}</strong><small>${skillSummary(i)}</small></span></button>`).join('')}</div><div class="combat-log"><b>✦</b><span>${logText}</span></div></div><aside class="side-column">${isTown ? townPanelMarkup() : ''}<section class="panel status-panel"><header><span>角色状态</span><small>${String(game.stage).padStart(2, '0')}</small></header><div class="hero-card"><b class="avatar ${game.role}">${game.role === 'warrior' ? '刃' : '✦'}</b><span><strong>${roleLabels[game.role]}</strong><small>${game.role === 'warrior' ? '钢铁誓约 · 剑士' : '星辉学派 · 法杖'}</small></span></div><div class="resource-label"><span>生命</span><b id="hp-text">${displayNumber(game.hp)} <i>/ ${displayNumber(s.hp)}</i></b><em>♥</em></div><div class="resource"><i id="hp-fill" style="width:${game.hp / s.hp * 100}%"></i></div><div class="resource-label mana-label"><span>法力</span><b id="mp-text">${displayNumber(game.mp)} <i>/ ${displayNumber(s.mp)}</i></b><em>✦</em></div><div class="resource"><i id="mp-fill" style="width:${game.mp / s.mp * 100}%"></i></div><div class="stats"><div><small>攻击</small><b>${displayNumber(s.attack)}</b></div><div><small>防御</small><b>${displayNumber(s.defense)}</b></div><div><small>增益</small><b id="buff-stat">${buffTime > 0 ? `${buffTime.toFixed(1)}s` : '—'}</b></div></div></section><section class="panel gear-panel"><header><span>装备栏</span><small>${item()?.name ?? '未装备'}</small></header><div class="gear-summary">${item() ? `生命 +${item()!.hp}　攻击 +${item()!.attack}　防御 +${item()!.defense}` : '装备不会自动穿戴，请在小镇打开背包手动更换。'}</div><button class="open-bag" data-action="bag">打开背包　↗</button><div class="camp-hint">⌂　${isTown ? '安全区内可自由更换装备' : '击败 Boss 后回到小镇整备'}</div></section></aside></section><footer class="game-footer"><span>WASD / ← → 移动　·　J 攻击　·　K 跳跃 / 二段跳　·　1–4 技能　·　L 护盾</span><b>LOCAL SAVE　●</b></footer>${bagOpen ? bagMarkup() : ''}</main>`
+  app.innerHTML = `<main class="game-shell ${isTown ? 'town-mode' : ''}"><header class="game-header"><a data-action="town" class="wordmark"><b>A</b> 成王之路 <i>／</i> ${isTown ? '冒险者小镇' : '元素远征'}</a>${DEMO_MODE ? '<span class="demo-badge">体验版 · 全关卡</span>' : ''}<span class="save-state"><i></i>${isTown ? '小镇安全区' : '进度已自动保存'}</span><span class="soul-badge" title="灵魂">${itemIcon('soul')} ${displayNumber(game.soul ?? 0)}</span><button class="bag-button" data-action="bag">${itemIcon('bag')} 背包 <span>${game.gear.length}</span></button><button class="save-button" data-action="save" title="保存进度">▣</button></header><section class="overview"><div><small>${isTown ? '冒险者小镇' : chapterLabel}</small><h1>${isTown ? '营火集市' : areaName}</h1><p>${isTown ? '缓冲区 · 整备装备与选择关卡' : tutorialMode ? '新手试炼 · 完成引导目标' : hiddenBattle ? '宿敌对决 · 没有退路' : `遗迹入口 · 击败 ${MAX_SMALL_KILLS} 只守卫后迎战 Boss`}</p></div><div class="metrics"><div><small>职业</small><b>${roleLabels[game.role]}</b></div><div><small>已击杀</small><b>${isTown ? `开放至第 ${game.unlockedStage} 关` : countText}</b></div><div><small>当前装备</small><b>${item()?.name ?? '无'}</b></div></div></section><section class="game-grid"><div class="battle-column"><div class="arena-label"><span>◆ ${isTown ? '冒险者小镇 · 补给站' : `${areaName} · 深层区域`}</span><b id="enemy-name">${isTown ? '安全区域' : tutorialMode ? '训练傀儡正在等待' : hiddenBattle ? '宿敌正在等待' : boss ? `${bossLabel}冲刺准备中` : `${foes.length} 只守卫正在逼近`}</b></div><div class="arena-stage"><div class="arena"><canvas id="arena" aria-label="横版战斗场景"></canvas><div class="coords"><span>${isTown ? 'TOWN · SAFE ZONE' : tutorialMode ? 'NEW PLAYER · TRAINING' : hiddenBattle ? 'SECRET · RIVAL' : `遗迹远征 · ${String(game.stage).padStart(2, '0')}`}</span><span>${boss ? 'BOSS ENCOUNTER' : isTown ? 'REST & PREPARE' : 'WAVE ENCOUNTER'}</span></div>${townOverlay}${deathOverlay}${endingOverlay}${bossVictoryMarkup()}${lootRevealMarkup()}${tutorialHintMarkup()}<div class="mobile-control-deck"><div class="mobile-rail mobile-move-rail"><div class="mobile-joystick" data-joystick ${canControl ? '' : 'data-disabled="true"'} aria-label="移动摇杆"><span class="joystick-knob"></span></div></div><div class="mobile-rail mobile-action-rail"><div class="mobile-skills">${[2, 3, 0, 1].map((index) => `<button class="mobile-skill" data-action="skill" data-index="${index}" aria-label="技能 ${index + 1}" ${canControl ? '' : 'disabled'}>${index + 1}</button>`).join('')}</div><div class="mobile-utils"><button class="mobile-skill mobile-pickup" data-action="pickup" aria-label="拾取" title="拾取药水 / 与商人对话" ${canControl ? '' : 'disabled'}>S</button><button class="mobile-skill mobile-shield" data-shield aria-label="护盾" title="按住生成护盾" ${canControl ? '' : 'disabled'}>L</button></div><button class="mobile-pad attack-pad" data-action="attack" aria-label="攻击" title="攻击" ${canControl ? '' : 'disabled'}>⚔</button><button class="mobile-pad jump-pad" data-action="jump" aria-label="跳跃" title="跳跃" ${canControl ? '' : 'disabled'}>↟</button></div></div></div></div><div class="foe-health"><div><span>${isTown ? '冒险者状态' : boss ? bossLabel : '本批守卫'}</span><b id="foe-hp">${isTown ? '安全休整' : boss ? `${Math.ceil(foes[0]?.hp ?? 0)} / ${foes[0]?.maxHp ?? 0}` : `${foes.length} 名敌人 · 已击败 ${game.kills} / ${MAX_SMALL_KILLS}`}</b></div><div><i id="foe-fill" style="width:${boss ? `${Math.max(0, foes[0].hp / foes[0].maxHp * 100)}%` : '100%'}"></i></div></div><div class="combat-bar"><button data-action="attack" class="attack" ${canControl ? '' : 'disabled'}><b>${game.role === 'warrior' ? '⚔' : '✦'}</b><span><strong>${game.role === 'warrior' ? '剑刃斩击' : '法杖射击'}</strong><small>J · ${game.role === 'warrior' ? '近战' : '远程'}</small></span></button><button data-action="jump" ${canControl ? '' : 'disabled'}><b>↟</b><span><strong>跳跃</strong><small>K ×2</small></span></button>${SKILL_LABELS[activeSkillSet()].map((label, i) => `<button data-action="skill" data-index="${i}" ${canControl ? '' : 'disabled'}><i>${i + 1}</i><span><strong>${label}</strong><small>${skillSummary(i)}</small></span></button>`).join('')}</div><div class="combat-log"><b>✦</b><span>${logText}</span></div></div><aside class="side-column">${isTown ? townPanelMarkup() : ''}<section class="panel status-panel"><header><span>角色状态</span><small>${String(game.stage).padStart(2, '0')}</small></header><div class="hero-card"><b class="avatar ${game.role}">${game.role === 'warrior' ? '刃' : '✦'}</b><span><strong>${roleLabels[game.role]}</strong><small>${game.role === 'warrior' ? '钢铁誓约 · 剑士' : '星辉学派 · 法杖'}</small></span></div><div class="resource-label"><span>生命</span><b id="hp-text">${displayNumber(game.hp)} <i>/ ${displayNumber(s.hp)}</i></b><em>♥</em></div><div class="resource"><i id="hp-fill" style="width:${game.hp / s.hp * 100}%"></i></div><div class="resource-label mana-label"><span>法力</span><b id="mp-text">${displayNumber(game.mp)} <i>/ ${displayNumber(s.mp)}</i></b><em>✦</em></div><div class="resource"><i id="mp-fill" style="width:${game.mp / s.mp * 100}%"></i></div><div class="stats"><div><small>攻击</small><b>${displayNumber(s.attack)}</b></div><div><small>防御</small><b>${displayNumber(s.defense)}</b></div><div><small>增益</small><b id="buff-stat">${buffTime > 0 ? `${buffTime.toFixed(1)}s` : '—'}</b></div></div></section><section class="panel gear-panel"><header><span>装备栏</span><small>${item()?.name ?? '未装备'}</small></header><div class="gear-summary">${item() ? `生命 +${item()!.hp}　攻击 +${item()!.attack}　防御 +${item()!.defense}` : '装备不会自动穿戴，请在小镇打开背包手动更换。'}</div><button class="open-bag" data-action="bag">打开背包　↗</button><div class="camp-hint">⌂　${isTown ? '安全区内可自由更换装备' : '击败 Boss 后回到小镇整备'}</div></section></aside></section><footer class="game-footer"><span>WASD / ← → 移动　·　J 攻击　·　K 跳跃 / 二段跳　·　1–4 技能　·　L 护盾</span><b>LOCAL SAVE　●</b></footer>${bagOpen ? bagMarkup() : ''}</main>`
   if (craftingOpen && isTown) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', craftingMarkup())
   if (attributesOpen && isTown) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', attributeMarkup())
   document.querySelector('.arena')?.insertAdjacentHTML('beforeend', hudMarkup())
@@ -3677,6 +3734,7 @@ function syncHud() {
     const bossFoe = foes.find((foe) => foe.boss)
     hudFoeFill.style.width = `${bossFoe ? Math.max(0, Math.min(100, bossFoe.hp / bossFoe.maxHp * 100)) : 100}%`
   }
+  syncComboHud()
 }
 function syncFoeHeads() {
   const arena = document.querySelector<HTMLElement>('.arena')
@@ -3772,6 +3830,7 @@ function strike(target: Foe, damage: number, label: string, fromClone = false) {
   playSfx('hit')
   const dealt = Math.max(1, Math.round(damage))
   target.hp -= dealt; target.flash = .18
+  addComboHit()
   addDamageText(target, dealt)
   const impactY = target.flying ? foeWorldY(target) - 14 : target.mirror ? world.floor - 68 : target.tutorial ? world.floor - 100 : world.floor - (target.boss ? 120 : 58)
   addFx('impact', target.x, impactY, -1, .22)
@@ -4407,6 +4466,7 @@ function finishBossVictory() {
 }
 function advanceAfterBoss(clearedStage: number, ending: boolean, nightmare = false) {
   if (!game) return
+  resetCombo()
   bossChest = null
   lootReveal = null
   keys.clear()
@@ -4806,6 +4866,7 @@ function continueCurrentProgress() {
 function retreatToTown() {
   if (!game) return
   paused = false
+  resetCombo()
   hiddenBattle = false
   bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; cloneAttackPulse = 0; cloneCastPulse = 0; cloneStealthTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null; bombClones = []; arcaneOrb = null
   if (tutorialMode) { tutorialMode = false; tutorialStep = 0; game.tutorialDone = true }
@@ -4816,6 +4877,7 @@ function retreatToTown() {
 }
 function useReviveCoin() {
   if (!game || scene !== 'defeat') return
+  resetCombo()
   if (game.reviveUsed) { toast('本关已经使用过复活币了。'); return }
   if ((game.reviveCoins ?? 0) <= 0) { toast('没有复活币，可以在小镇商人处购买。'); return }
   game.reviveCoins = (game.reviveCoins ?? 0) - 1
@@ -4838,6 +4900,7 @@ function useReviveCoin() {
 function resumeBattle() {
   if (!game) return
   paused = false
+  resetCombo()
   if (hiddenBattle) {
     scene = 'battle'; game.town = true; game.dead = false
     game.hp = Math.max(1, Math.round(stats().hp * .5)); game.mp = Math.min(stats().mp, game.mp)
@@ -5190,6 +5253,53 @@ app.addEventListener('pointerdown', (event) => {
     }
   }
 })
+// 手机端移动摇杆：左右拖动控制移动，推到边缘进入奔跑。
+function updateJoystick(event: PointerEvent) {
+  const base = document.querySelector<HTMLElement>('[data-joystick]')
+  if (!base) return
+  const rect = base.getBoundingClientRect()
+  if (!rect.width) return
+  const centerX = rect.left + rect.width / 2
+  const max = rect.width * .32
+  const dx = Math.max(-max, Math.min(max, event.clientX - centerX))
+  const knob = base.querySelector<HTMLElement>('.joystick-knob')
+  if (knob) knob.style.transform = `translate(${dx}px, 0px)`
+  const deadzone = rect.width * .07
+  const direction = dx > deadzone ? 1 : dx < -deadzone ? -1 : 0
+  keys.delete('arrowleft'); keys.delete('arrowright')
+  if (direction > 0) keys.add('arrowright')
+  else if (direction < 0) keys.add('arrowleft')
+  runActive = direction !== 0 && Math.abs(dx) > max * .78
+}
+function endJoystick() {
+  joystickPointerId = null
+  keys.delete('arrowleft'); keys.delete('arrowright')
+  runActive = false
+  const knob = document.querySelector<HTMLElement>('[data-joystick] .joystick-knob')
+  if (knob) knob.style.transform = 'translate(0px, 0px)'
+}
+app.addEventListener('pointerdown', (event) => {
+  if (!(event.target instanceof HTMLElement)) return
+  const base = event.target.closest<HTMLElement>('[data-joystick]')
+  if (!base) return
+  event.preventDefault()
+  if (base.dataset.disabled === 'true') return
+  joystickPointerId = event.pointerId
+  try { base.setPointerCapture(event.pointerId) } catch { /* ignore */ }
+  updateJoystick(event)
+})
+window.addEventListener('pointermove', (event) => {
+  if (joystickPointerId !== event.pointerId) return
+  event.preventDefault()
+  updateJoystick(event)
+}, { passive: false })
+window.addEventListener('pointerup', (event) => {
+  if (joystickPointerId === event.pointerId) endJoystick()
+})
+window.addEventListener('pointercancel', (event) => {
+  if (joystickPointerId === event.pointerId) endJoystick()
+})
+window.addEventListener('blur', endJoystick)
 function stopAttributeHold() {
   if (attrHoldTimer !== null) { window.clearTimeout(attrHoldTimer); attrHoldTimer = null }
   if (attrRepeatTimer !== null) { window.clearTimeout(attrRepeatTimer); attrRepeatTimer = null }
@@ -5431,6 +5541,11 @@ function update(dt: number) {
   attackWait = Math.max(0, attackWait - dt); attackSwing = Math.max(0, attackSwing - dt); buffTime = Math.max(0, buffTime - dt)
   invisibleTimer = Math.max(0, invisibleTimer - dt)
   prisonTimer = Math.max(0, prisonTimer - dt)
+  comboPop = Math.max(0, comboPop - dt)
+  if (comboCount > 0) {
+    comboTimer = Math.max(0, comboTimer - dt)
+    if (comboTimer <= 0) resetCombo()
+  }
   cloneAttackPulse = Math.max(0, cloneAttackPulse - dt)
   cloneCastPulse = Math.max(0, cloneCastPulse - dt)
   cloneStealthTimer = Math.max(0, cloneStealthTimer - dt)
@@ -5634,6 +5749,7 @@ function update(dt: number) {
           addFx(bossFx('dash'), (startX + foe.x) / 2, world.floor - 70, foe.dashDirection ?? directionToHero, .55)
           if (Math.abs(heroX - foe.x) < 105 && (heroY > -35)) {
             game.hp = Math.max(0, game.hp - foeDamage(foe, true))
+            takeComboHit()
             armorHitFx()
             addShake(9)
             playSfx('hurt')
@@ -5677,6 +5793,7 @@ function update(dt: number) {
           } else {
             const damage = foeDamage(foe)
             game.hp = Math.max(0, game.hp - damage)
+            takeComboHit()
             playSfx(foe.boss ? 'boss' : 'slash')
             playSfx('hurt')
             addFx(foe.boss ? bossFx('melee') : 'enemy-swipe', heroX, world.floor - 52 + heroY, -directionToHero, .38)
@@ -5755,6 +5872,7 @@ function update(dt: number) {
       if (invisibleTimer <= 0 && Math.abs(shot.x - heroX) < 24 && shot.y > heroTop && shot.y < heroBottom + 6) {
         const shotDamage = Math.max(3, Math.round(shot.damage - effectiveDefense()))
         game.hp = Math.max(0, game.hp - shotDamage)
+        takeComboHit()
         effects.push({ kind: 'damage-number', x: heroX, y: world.floor - 90 + heroY, life: .82, duration: .82, text: `-${displayNumber(shotDamage)}`, damage: shotDamage })
         armorHitFx()
         addShake(7)
