@@ -15,9 +15,9 @@ type WorldDrop = { id: string; type: 'hp-potion' | 'mp-potion' | 'material'; x: 
 type AttributeStat = 'hp' | 'attack' | 'mp' | 'defense'
 type AttributeAllocation = Record<AttributeStat, number>
 type StageProgress = { kills: number; bossDefeated: boolean; pointsClaimed?: number }
-type Save = { role: Role; stage: number; unlockedStage: number; kills: number; stageProgress?: Record<string, StageProgress>; hp: number; mp: number; gear: Gear[]; equipped: string | null; weaponId?: string | null; weapon2Id?: string | null; armorId?: string | null; armor2Id?: string | null; fashionId?: string | null; extraSlot?: 'weapon' | 'armor'; level?: number; exp?: number; drops?: WorldDrop[]; bossDefeated?: boolean; attributePoints?: number; attributeAllocation?: AttributeAllocation; soul?: number; normalTalent?: number; normalTalentLevels?: number[]; advancedTalent?: number; advancedTalentLevel?: number; talentFragments?: number; talentCoins?: number; lotteryChances?: number; shopFashionBought?: boolean; reviveCoins?: number; reviveUsed?: boolean; fragmentBuyDay?: string; reviveBuyAt?: number; materials?: Record<string, number>; stones?: number[]; enhance?: { weapon: number; armor: number; armor2: number; weapon2: number; failWeapon: number; failArmor: number; failArmor2: number; failWeapon2: number }; nightmareCleared?: number[]; stamps?: number; tutorialDone?: boolean; hiddenCleared?: boolean; rivalTrust?: boolean; stage8Choice?: 'save' | 'chase' | 'together' | null; rescuedRock?: boolean; rescuedXiaoman?: boolean; rescuedZhou?: boolean; seenStories?: string[]; forgeIntroSeen?: boolean; shopIntroSeen?: boolean; lotteryIntroSeen?: boolean; townIntroSeen?: boolean; mainQuestsClaimed?: number[]; sideQuest?: { stage: number; clears: number } | null; sideQuestDay?: string; skillLevels?: Record<string, number>; gems?: Gem[]; punchStones?: number; punchBuyAt?: number; town: boolean; completed: boolean; dead: boolean }
+type Save = { role: Role; stage: number; unlockedStage: number; kills: number; stageProgress?: Record<string, StageProgress>; hp: number; mp: number; gear: Gear[]; equipped: string | null; weaponId?: string | null; weapon2Id?: string | null; armorId?: string | null; armor2Id?: string | null; fashionId?: string | null; extraSlot?: 'weapon' | 'armor'; level?: number; exp?: number; drops?: WorldDrop[]; bossDefeated?: boolean; attributePoints?: number; attributeAllocation?: AttributeAllocation; soul?: number; normalTalent?: number; normalTalentLevels?: number[]; advancedTalent?: number; advancedTalentLevel?: number; talentFragments?: number; talentCoins?: number; lotteryChances?: number; shopFashionBought?: boolean; reviveCoins?: number; reviveUsed?: boolean; fragmentBuyDay?: string; reviveBuyAt?: number; materials?: Record<string, number>; stones?: number[]; enhance?: { weapon: number; armor: number; armor2: number; weapon2: number; failWeapon: number; failArmor: number; failArmor2: number; failWeapon2: number }; nightmareCleared?: number[]; stamps?: number; tutorialDone?: boolean; hiddenCleared?: boolean; rivalTrust?: boolean; stage8Choice?: 'save' | 'chase' | 'together' | null; rescuedRock?: boolean; rescuedXiaoman?: boolean; rescuedZhou?: boolean; seenStories?: string[]; forgeIntroSeen?: boolean; shopIntroSeen?: boolean; lotteryIntroSeen?: boolean; townIntroSeen?: boolean; mainQuestsClaimed?: number[]; sideQuest?: { stage: number; clears: number } | null; sideQuestDay?: string; skillLevels?: Record<string, number>; gems?: Gem[]; punchStones?: number; punchBuyAt?: number; horns?: number; hornBuyAt?: number; hornBuff?: 'material' | 'attack' | 'gear' | null; hornBuffUntil?: number; town: boolean; completed: boolean; dead: boolean }
 type SaveSlot = { id: string; label: string; data: Save; updatedAt: number }
-type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; flyPhase?: number; flyAmplitude?: number; flySpeed?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number; specialTimer?: number; specialWindup?: number; specialKind?: 'pierce' | 'exclusive'; specialNext?: 'pierce' | 'exclusive'; mobSkillTimer?: number; skillWindup?: number; skillKind?: 'lunge' | 'slam'; tutorial?: boolean; mirror?: boolean; mirrorRole?: Role; mp?: number; mirrorSkillTimer?: number; mirrorWindup?: number; mirrorSkill?: number; mirrorBuffTimer?: number; mirrorBurst?: number; mirrorBurstWait?: number; wanderTimer?: number; wanderTargetX?: number | null }
+type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; flyPhase?: number; flyAmplitude?: number; flySpeed?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number; specialTimer?: number; specialWindup?: number; specialKind?: 'pierce' | 'exclusive'; specialNext?: 'pierce' | 'exclusive'; mobSkillTimer?: number; skillWindup?: number; skillKind?: 'lunge' | 'slam'; tutorial?: boolean; mirror?: boolean; mirrorRole?: Role; mp?: number; mirrorSkillTimer?: number; mirrorWindup?: number; mirrorSkill?: number; mirrorBuffTimer?: number; mirrorBurst?: number; mirrorBurstWait?: number; mirrorSwitch?: number; mirrorSwapTimer?: number; mirrorNextRole?: Role; wanderTimer?: number; wanderTargetX?: number | null }
 type Fx = { x: number; y: number; life: number; kind: string; direction?: number; text?: string; damage?: number; duration?: number; vx?: number; vy?: number; color?: string; radius?: number }
 type Projectile = { x: number; y: number; vx: number; vy?: number; life: number; damage: number; targetId: number; kind?: 'homing' | 'arrow' | 'book' | 'charged' | 'fall' | 'blast'; pierce?: boolean; hitIds?: number[]; maxDistance?: number; startX?: number; label?: string; radius?: number; fromClone?: boolean }
 type FoeShot = { x: number; y: number; vx: number; vy: number; damage: number; radius: number; color: string; life: number }
@@ -33,7 +33,7 @@ type BattlePlatform = { x: number; w: number; height: number; kind: 'tree' | 'ro
 const SAVE_KEY = 'elemental-expedition-save-v2'
 const DEMO_MODE = import.meta.env.MODE === 'demo'
 const DEMO_SAVE_KEY = `${SAVE_KEY}:demo`
-const GAME_VERSION = '1.81'
+const GAME_VERSION = '1.82'
 const stageNames = ['苔痕边境', '沉钟矿道', '赤岩峡谷', '风蚀高原', '幽蓝沼泽', '断星回廊', '灰烬王庭', '深渊裂谷', '苍白圣所', '终焉之门']
 const roleLabels: Record<Role, string> = { warrior: '战士', mage: '法师' }
 const SKILL_LABELS: Record<SkillSetKey, string[]> = {
@@ -284,6 +284,7 @@ type ShopGrant =
   | { kind: 'talentCoin'; amount: number }
   | { kind: 'soul'; amount: number }
   | { kind: 'lottery'; amount: number }
+  | { kind: 'horn'; amount: number }
 type ShopItem = { id: string; name: string; cost: number; desc: string; category: ShopCategory; icon: string; iconClass?: string; unique?: boolean; demoOnly?: boolean; grant: ShopGrant }
 const SHOP_ITEMS: ShopItem[] = [
   // 正式版商城不出售武器与护甲。
@@ -293,6 +294,7 @@ const SHOP_ITEMS: ShopItem[] = [
   { id: 'revive1', name: '复活币 ×1', cost: 2000, desc: '每 3 天限购一次；战斗中死亡可满状态复活', category: 'other', icon: 'revive', grant: { kind: 'revive', amount: 1 } },
   { id: 'punch1', name: '打孔石 ×1', cost: 2000, desc: '每周限购一次；在合成台为装备打孔', category: 'material', icon: 'punch', grant: { kind: 'punch', amount: 1 } },
   { id: 'fashion1', name: '一阶时装 ×1', cost: 10000, desc: '限购一份；小怪与 Boss 不会掉落', category: 'fashion', icon: 'fashion', unique: true, grant: { kind: 'fashion', tier: 1 } },
+  { id: 'horn1', name: '号角 ×1', cost: 10000, desc: '每月限购一次；使用后选择一种增益，持续 30 分钟', category: 'other', icon: 'horn', grant: { kind: 'horn', amount: 1 } },
 ]
 // 体验版商城：所有道具 1 灵魂，覆盖时装、装备、宝石、材料与消耗品。
 function demoShopItems(): ShopItem[] {
@@ -511,6 +513,10 @@ let flashColor = '#ffe6a8'
 let shieldActive = false
 let shieldLocked = false
 let bagOpen = false
+// 号角：选择增益的弹窗与全屏吹响动画（动画持续到该时间戳）。
+let hornPickerOpen = false
+let hornAnimUntil = 0
+let hornAnimTimeout: number | null = null
 let bagTab: 'gear' | 'gems' | 'talent' | 'other' = 'gear'
 let bagGearFilter: 'all' | 'weapon' | 'armor' | 'fashion' = 'all'
 let craftingOpen = false
@@ -591,6 +597,7 @@ function readSaves(key = currentSaveKey): SaveSlot[] {
   } catch { return [] }
 }
 // 体验版专用：解锁全部关卡，并标记为已通关，方便直接挑战任意 Boss。
+// 每个体验存档首次载入时发放一次满级体验套装；之后保留玩家的改动。
 function applyDemoUnlock(save: Save) {
   if (!DEMO_MODE) return save
   save.unlockedStage = 10
@@ -677,6 +684,11 @@ function normalizeSave(data: Save): Save {
   data.gems = Array.isArray(data.gems) ? data.gems.map(normalizeGem).filter((gem): gem is Gem => Boolean(gem)) : []
   data.punchStones = Math.max(0, Math.floor(Number(data.punchStones ?? 0)))
   data.punchBuyAt = Math.max(0, Number(data.punchBuyAt ?? 0))
+  data.horns = Math.max(0, Math.floor(Number(data.horns ?? 0)))
+  data.hornBuyAt = Math.max(0, Number(data.hornBuyAt ?? 0))
+  data.hornBuff = data.hornBuff === 'material' || data.hornBuff === 'attack' || data.hornBuff === 'gear' ? data.hornBuff : null
+  data.hornBuffUntil = Math.max(0, Number(data.hornBuffUntil ?? 0))
+  if (!data.hornBuff || data.hornBuffUntil <= Date.now()) { data.hornBuff = null; data.hornBuffUntil = 0 }
   data.stamps ??= 0
   data.tutorialDone ??= true
   data.hiddenCleared ??= false
@@ -740,13 +752,33 @@ function noteMoveTap(direction: -1 | 1) {
 function battleMoveSpeed(running: boolean) { return running ? 322 : 190 }
 function townMoveSpeed(running: boolean) { return running ? 296 : 172 }
 function comboBuffPct() {
-  if (comboCount >= 600) return 10
-  if (comboCount >= 250) return 5
-  if (comboCount >= 100) return 2
+  if (comboCount >= 300) return 10
+  if (comboCount >= 150) return 5
+  if (comboCount >= 50) return 2
   return 0
 }
 function comboAttackMultiplier() {
   return scene === 'battle' ? 1 + comboBuffPct() / 100 : 1
+}
+// ── 号角增益 ─────────────────────────────────────────
+// 号角购买后保存在背包里，使用时可从三种增益中任选一种，持续 30 分钟。
+const HORN_BUFF_DURATION = 30 * 60 * 1000
+const HORN_BUFFS: Record<'material' | 'attack' | 'gear', { name: string; desc: string }> = {
+  material: { name: '材料掉率翻倍', desc: '关卡材料掉落概率翻倍' },
+  attack: { name: '攻击力 +10%', desc: '攻击力提高 10%' },
+  gear: { name: '装备掉率 +20%', desc: '装备掉率提高 20%，对 Boss 只提高 10%' },
+}
+function hornBuffActive(kind: 'material' | 'attack' | 'gear') {
+  return Boolean(game && game.hornBuff === kind && (game.hornBuffUntil ?? 0) > Date.now())
+}
+function hornBuffRemaining() {
+  return Math.max(0, (game?.hornBuffUntil ?? 0) - Date.now())
+}
+function formatHornTime(ms: number) {
+  const total = Math.max(0, Math.ceil(ms / 1000))
+  const minutes = Math.floor(total / 60)
+  const seconds = total % 60
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
 }
 function resetCombo() {
   comboCount = 0
@@ -771,13 +803,14 @@ function syncComboHud() {
   display.style.display = active ? 'grid' : 'none'
   if (!active) return
   display.style.opacity = String(Math.min(1, comboTimer / 2))
-  display.classList.toggle('tier-1', comboCount >= 100 && comboCount < 250)
-  display.classList.toggle('tier-2', comboCount >= 250 && comboCount < 600)
-  display.classList.toggle('tier-3', comboCount >= 600)
+  display.classList.toggle('tier-1', comboCount >= 50 && comboCount < 150)
+  display.classList.toggle('tier-2', comboCount >= 150 && comboCount < 300)
+  display.classList.toggle('tier-3', comboCount >= 300)
   const count = display.querySelector<HTMLElement>('#combo-count')
   if (count) {
     count.textContent = String(comboCount)
-    count.style.fontSize = `${44 + Math.min(30, comboCount * .05)}px`
+    // 字号整体放大一倍，并随连击数继续增长。
+    count.style.fontSize = `${88 + Math.min(60, comboCount * .1)}px`
     count.style.transform = `scale(${1 + comboPop * .6})`
   }
   const buff = display.querySelector<HTMLElement>('#combo-buff')
@@ -900,6 +933,7 @@ function stats() {
   if (invisibleTimer > 0) attack = Math.round(attack * (1.05 + .1 * (skillLevel(0, 'book') - 1)))
   const buffMultiplier = role === 'mage' && buffTime > 0 ? 1 + .1 * skillLevel(0, 'staff') : 1
   attack = Math.round(attack * buffMultiplier)
+  if (hornBuffActive('attack')) attack = Math.round(attack * 1.1)
   attack = Math.round(attack * comboAttackMultiplier())
   return { hp: Math.round(hp), mp: Math.round(mp), attack: Math.round(attack), defense: Math.round(defense) }
 }
@@ -1239,7 +1273,7 @@ function beginTutorial() {
 }
 function spawnMirror(): Foe {
   const mirrorRole = game ? OTHER_ROLE[game.role] : 'mage'
-  return { id: nextFoeId++, x: Math.min(BASE_MAP_WIDTH - 120, heroX + 320), hp: HIDDEN_CONFIG.bossHp, maxHp: HIDDEN_CONFIG.bossHp, boss: true, mirror: true, mirrorRole, mp: HIDDEN_CONFIG.mp, timer: 1.3, skillTimer: 999, rangedTimer: 999, flash: 0, attackAnim: 0, stunTimer: 0, mirrorSkillTimer: 2.8, mirrorSkill: -1 }
+  return { id: nextFoeId++, x: Math.min(BASE_MAP_WIDTH - 120, heroX + 320), hp: HIDDEN_CONFIG.bossHp, maxHp: HIDDEN_CONFIG.bossHp, boss: true, mirror: true, mirrorRole, mp: HIDDEN_CONFIG.mp, timer: 1.3, skillTimer: 999, rangedTimer: 999, flash: 0, attackAnim: 0, stunTimer: 0, mirrorSkillTimer: 2.8, mirrorSkill: -1, mirrorSwapTimer: 9 }
 }
 function beginHiddenBattle() {
   if (!game) return
@@ -1329,6 +1363,38 @@ function updateMirrorFoe(foe: Foe, dt: number, distance: number, direction: numb
         addFx('arcane-bolt-hit', heroX, world.floor - 70 + heroY, Math.sign(foe.x - heroX) || 1, .35, '#c9a7e8')
       }
     }
+    return
+  }
+  // 宿敌更换武器：2.5 秒前摇，期间站着不动、浑身金光，受到伤害增加 10%。
+  if ((foe.mirrorSwitch ?? 0) > 0) {
+    foe.mirrorSwitch = (foe.mirrorSwitch ?? 0) - dt
+    if (foe.mirrorSwitch <= 0) {
+      foe.mirrorSwitch = 0
+      foe.mirrorRole = foe.mirrorNextRole ?? (foe.mirrorRole === 'warrior' ? 'mage' : 'warrior')
+      foe.mirrorNextRole = undefined
+      foe.mirrorSkill = -1
+      foe.mirrorSkillTimer = 1.4
+      foe.mirrorWindup = undefined
+      foe.mp = HIDDEN_CONFIG.mp
+      foe.flash = .2; foe.attackAnim = .3
+      const weapon = foe.mirrorRole === 'warrior' ? '长剑' : '法杖'
+      setLog(`宿敌换上了${weapon}，技能组随之更换！`)
+      effects.push({ kind: 'mirror-charge', x: foe.x, y: world.floor - 88, direction, life: .5, duration: .5, color: '#ffe08a', text: `换装 · ${weapon}` })
+      addSparks(foe.x, world.floor - 70, 22, ['#ffe08a', '#fff4c4', '#ffffff'], 190)
+      playSfx('boss')
+    }
+    return
+  }
+  foe.mirrorSwapTimer = Math.max(0, (foe.mirrorSwapTimer ?? 9) - dt)
+  if (foe.mirrorSwapTimer <= 0) {
+    foe.mirrorSwapTimer = 13 + Math.random() * 4
+    foe.mirrorSwitch = 2.5
+    foe.mirrorNextRole = foe.mirrorRole === 'warrior' ? 'mage' : 'warrior'
+    foe.mirrorWindup = undefined
+    setLog('宿敌开始更换武器：2.5 秒内不会移动，金光护体但受到的伤害增加 10%。')
+    effects.push({ kind: 'mirror-charge', x: foe.x, y: world.floor - 88, direction, life: .8, duration: .8, color: '#ffe08a', text: '更换武器' })
+    addSparks(foe.x, world.floor - 74, 10, ['#ffe08a', '#fff4c4'], 90)
+    playSfx('boss')
     return
   }
   if (foe.mirrorWindup !== undefined) {
@@ -1429,7 +1495,7 @@ function start(role: Role, previous?: Save) {
 }
 function freshSave(role: Role): Save {
   const base = ROLE_BASE[role]
-  return { role, stage: 1, unlockedStage: 1, kills: 0, hp: base.hp, mp: base.mp, gear: [], equipped: null, weaponId: null, weapon2Id: null, armorId: null, armor2Id: null, fashionId: null, extraSlot: 'weapon', level: 1, exp: 0, drops: [], bossDefeated: false, attributePoints: 0, attributeAllocation: { hp: 0, attack: 0, mp: 0, defense: 0 }, soul: 0, normalTalent: 0, normalTalentLevels: [0, 0, 0, 0], advancedTalent: 0, advancedTalentLevel: 0, talentFragments: 0, talentCoins: 0, lotteryChances: 0, shopFashionBought: false, reviveCoins: 0, reviveUsed: false, fragmentBuyDay: '', reviveBuyAt: 0, materials: {}, stones: [0, 0, 0, 0, 0], enhance: { weapon: 0, armor: 0, armor2: 0, weapon2: 0, failWeapon: 0, failArmor: 0, failArmor2: 0, failWeapon2: 0 }, nightmareCleared: [], stamps: 0, tutorialDone: false, hiddenCleared: false, rivalTrust: false, stage8Choice: null, rescuedRock: false, rescuedXiaoman: false, rescuedZhou: false, seenStories: [], forgeIntroSeen: false, shopIntroSeen: false, lotteryIntroSeen: false, townIntroSeen: false, mainQuestsClaimed: [], sideQuest: null, sideQuestDay: '', skillLevels: {}, gems: [], punchStones: 0, punchBuyAt: 0, town: true, completed: false, dead: false }
+  return { role, stage: 1, unlockedStage: 1, kills: 0, hp: base.hp, mp: base.mp, gear: [], equipped: null, weaponId: null, weapon2Id: null, armorId: null, armor2Id: null, fashionId: null, extraSlot: 'weapon', level: 1, exp: 0, drops: [], bossDefeated: false, attributePoints: 0, attributeAllocation: { hp: 0, attack: 0, mp: 0, defense: 0 }, soul: 0, normalTalent: 0, normalTalentLevels: [0, 0, 0, 0], advancedTalent: 0, advancedTalentLevel: 0, talentFragments: 0, talentCoins: 0, lotteryChances: 0, shopFashionBought: false, reviveCoins: 0, reviveUsed: false, fragmentBuyDay: '', reviveBuyAt: 0, materials: {}, stones: [0, 0, 0, 0, 0], enhance: { weapon: 0, armor: 0, armor2: 0, weapon2: 0, failWeapon: 0, failArmor: 0, failArmor2: 0, failWeapon2: 0 }, nightmareCleared: [], stamps: 0, tutorialDone: false, hiddenCleared: false, rivalTrust: false, stage8Choice: null, rescuedRock: false, rescuedXiaoman: false, rescuedZhou: false, seenStories: [], forgeIntroSeen: false, shopIntroSeen: false, lotteryIntroSeen: false, townIntroSeen: false, mainQuestsClaimed: [], sideQuest: null, sideQuestDay: '', skillLevels: {}, gems: [], punchStones: 0, punchBuyAt: 0, horns: 0, hornBuyAt: 0, hornBuff: null, hornBuffUntil: 0, town: true, completed: false, dead: false }
 }
 function awardExperience(amount: number) {
   if (!game) return
@@ -2248,6 +2314,8 @@ const ITEM_ICON_PATHS: Record<string, string> = {
   enhance: '<path d="m12 2 6 5-2.2 12H8.2L6 7l6-5Zm0 3.2L8.6 9l1.7 8h3.4l1.7-8L12 5.2Z"/>',
   gem: '<path d="m12 2 7 6-7 14-7-14 7-6Zm0 3.1L7.4 8.6 12 18.4l4.6-9.8L12 5.1Z"/>',
   punch: '<path d="M5 3h3v6h2V5h3v4h2V3h3v9a5 5 0 0 1-5 5v4h-3v-4a5 5 0 0 1-5-5V3Zm3 11h8v-1H8v1Z"/>',
+  // 号角：卷曲的兽角与吹口，统一使用金色描边风格。
+  horn: '<path d="M3 21C5.5 12.5 10.5 6.5 18 3.5l2.8 6C14.5 11.8 10.8 16 9.3 21L3 21Z M18 3.5l4.8-2.3.7 8.6-2.7-.3L18 3.5Z M2.4 19.8 9.3 21l-.5 2H2v-3.2Z"/>',
 }
 function itemIcon(name: string, className = '') {
   const path = ITEM_ICON_PATHS[name] ?? ITEM_ICON_PATHS.coin
@@ -2582,7 +2650,49 @@ function gemBagMarkup() {
 }
 function otherBagMarkup() {
   if (!game) return ''
-  return `<div class="bag-info-list"><article class="info-row"><span>${itemIcon('soul')} 灵魂</span><b>${displayCurrency(game.soul ?? 0)}</b></article><article class="info-row"><span>${itemIcon('revive')} 复活币</span><b>${displayCurrency(game.reviveCoins ?? 0)}</b></article><article class="info-row"><span>${itemIcon('punch')} 打孔石</span><b>${game.punchStones ?? 0}</b></article><article class="info-row"><span>${itemIcon('stamp')} 王印印章</span><b>${displayCurrency(game.stamps ?? 0)} / ${STAMP_UNLOCK}</b></article><article class="info-row"><span>${itemIcon('ticket')} 抽奖机会</span><b>${displayCurrency(game.lotteryChances ?? 0)}</b></article><article class="info-row"><span>${itemIcon('attribute')} 属性点</span><b>${displayCurrency(game.attributePoints ?? 0)}</b></article></div><p class="bag-note">灵魂可以在小镇商人处购买装备、材料和复活币；集齐 ${STAMP_UNLOCK} 枚王印印章可开启隐藏关卡。</p>`
+  const horns = game.horns ?? 0
+  const hornActive = game.hornBuff && hornBuffRemaining() > 0 ? HORN_BUFFS[game.hornBuff] : null
+  return `<div class="bag-info-list"><article class="info-row"><span>${itemIcon('soul')} 灵魂</span><b>${displayCurrency(game.soul ?? 0)}</b></article><article class="info-row"><span>${itemIcon('revive')} 复活币</span><b>${displayCurrency(game.reviveCoins ?? 0)}</b></article><article class="info-row horn-row"><span>${itemIcon('horn')} 号角</span><b>×${horns}${horns > 0 ? ` <button class="horn-use" data-action="use-horn">使用</button>` : ''}</b></article>${hornActive ? `<article class="info-row"><span>${itemIcon('horn')} 当前号角增益</span><b>${hornActive.name} · ${formatHornTime(hornBuffRemaining())}</b></article>` : ''}<article class="info-row"><span>${itemIcon('punch')} 打孔石</span><b>${game.punchStones ?? 0}</b></article><article class="info-row"><span>${itemIcon('stamp')} 王印印章</span><b>${displayCurrency(game.stamps ?? 0)} / ${STAMP_UNLOCK}</b></article><article class="info-row"><span>${itemIcon('ticket')} 抽奖机会</span><b>${displayCurrency(game.lotteryChances ?? 0)}</b></article><article class="info-row"><span>${itemIcon('attribute')} 属性点</span><b>${displayCurrency(game.attributePoints ?? 0)}</b></article></div><p class="bag-note">灵魂可以在小镇商人处购买装备、材料和复活币；集齐 ${STAMP_UNLOCK} 枚王印印章可开启隐藏关卡。</p>`
+}
+// ── 号角 ─────────────────────────────────────────────
+function hornPickerMarkup() {
+  if (!hornPickerOpen || !game) return ''
+  const options = (Object.keys(HORN_BUFFS) as Array<'material' | 'attack' | 'gear'>).map((kind) => {
+    const buff = HORN_BUFFS[kind]
+    return `<button class="horn-option" data-action="horn-buff" data-buff="${kind}" type="button"><b>${itemIcon('horn')} ${buff.name}</b><small>${buff.desc}</small></button>`
+  }).join('')
+  return `<div class="bag-scrim horn-scrim"><section class="bag-dialog horn-dialog"><header><div><small>HORN · 号角</small><h2>选择一种号角增益</h2></div><button data-action="close-horn-picker" aria-label="关闭">×</button></header><p class="horn-tip">吹响号角后增益持续 30 分钟；再次使用会覆盖当前的号角增益。</p><div class="horn-options">${options}</div></section></div>`
+}
+function hornAnimationMarkup() {
+  if (!game || Date.now() >= hornAnimUntil) return ''
+  const buff = game.hornBuff ? HORN_BUFFS[game.hornBuff] : null
+  return `<div class="horn-animation" aria-hidden="true"><div class="horn-animation-glow"></div><div class="horn-animation-icon">${itemIcon('horn')}</div><b>号角吹响</b><small>${buff?.name ?? '增益已生效'} · 30 分钟</small></div>`
+}
+function openHornPicker() {
+  if (!game || (game.horns ?? 0) <= 0) { toast('背包里没有号角，可以在商城每月购买一次。'); return }
+  hornPickerOpen = true
+  renderGame()
+}
+function applyHornBuff(kind: 'material' | 'attack' | 'gear') {
+  if (!game) return
+  if ((game.horns ?? 0) <= 0) { toast('背包里没有号角了。'); hornPickerOpen = false; renderGame(); return }
+  const buff = HORN_BUFFS[kind]
+  game.horns = Math.max(0, (game.horns ?? 0) - 1)
+  game.hornBuff = kind
+  game.hornBuffUntil = Date.now() + HORN_BUFF_DURATION
+  hornPickerOpen = false
+  bagOpen = false
+  hornAnimUntil = Date.now() + 2000
+  save()
+  playSfx('level')
+  renderGame()
+  toast(`号角吹响：${buff.name}，持续 30 分钟。`)
+  if (hornAnimTimeout !== null) window.clearTimeout(hornAnimTimeout)
+  hornAnimTimeout = window.setTimeout(() => {
+    hornAnimTimeout = null
+    hornAnimUntil = 0
+    if (game) renderGame()
+  }, 2000)
 }
 function npcMarkup() {
   if (!game || !npcOpen) return ''
@@ -2806,11 +2916,12 @@ function soulShopMarkup() {
     const dailySold = !demo && item.id === 'fragments1' && game!.fragmentBuyDay === todayKey()
     const reviveLeft = !demo && item.id === 'revive1' ? Math.max(0, 3 * 24 * 3600 * 1000 - (Date.now() - (game!.reviveBuyAt ?? 0))) : 0
     const punchLeft = !demo && item.id === 'punch1' ? Math.max(0, 7 * 24 * 3600 * 1000 - (Date.now() - (game!.punchBuyAt ?? 0))) : 0
-    const limited = uniqueSold || dailySold || reviveLeft > 0 || punchLeft > 0
+    const hornLeft = !demo && item.id === 'horn1' ? Math.max(0, 30 * 24 * 3600 * 1000 - (Date.now() - (game!.hornBuyAt ?? 0))) : 0
+    const limited = uniqueSold || dailySold || reviveLeft > 0 || punchLeft > 0 || hornLeft > 0
     const price = demo ? 1 : item.cost
     const canBuy = !limited && (game!.soul ?? 0) >= price
-    const label = uniqueSold ? '已购买' : dailySold ? '今日已购' : reviveLeft > 0 || punchLeft > 0 ? '冷却中' : '购买'
-    const extra = demo ? ' · 体验版 1 灵魂' : reviveLeft > 0 ? ` · 剩余 ${cooldownText(reviveLeft)}` : punchLeft > 0 ? ` · 剩余 ${cooldownText(punchLeft)}` : dailySold ? ' · 明天刷新' : ''
+    const label = uniqueSold ? '已购买' : dailySold ? '今日已购' : reviveLeft > 0 || punchLeft > 0 || hornLeft > 0 ? '冷却中' : '购买'
+    const extra = demo ? ' · 体验版 1 灵魂' : reviveLeft > 0 ? ` · 剩余 ${cooldownText(reviveLeft)}` : punchLeft > 0 ? ` · 剩余 ${cooldownText(punchLeft)}` : hornLeft > 0 ? ` · 剩余 ${cooldownText(hornLeft)}` : dailySold ? ' · 明天刷新' : ''
     return `<article class="shop-row"><span class="gear-glyph">${itemIcon(item.icon, item.iconClass ?? '')}</span><span class="gear-copy"><b>${item.name}</b><small>${item.desc}${extra}</small></span><b class="shop-price">${itemIcon('soul')} ${price}</b><button data-action="shop-buy" data-id="${item.id}" ${canBuy ? '' : 'disabled'}>${label}</button></article>`
   }).join('')
   const categoryBar = `<div class="shop-categories"><button class="${active === 'all' ? 'active' : ''}" data-action="shop-category" data-category="all" type="button">全部</button>${categories.map((category) => `<button class="${active === category ? 'active' : ''}" data-action="shop-category" data-category="${category}" type="button">${SHOP_CATEGORY_LABELS[category]}</button>`).join('')}</div>`
@@ -2927,7 +3038,7 @@ function closeLottery() {
 }
 // 打开任意面板前统一收起其它弹窗，避免多个遮罩叠加。
 function resetPanels() {
-  bagOpen = false; craftingOpen = false; attributesOpen = false; npcOpen = false; secondNpcOpen = false; lotteryOpen = false; stageCircleOpen = false; gameMenuOpen = false; settingsOpen = false; creditsOpen = false; quitConfirmOpen = false; storyLogOpen = false; skillPanelOpen = false; listeningBind = null; forgeSlots = []; specialSlots = []
+  bagOpen = false; hornPickerOpen = false; craftingOpen = false; attributesOpen = false; npcOpen = false; secondNpcOpen = false; lotteryOpen = false; stageCircleOpen = false; gameMenuOpen = false; settingsOpen = false; creditsOpen = false; quitConfirmOpen = false; storyLogOpen = false; skillPanelOpen = false; listeningBind = null; forgeSlots = []; specialSlots = []
   lotterySpinning = false; lotteryResult = null; lotteryHighlight = -1
   if (lotteryInterval !== null) { window.clearInterval(lotteryInterval); lotteryInterval = null }
   if (lotteryTimeout !== null) { window.clearTimeout(lotteryTimeout); lotteryTimeout = null }
@@ -2989,6 +3100,7 @@ function grantShopItem(grant: ShopGrant) {
   else if (grant.kind === 'talentCoin') game.talentCoins = (game.talentCoins ?? 0) + grant.amount
   else if (grant.kind === 'soul') game.soul = (game.soul ?? 0) + grant.amount
   else if (grant.kind === 'lottery') game.lotteryChances = (game.lotteryChances ?? 0) + grant.amount
+  else if (grant.kind === 'horn') game.horns = (game.horns ?? 0) + grant.amount
 }
 function buyShopItem(id: string) {
   if (!game || !npcUnlocked()) return
@@ -3007,6 +3119,10 @@ function buyShopItem(id: string) {
       const left = 7 * 24 * 3600 * 1000 - (Date.now() - (game.punchBuyAt ?? 0))
       if (left > 0) { toast(`打孔石每周限购一次，还需等待 ${cooldownText(left)}。`); return }
     }
+    if (item.id === 'horn1') {
+      const left = 30 * 24 * 3600 * 1000 - (Date.now() - (game.hornBuyAt ?? 0))
+      if (left > 0) { toast(`号角每月限购一次，还需等待 ${cooldownText(left)}。`); return }
+    }
   }
   const cost = DEMO_MODE ? 1 : item.cost
   if ((game.soul ?? 0) < cost) { toast('灵魂不足。'); return }
@@ -3015,6 +3131,7 @@ function buyShopItem(id: string) {
   if (item.id === 'fragments1') game.fragmentBuyDay = todayKey()
   if (item.id === 'revive1') game.reviveBuyAt = Date.now()
   if (item.id === 'punch1') game.punchBuyAt = Date.now()
+  if (item.id === 'horn1') game.hornBuyAt = Date.now()
   if (item.id === 'fashion1') game.shopFashionBought = true
   save(); npcOpen = true; npcView = 'shop'; renderGame(); toast(`已购买：${item.name}`)
 }
@@ -3324,9 +3441,13 @@ function hudMarkup() {
   const count = isTown ? `开放至第 ${game.unlockedStage} 关` : hiddenBattle ? '宿敌对决 · 没有退路' : tutorialMode ? '完成训练目标' : foes.some((foe) => foe.boss) ? '守关者战斗' : `已击杀 ${game.kills} / ${MAX_SMALL_KILLS}`
   const boss = foes.find((foe) => foe.boss)
   const enemyName = isTown ? '' : bossVictory ? '守关者已击败' : tutorialMode ? '训练傀儡' : hiddenBattle ? '宿敌' : boss ? foeLabel(boss) : `${foes.length} 名敌人`
+  const hornBuff = !isTown && game.hornBuff && hornBuffRemaining() > 0 ? game.hornBuff : null
   return `<div class="hud">
     <section class="hud-player">
-      <div class="hud-portrait"><canvas id="hud-portrait" width="192" height="192" aria-label="角色头像"></canvas></div>
+      <div class="hud-portrait-col">
+        <div class="hud-portrait"><canvas id="hud-portrait" width="192" height="192" aria-label="角色头像"></canvas></div>
+        ${hornBuff ? `<div class="hud-horn-buff" id="hud-horn-buff" title="号角增益">${itemIcon('horn')}<b>${HORN_BUFFS[hornBuff].name}</b><small id="hud-horn-time">${formatHornTime(hornBuffRemaining())}</small></div>` : ''}
+      </div>
       <div class="hud-player-info">
         <div class="hud-name"><b id="hud-level">Lv.${level}</b><span>${maxed ? 'MAX' : `${displayNumber(exp)} / ${displayNumber(needed)} EXP`}</span></div>
         <div class="hud-bar hp"><i id="hud-hp-fill" style="width:${Math.max(0, Math.min(100, game.hp / s.hp * 100))}%"></i><span id="hud-hp-text">${displayNumber(game.hp)} / ${displayNumber(s.hp)}</span></div>
@@ -3559,7 +3680,11 @@ function renderGame() {
   if (creditsOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', creditsMarkup())
   if (storyLogOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', storyLogMarkup())
   if (skillPanelOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', skillPanelMarkup())
+  if (hornPickerOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', hornPickerMarkup())
   if (storyState) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', storyMarkup())
+  // 号角全屏动画放在最上层，持续 2 秒后由定时器移除。
+  const hornAnimation = hornAnimationMarkup()
+  if (hornAnimation) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', hornAnimation)
   mountBattleHud()
   mountLevelHud()
   mountEquipmentHud()
@@ -3717,6 +3842,14 @@ function syncHud() {
   const hudLevel = document.querySelector<HTMLElement>('#hud-level'); if (hudLevel) hudLevel.textContent = `Lv.${level}`
   const hudSoul = document.querySelector<HTMLElement>('#hud-soul'); if (hudSoul) hudSoul.textContent = displayCurrency(game.soul ?? 0)
   const hudBagCount = document.querySelector<HTMLElement>('#hud-bag-count'); if (hudBagCount) hudBagCount.textContent = String(game.gear.length)
+  // 号角增益：战斗中实时刷新剩余时间，到期后隐藏图标。
+  const hudHornTime = document.querySelector<HTMLElement>('#hud-horn-time')
+  if (hudHornTime) {
+    const left = hornBuffRemaining()
+    hudHornTime.textContent = formatHornTime(left)
+    const box = document.querySelector<HTMLElement>('#hud-horn-buff')
+    if (box) box.style.display = left > 0 ? '' : 'none'
+  }
   const hudKills = document.querySelector<HTMLElement>('#hud-kills')
   if (hudKills) hudKills.textContent = scene === 'town' ? `开放至第 ${game.unlockedStage} 关` : hiddenBattle ? '宿敌对决 · 没有退路' : nightmareStage ? '噩梦守关者战斗' : tutorialMode ? '完成训练目标' : bossChest && !bossChest.opened && !bossVictory ? '守关者宝箱已出现 · 靠近按 S 开启' : foes.some((foe) => foe.boss) ? '守关者战斗' : `已击杀 ${game.kills} / ${MAX_SMALL_KILLS}`
   const hudEnemy = document.querySelector<HTMLElement>('#hud-enemy')
@@ -3828,7 +3961,9 @@ function strike(target: Foe, damage: number, label: string, fromClone = false) {
     return
   }
   playSfx('hit')
-  const dealt = Math.max(1, Math.round(damage))
+  // 宿敌换武器前摇期间金光护体，但受到伤害增加 10%。
+  const switchExposed = Boolean(target.mirror && (target.mirrorSwitch ?? 0) > 0)
+  const dealt = Math.max(1, Math.round(damage * (switchExposed ? 1.1 : 1)))
   target.hp -= dealt; target.flash = .18
   addComboHit()
   addDamageText(target, dealt)
@@ -4358,10 +4493,14 @@ function defeatFoe(target: Foe) {
     restoreTownVitals()
     projectiles = []; foeShots = []; effects = []; burst = 0; burstTargetId = null
     // 隐藏关卡奖励：一阶时装、灵魂 10000、天赋币碎片 ×5，可重复挑战重复获得。
+    // 宿敌同样视为 Boss：号角的装备掉率增益按 Boss 的 +10% 结算。
+    const mirrorGear = dropBossGear()
     game.gear.unshift(makeFashion(1))
     game.soul = (game.soul ?? 0) + 10000
     game.talentFragments = (game.talentFragments ?? 0) + 5
-    toast('隐藏关卡奖励：一阶时装 ×1、灵魂 ×10000、天赋币碎片 ×5')
+    for (const gear of mirrorGear) game.gear.unshift(gear)
+    const mirrorGearText = mirrorGear.length ? `、${mirrorGear.map((gear) => gear.name).join('、')}` : ''
+    toast(`隐藏关卡奖励：一阶时装 ×1、灵魂 ×10000、天赋币碎片 ×5${mirrorGearText}`)
     save()
     // 已经看过的结局剧情不再重复弹出。
     if (!seenStory('hidden-complete')) startStory(hiddenCompleteStoryData(), () => { save(); renderGame() })
@@ -4623,9 +4762,10 @@ function mobEquipmentChance(stage: number) {
 function dropMobLoot(x: number) {
   if (!game) return
   const stage = game.stage
-  const gearChance = mobEquipmentChance(stage)
+  // 号角增益：装备掉率整体 +20%，关卡材料掉率翻倍。
+  const gearChance = Math.min(1, mobEquipmentChance(stage) * (hornBuffActive('gear') ? 1.2 : 1))
   const potionChance = .10
-  const materialChance = .15
+  const materialChance = .15 * (hornBuffActive('material') ? 2 : 1)
   const fragmentChance = Math.min(1, stage * .01)
   const dropX = Math.max(MAP_LEFT, Math.min(unlockedWidth - 35, x))
   const roll = Math.random()
@@ -4659,7 +4799,8 @@ function dropMobLoot(x: number) {
 }
 function dropBossGear(): Gear[] {
   if (!game) return []
-  if (Math.random() >= .4) return []
+  // Boss 的装备掉率也受号角影响，但只提高 10%（0.4 → 0.44）。
+  if (Math.random() >= .4 * (hornBuffActive('gear') ? 1.1 : 1)) return []
   const type: GearType = Math.random() < .5 ? 'weapon' : 'armor'
   // Boss 装备等级：1~3 关固定 1/2/3 级；4 关起从 [关卡-3, 关卡] 中随机。
   // 括号内等级从低到高权重 4:3:2:1，越高的等级越难获得。
@@ -5020,7 +5161,14 @@ function performAction(name: string, target: HTMLElement) {
   if (name === 'skill') cast(Number(target.dataset.index))
   if (name === 'pause' && scene === 'battle') { paused = !paused; keys.clear(); renderGame() }
   if (name === 'bag') { resetPanels(); bagOpen = true; renderGame() }
-  if (name === 'close-bag') { bagOpen = false; renderGame() }
+  if (name === 'close-bag') { bagOpen = false; hornPickerOpen = false; renderGame() }
+  if (name === 'use-horn') { openHornPicker(); return }
+  if (name === 'close-horn-picker') { hornPickerOpen = false; renderGame(); return }
+  if (name === 'horn-buff' && target.dataset.buff) {
+    const buff = target.dataset.buff
+    if (buff === 'material' || buff === 'attack' || buff === 'gear') applyHornBuff(buff)
+    return
+  }
   if (name === 'bag-tab' && target.dataset.tab) {
     const tab = target.dataset.tab
     if (tab === 'gear' || tab === 'gems' || tab === 'talent' || tab === 'other') { bagTab = tab; bagOpen = true; renderGame() }
@@ -5351,6 +5499,7 @@ window.addEventListener('keydown', (event) => {
   }
   if (pendingDeleteId && key === 'escape') { pendingDeleteId = null; document.querySelector('.delete-confirm')?.remove(); return }
   if (lotteryOpen && key === 'escape') { closeLottery(); return }
+  if (hornPickerOpen && key === 'escape') { hornPickerOpen = false; renderGame(); return }
   if (quitConfirmOpen && key === 'escape') { quitConfirmOpen = false; renderGame(); return }
   if (settingsOpen && key === 'escape') { settingsOpen = false; listeningBind = null; renderGame(); return }
   if (creditsOpen && key === 'escape') { creditsOpen = false; renderGame(); return }
@@ -5363,7 +5512,7 @@ window.addEventListener('keydown', (event) => {
   if (bagOpen && key === 'escape') { bagOpen = false; renderGame(); return }
   if (attributesOpen && key === 'escape') { attributesOpen = false; renderGame(); return }
   if (craftingOpen && key === 'escape') { craftingOpen = false; renderGame(); return }
-  if (bagOpen || craftingOpen || attributesOpen || npcOpen || secondNpcOpen || lotteryOpen || stageCircleOpen || settingsOpen || gameMenuOpen || creditsOpen || storyLogOpen || skillPanelOpen) return
+  if (bagOpen || hornPickerOpen || craftingOpen || attributesOpen || npcOpen || secondNpcOpen || lotteryOpen || stageCircleOpen || settingsOpen || gameMenuOpen || creditsOpen || storyLogOpen || skillPanelOpen) return
   if (lootReveal) return
   if (bossVictory) {
     if (key === ' ' || key === 'enter') event.preventDefault()
@@ -6680,6 +6829,28 @@ function drawMageHero(c: CanvasRenderingContext2D, now: number, walk: number) {
     c.beginPath(); c.moveTo(0, -3.5); c.lineTo(2.2, 0); c.lineTo(0, 3.5); c.lineTo(-2.2, 0); c.closePath(); c.fill(); c.restore()
   }
 }
+// 宿敌换武器时在头顶显示金色武器轮廓与提示文字。
+function drawMirrorSwitchHint(c: CanvasRenderingContext2D, foe: Foe, now: number) {
+  const nextRole = foe.mirrorNextRole ?? (foe.mirrorRole === 'warrior' ? 'mage' : 'warrior')
+  const x = foe.x
+  const y = world.floor - 150 + Math.sin(now / 240) * 4
+  c.save()
+  c.translate(x, y)
+  c.strokeStyle = '#ffe08a'; c.fillStyle = 'rgba(255, 224, 138, .92)'; c.lineWidth = 2
+  if (nextRole === 'warrior') {
+    c.beginPath(); c.moveTo(0, -22); c.lineTo(0, 8); c.stroke()
+    c.beginPath(); c.moveTo(-7, 8); c.lineTo(7, 8); c.stroke()
+    c.beginPath(); c.moveTo(-2.5, 10); c.lineTo(-2.5, 19); c.lineTo(2.5, 19); c.lineTo(2.5, 10); c.closePath(); c.fill()
+  } else {
+    c.beginPath(); c.moveTo(0, 22); c.lineTo(0, -8); c.stroke()
+    c.beginPath(); c.arc(0, -13, 6, 0, Math.PI * 2); c.stroke()
+    c.beginPath(); c.arc(0, -13, 3, 0, Math.PI * 2); c.fill()
+  }
+  c.font = 'bold 11px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'
+  c.fillStyle = '#ffe9a8'; c.shadowColor = 'rgba(0,0,0,.7)'; c.shadowBlur = 4
+  c.fillText('更换武器', 0, 34)
+  c.restore()
+}
 function drawFoe(c: CanvasRenderingContext2D, foe: Foe) {
   const theme = currentStageTheme()
   const index = Math.max(0, Math.min(9, (game?.stage ?? 1) - 1))
@@ -6702,13 +6873,26 @@ function drawFoe(c: CanvasRenderingContext2D, foe: Foe) {
     aura.addColorStop(0, 'rgba(255, 255, 255, 0)'); aura.addColorStop(.7, `${theme.glow}22`); aura.addColorStop(1, 'rgba(255, 255, 255, 0)')
     c.save(); c.fillStyle = aura; c.beginPath(); c.arc(foe.x, world.floor - 52, 92, 0, Math.PI * 2); c.fill(); c.restore()
   }
+  // 宿敌更换武器前摇：全身散发金光，并显示即将换上的武器。
+  if (foe.mirror && (foe.mirrorSwitch ?? 0) > 0) {
+    const gold = c.createRadialGradient(foe.x, world.floor - 60, 6, foe.x, world.floor - 60, 92)
+    gold.addColorStop(0, 'rgba(255, 240, 170, .55)'); gold.addColorStop(.55, 'rgba(255, 205, 80, .24)'); gold.addColorStop(1, 'rgba(255, 205, 80, 0)')
+    c.save()
+    c.fillStyle = gold; c.beginPath(); c.arc(foe.x, world.floor - 60, 92, 0, Math.PI * 2); c.fill()
+    c.strokeStyle = 'rgba(255, 230, 150, .85)'; c.lineWidth = 2
+    c.beginPath(); c.ellipse(foe.x, world.floor - 60, 36 + Math.sin(now / 140) * 4, 48, 0, 0, Math.PI * 2); c.stroke()
+    drawMirrorSwitchHint(c, foe, now)
+    c.restore()
+  }
   c.save(); c.translate(foe.x + lunge * dir, world.floor - flyHeight + bob); c.rotate(sway); c.scale(scale * dir, scale)
   if (foe.flash > 0) c.filter = 'brightness(2)'
   else { c.shadowColor = theme.glow; c.shadowBlur = foe.boss ? 14 : 6 }
   if (foe.tutorial) drawTutorialBossModel(c)
   else if (foe.mirror) {
     c.save()
-    c.shadowColor = '#c9a7e8'; c.shadowBlur = 16; c.globalAlpha = .95
+    c.shadowColor = (foe.mirrorSwitch ?? 0) > 0 ? '#ffe08a' : '#c9a7e8'
+    c.shadowBlur = (foe.mirrorSwitch ?? 0) > 0 ? 30 : 16
+    c.globalAlpha = .95
     if (foe.mirrorRole === 'mage') drawMageHero(c, now, 0)
     else drawWarriorHero(c, now, 0)
     c.restore()
