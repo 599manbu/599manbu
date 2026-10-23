@@ -1303,3 +1303,31 @@ body { background: #0d1717; }
 @keyframes hornFade { 0% { opacity: 0; } 10% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes hornGlow { 0% { transform: scale(.3); opacity: 0; } 25% { opacity: 1; } 100% { transform: scale(1.35); opacity: 0; } }
 @keyframes hornHorn { 0% { transform: scale(.4) rotate(-18deg); opacity: 0; } 25% { transform: scale(1.15) rotate(-6deg); opacity: 1; } 60% { transform: scale(1) rotate(0); } 100% { transform: scale(1.06); opacity: 1; } }
+
+/* ── 1.83 HUD 技能图标与手机操作区 ─────────────────── */
+/* 战斗中经验条下方显示 4 个技能图标，总宽度与经验条一致。 */
+.hud-skills { display: flex; width: 100%; gap: 3px; margin-top: 1px; }
+.hud-skill-icon { position: relative; flex: 1 1 0; min-width: 0; height: 22px; display: grid; place-items: center; border: 1px solid rgba(201, 178, 115, .32); border-radius: 2px; background: rgba(13, 26, 26, .72); color: #d4bb79; }
+.hud-skill-icon .item-icon { width: 14px; height: 14px; }
+.hud-skill-icon b { position: absolute; right: 1px; bottom: 0; color: #f0dca0; font-family: var(--mono); font-size: 7px; line-height: 1; text-shadow: 0 1px 2px #000; }
+@media (max-width: 760px) {
+  .hud-skill-icon { height: 18px; }
+  .hud-skill-icon .item-icon { width: 12px; height: 12px; }
+  .hud-skill-icon b { font-size: 6px; }
+  /* 左下角背包与技能按钮缩小到原来的 1/4（宽高各一半）。 */
+  .hud-fabs { gap: 6px; }
+  .hud-bag, .hud-forge { width: 52px; min-height: 44px; padding: 3px 2px; gap: 1px; font-size: 0; border-radius: 4px; }
+  .hud-bag .item-icon, .hud-forge .item-icon { width: 15px; height: 15px; }
+  .hud-bag b, .hud-forge b { font-size: 9px; font-weight: 500; }
+  .hud-bag > #hud-bag-count { top: -5px; right: -5px; min-width: 14px; height: 14px; line-height: 14px; font-size: 8px; }
+  /* 摇杆右移、右侧按键左移。 */
+  .mobile-move-rail { margin-left: clamp(18px, 7vw, 54px); }
+  .mobile-action-rail { margin-right: clamp(10px, 4vw, 32px); }
+}
+@media (orientation: landscape) and (max-height: 560px) {
+  .hud-bag, .hud-forge { width: 46px; min-height: 38px; padding: 2px; }
+  .hud-bag .item-icon, .hud-forge .item-icon { width: 13px; height: 13px; }
+  .hud-bag b, .hud-forge b { font-size: 8px; }
+  .mobile-move-rail { margin-left: clamp(16px, 6vw, 46px); }
+  .mobile-action-rail { margin-right: clamp(8px, 3vw, 26px); }
+}

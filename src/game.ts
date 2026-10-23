@@ -17,7 +17,7 @@ type AttributeAllocation = Record<AttributeStat, number>
 type StageProgress = { kills: number; bossDefeated: boolean; pointsClaimed?: number }
 type Save = { role: Role; stage: number; unlockedStage: number; kills: number; stageProgress?: Record<string, StageProgress>; hp: number; mp: number; gear: Gear[]; equipped: string | null; weaponId?: string | null; weapon2Id?: string | null; armorId?: string | null; armor2Id?: string | null; fashionId?: string | null; extraSlot?: 'weapon' | 'armor'; level?: number; exp?: number; drops?: WorldDrop[]; bossDefeated?: boolean; attributePoints?: number; attributeAllocation?: AttributeAllocation; soul?: number; normalTalent?: number; normalTalentLevels?: number[]; advancedTalent?: number; advancedTalentLevel?: number; talentFragments?: number; talentCoins?: number; lotteryChances?: number; shopFashionBought?: boolean; reviveCoins?: number; reviveUsed?: boolean; fragmentBuyDay?: string; reviveBuyAt?: number; materials?: Record<string, number>; stones?: number[]; enhance?: { weapon: number; armor: number; armor2: number; weapon2: number; failWeapon: number; failArmor: number; failArmor2: number; failWeapon2: number }; nightmareCleared?: number[]; stamps?: number; tutorialDone?: boolean; hiddenCleared?: boolean; rivalTrust?: boolean; stage8Choice?: 'save' | 'chase' | 'together' | null; rescuedRock?: boolean; rescuedXiaoman?: boolean; rescuedZhou?: boolean; seenStories?: string[]; forgeIntroSeen?: boolean; shopIntroSeen?: boolean; lotteryIntroSeen?: boolean; townIntroSeen?: boolean; mainQuestsClaimed?: number[]; sideQuest?: { stage: number; clears: number } | null; sideQuestDay?: string; skillLevels?: Record<string, number>; gems?: Gem[]; punchStones?: number; punchBuyAt?: number; horns?: number; hornBuyAt?: number; hornBuff?: 'material' | 'attack' | 'gear' | null; hornBuffUntil?: number; town: boolean; completed: boolean; dead: boolean }
 type SaveSlot = { id: string; label: string; data: Save; updatedAt: number }
-type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; flyPhase?: number; flyAmplitude?: number; flySpeed?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number; specialTimer?: number; specialWindup?: number; specialKind?: 'pierce' | 'exclusive'; specialNext?: 'pierce' | 'exclusive'; mobSkillTimer?: number; skillWindup?: number; skillKind?: 'lunge' | 'slam'; tutorial?: boolean; mirror?: boolean; mirrorRole?: Role; mp?: number; mirrorSkillTimer?: number; mirrorWindup?: number; mirrorSkill?: number; mirrorBuffTimer?: number; mirrorBurst?: number; mirrorBurstWait?: number; mirrorSwitch?: number; mirrorSwapTimer?: number; mirrorNextRole?: Role; wanderTimer?: number; wanderTargetX?: number | null }
+type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; flyPhase?: number; flyAmplitude?: number; flySpeed?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number; specialTimer?: number; specialWindup?: number; specialKind?: 'pierce' | 'exclusive'; specialNext?: 'pierce' | 'exclusive'; mobSkillTimer?: number; skillWindup?: number; skillKind?: 'lunge' | 'slam'; staggerTimer?: number; staggerHits?: number; staggerImmune?: number; superArmor?: number; tutorial?: boolean; mirror?: boolean; mirrorRole?: Role; mp?: number; mirrorSkillTimer?: number; mirrorWindup?: number; mirrorSkill?: number; mirrorBuffTimer?: number; mirrorBurst?: number; mirrorBurstWait?: number; mirrorSwitch?: number; mirrorSwapTimer?: number; mirrorNextRole?: Role; wanderTimer?: number; wanderTargetX?: number | null }
 type Fx = { x: number; y: number; life: number; kind: string; direction?: number; text?: string; damage?: number; duration?: number; vx?: number; vy?: number; color?: string; radius?: number }
 type Projectile = { x: number; y: number; vx: number; vy?: number; life: number; damage: number; targetId: number; kind?: 'homing' | 'arrow' | 'book' | 'charged' | 'fall' | 'blast'; pierce?: boolean; hitIds?: number[]; maxDistance?: number; startX?: number; label?: string; radius?: number; fromClone?: boolean }
 type FoeShot = { x: number; y: number; vx: number; vy: number; damage: number; radius: number; color: string; life: number }
@@ -33,11 +33,11 @@ type BattlePlatform = { x: number; w: number; height: number; kind: 'tree' | 'ro
 const SAVE_KEY = 'elemental-expedition-save-v2'
 const DEMO_MODE = import.meta.env.MODE === 'demo'
 const DEMO_SAVE_KEY = `${SAVE_KEY}:demo`
-const GAME_VERSION = '1.82'
+const GAME_VERSION = '1.83'
 const stageNames = ['苔痕边境', '沉钟矿道', '赤岩峡谷', '风蚀高原', '幽蓝沼泽', '断星回廊', '灰烬王庭', '深渊裂谷', '苍白圣所', '终焉之门']
 const roleLabels: Record<Role, string> = { warrior: '战士', mage: '法师' }
 const SKILL_LABELS: Record<SkillSetKey, string[]> = {
-  sword: ['前斩', '旋风斩', '突刺', '蓄力重斩'],
+  sword: ['拔剑术', '裂地剑爆', '拔剑突刺', '万剑归宗'],
   bow: ['蓄力箭', '箭雨腾空', '花炸弹', '猎鹰坠击'],
   staff: ['奥术强化', '双生火柱', '闪现', '能量禁锢'],
   book: ['隐匿', '镜像分身', '爆裂分身', '魔典爆炸'],
@@ -56,7 +56,7 @@ const xpThresholds = [200, 500, 1200, 2700]
 // ── 可调数值集中区 ─────────────────────────────────────────────
 const ROLE_BASE: Record<Role, { hp: number; mp: number; attack: number; defense: number }> = {
   warrior: { hp: 1000, mp: 500, attack: 100, defense: 10 },
-  mage: { hp: 800, mp: 450, attack: 120, defense: 8 },
+  mage: { hp: 1000, mp: 500, attack: 120, defense: 8 },
 }
 const MAGE_GROWTH_RATE = 0.8
 const SKILL_COSTS: Record<SkillSetKey, number[]> = {
@@ -579,6 +579,19 @@ let comboCount = 0
 let comboTimer = 0
 let comboHitsTaken = 0
 let comboPop = 0
+// 战士剑类：拔剑 / 收剑状态与动画计时。
+let swordOutTimer = 0
+let swordDrawAnim = 0
+// 隐藏必杀：触发条件、持续 2.5 秒、一局一次；期间拥有无敌护盾。
+let hiddenUltUsed = false
+let hiddenUltTimer = 0
+let hiddenUltKind: SkillSetKey | null = null
+let hiddenUltSide = 1
+let hiddenUltCenter = 0
+let hiddenUltHit = false
+let lastAttackPress = 0
+let lastSkill4Press = 0
+let lastShieldPress = 0
 let joystickPointerId: number | null = null
 
 function readSaves(key = currentSaveKey): SaveSlot[] {
@@ -717,7 +730,8 @@ function normalizeSave(data: Save): Save {
     const values = gearStats(gear.level)
     gear.hp = gear.type === 'armor' ? values.hp : 0
     gear.defense = gear.type === 'armor' ? values.defense : 0
-    gear.attack = gear.type === 'weapon' ? values.attack : 0
+    // 重新计算武器属性时保留武器类别倍率：法杖/剑 100%，弓/魔法书 90%。
+    gear.attack = gear.type === 'weapon' ? Math.round(values.attack * weaponStyleMultiplier(weaponStyleOf(gear))) : 0
     gear.mp = gear.type === 'weapon' ? values.mp : 0
     // 武器/护甲的孔位：旧存档没有孔位时按装备 id 固定生成 0/1/2 个。
     if (!Number.isFinite(gear.sockets)) gear.sockets = legacySocketCount(gear.id)
@@ -867,7 +881,107 @@ function foeDamage(foe: Foe, dash = false) {
   const base = (foe.boss ? config.bossAtk * (dash ? 1.5 : 1) : config.mobAtk) * (nightmareStage !== null ? 1.5 : 1)
   return Math.max(3, Math.round(base - effectiveDefense()))
 }
-function effectiveDefense() { return stats().defense * (shieldActive ? 10 : 1) }
+function effectiveDefense() { return stats().defense }
+// 护盾改为减伤：血量越低减伤越高，血量 10% 以下完全免疫；隐藏必杀期间也完全免疫。
+function shieldDamageMultiplier() {
+  if (hiddenUltTimer > 0) return 0
+  if (!shieldActive || !game) return 1
+  const maxHp = Math.max(1, stats().hp)
+  const ratio = game.hp / maxHp
+  if (ratio <= .1) return 0
+  const reduction = Math.min(.6, .15 + (1 - ratio) * .45)
+  return 1 - reduction
+}
+function shieldedDamage(amount: number) {
+  if (amount <= 0) return 0
+  const multiplier = shieldDamageMultiplier()
+  if (multiplier <= 0) return 0
+  return Math.max(1, Math.round(amount * multiplier))
+}
+// ── 隐藏必杀 ────────────────────────────────────────
+// 无任何界面提示：血量 ≤30%、连击 ≥30、站在地图一侧并朝向另一侧，
+// 同时按下技能 4 + 普通攻击 + 护盾键即可触发。每场战斗限一次。
+function hiddenUltimateReady() {
+  if (!game || scene !== 'battle' || hiddenUltUsed || hiddenUltTimer > 0 || bossVictory || lootReveal) return false
+  if (game.hp / Math.max(1, stats().hp) > .3) return false
+  if (comboCount < 30) return false
+  const now = performance.now()
+  if (now - lastAttackPress > 600 || now - lastSkill4Press > 600) return false
+  if (!(shieldActive || keys.has('l') || now - lastShieldPress < 600)) return false
+  // 站在地图的一侧并朝向另一侧（怪物所在方向），且距离面前的边缘超过半张地图。
+  const center = (MAP_LEFT + unlockedWidth) / 2
+  const side = heroX < center ? -1 : 1
+  if (facing !== -side) return false
+  const frontEdge = facing > 0 ? unlockedWidth : MAP_LEFT
+  if (Math.abs(frontEdge - heroX) <= unlockedWidth / 2) return false
+  return foes.some((foe) => (foe.x - heroX) * facing > 0)
+}
+function resetHiddenUltimate() {
+  hiddenUltUsed = false
+  hiddenUltTimer = 0
+  hiddenUltKind = null
+  hiddenUltHit = false
+  lastAttackPress = 0
+  lastSkill4Press = 0
+  lastShieldPress = 0
+}
+function triggerHiddenUltimate() {
+  if (!hiddenUltimateReady()) return
+  hiddenUltUsed = true
+  hiddenUltTimer = 2.5
+  hiddenUltKind = activeSkillSet()
+  hiddenUltSide = facing
+  hiddenUltCenter = (MAP_LEFT + unlockedWidth) / 2
+  hiddenUltHit = false
+  const color = hiddenUltimateColor(hiddenUltKind)
+  addFlash(.5, color)
+  addShake(22)
+  playSfx('victory')
+  // 触发时立刻清空护盾消耗，护盾由必杀自身提供。
+  shieldLocked = false
+  syncHud(); save()
+}
+// 体验版专属：按 V 直接释放当前武器对应的隐藏必杀，无任何条件与次数限制。
+function triggerDemoHiddenUltimate() {
+  if (!DEMO_MODE || !game || scene !== 'battle') return
+  hiddenUltTimer = 2.5
+  hiddenUltKind = activeSkillSet()
+  hiddenUltSide = facing
+  hiddenUltCenter = (MAP_LEFT + unlockedWidth) / 2
+  hiddenUltHit = false
+  const color = hiddenUltimateColor(hiddenUltKind)
+  addFlash(.5, color)
+  addShake(22)
+  playSfx('victory')
+  shieldLocked = false
+  syncHud()
+}
+function hiddenUltimateColor(kind: SkillSetKey | null) {
+  if (kind === 'bow') return '#c8f0a0'
+  if (kind === 'staff') return '#b98cff'
+  if (kind === 'book') return '#d6b4ff'
+  return '#ffe08a'
+}
+function applyHiddenUltimateDamage() {
+  if (!game || !hiddenUltKind) return
+  const kind = hiddenUltKind
+  const fullPct = kind === 'sword' ? 3.5 : 3.4
+  const weakPct = 2
+  const attack = stats().attack
+  const label = kind === 'sword' ? '万剑归宗' : kind === 'bow' ? '天穹贯日' : kind === 'staff' ? '紫霄天雷' : '巨兽践踏'
+  for (const foe of [...foes]) {
+    if (!foes.includes(foe)) continue
+    const front = (foe.x - hiddenUltCenter) * hiddenUltSide >= 0
+    if (!front) {
+      // 另一半地图只承受余波，但会被强烈击退。
+      const push = Math.sign(foe.x - hiddenUltCenter) || hiddenUltSide
+      foe.x = clampFoeX(foe.x + push * (foe.boss ? 70 : 170))
+    }
+    strike(foe, Math.max(1, Math.round(attack * (front ? fullPct : weakPct))), `隐藏必杀 · ${label}`)
+  }
+  addFlash(.45, hiddenUltimateColor(kind))
+  addShake(24)
+}
 function stats() {
   const role = game?.role ?? 'warrior'
   const base = ROLE_BASE[role]
@@ -886,9 +1000,10 @@ function stats() {
   const offEnhance = enhanceWeaponBonus(enhanceData.weapon2)
   const armorEnhance = enhanceArmorBonus(enhanceData.armor)
   const armor2Enhance = enhanceArmorBonus(enhanceData.armor2 ?? 0)
-  const mainAtkBase = Math.round((mainWeapon?.attack ?? 0) * gearMultiplier)
+  // 武器攻击不再按职业打折：法杖与剑获得相同的武器攻击，魔法书/弓略低（见 weaponStyleMultiplier）。
+  const mainAtkBase = mainWeapon?.attack ?? 0
   const mainMpBase = Math.round((mainWeapon?.mp ?? 0) * gearMultiplier)
-  const offAtkBase = Math.round((offWeapon?.attack ?? 0) * gearMultiplier)
+  const offAtkBase = offWeapon?.attack ?? 0
   const offMpBase = Math.round((offWeapon?.mp ?? 0) * gearMultiplier)
   const armorHpBase = Math.round((armor?.hp ?? legacy?.hp ?? 0) * gearMultiplier)
   const armorDefenseBase = Math.round((armor?.defense ?? legacy?.defense ?? 0) * gearMultiplier)
@@ -1070,7 +1185,8 @@ function hurtPlayer(rawDamage: number, shakeAmount = 0) {
   if (!game) return 0
   if (invisibleTimer > 0) return 0
   const scaledDamage = nightmareStage !== null ? rawDamage * 1.5 : rawDamage
-  const dealt = Math.max(3, Math.round(scaledDamage - effectiveDefense()))
+  const dealt = shieldedDamage(Math.max(3, Math.round(scaledDamage - effectiveDefense())))
+  if (dealt <= 0) return 0
   game.hp = Math.max(0, game.hp - dealt)
   takeComboHit()
   effects.push({ kind: 'damage-number', x: heroX, y: world.floor - 90 + heroY, life: .85, duration: .85, text: `-${displayNumber(dealt)}`, damage: dealt })
@@ -1200,6 +1316,7 @@ function enterBattlefield() {
   if (!game) return
   battleTime = 0
   resetCombo()
+  resetHiddenUltimate()
   refreshMap()
   foes = []
   waveReady = false
@@ -1250,6 +1367,7 @@ function beginTutorial() {
   if (!game) return
   battleTime = 0
   resetCombo()
+  resetHiddenUltimate()
   tutorialMode = true
   tutorialStep = 0
   hiddenBattle = false
@@ -1280,6 +1398,7 @@ function beginHiddenBattle() {
   if (!hiddenUnlocked()) { toast(`集齐 ${STAMP_UNLOCK} 枚王印印章后才能挑战宿敌。`); return }
   battleTime = 0
   resetCombo()
+  resetHiddenUltimate()
   hiddenBattle = true
   tutorialMode = false
   bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; cloneAttackPulse = 0; cloneCastPulse = 0; cloneStealthTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null; bombClones = []; arcaneOrb = null
@@ -2211,6 +2330,7 @@ function beginNightmare(stage: number) {
   resetPanels()
   battleTime = 0
   resetCombo()
+  resetHiddenUltimate()
   hiddenBattle = false; tutorialMode = false; bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; cloneAttackPulse = 0; cloneCastPulse = 0; cloneStealthTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null; bombClones = []; arcaneOrb = null
   nightmareStage = stage
   game.stage = stage
@@ -3453,6 +3573,7 @@ function hudMarkup() {
         <div class="hud-bar hp"><i id="hud-hp-fill" style="width:${Math.max(0, Math.min(100, game.hp / s.hp * 100))}%"></i><span id="hud-hp-text">${displayNumber(game.hp)} / ${displayNumber(s.hp)}</span></div>
         <div class="hud-bar mp"><i id="hud-mp-fill" style="width:${Math.max(0, Math.min(100, game.mp / s.mp * 100))}%"></i><span id="hud-mp-text">${displayNumber(game.mp)} / ${displayNumber(s.mp)}</span></div>
         <div class="hud-bar xp"><i id="hud-xp-fill" style="width:${maxed ? 100 : Math.min(100, exp / needed * 100)}%"></i><span id="hud-xp-label">${maxed ? '经验 MAX' : `经验 ${displayNumber(exp)} / ${displayNumber(needed)}`}</span></div>
+        ${isTown ? '' : `<div class="hud-skills" aria-label="技能图标">${[0, 1, 2, 3].map((index) => `<span class="hud-skill-icon">${itemIcon(activeSkillSet())}<b>${index + 1}</b></span>`).join('')}</div>`}
       </div>
     </section>
     <section class="hud-center">
@@ -3953,6 +4074,38 @@ function targetForFacing(range: number): Foe | undefined {
     return (b.x - heroX) * facing - (a.x - heroX) * facing
   })[0]
 }
+// 受击僵直：普通怪物会被连续攻击打断动作；Boss 累计受击次数后挣脱并进入霸体。
+const BOSS_STAGGER_BREAK_HITS = 12
+function applyStagger(foe: Foe) {
+  if (foe.tutorial) return
+  if ((foe.staggerImmune ?? 0) > 0 || (foe.superArmor ?? 0) > 0) return
+  if (foe.boss) {
+    foe.staggerHits = (foe.staggerHits ?? 0) + 1
+    if (foe.staggerHits >= BOSS_STAGGER_BREAK_HITS) {
+      foe.staggerHits = 0
+      foe.staggerTimer = 0
+      foe.staggerImmune = 1
+      foe.superArmor = 2
+      addFx('great-quake', foe.x, world.floor - 8, 1, .9, '#ffd27a')
+      addSparks(foe.x, world.floor - 100, 34, ['#ffd27a', '#fff2c0', '#ff9a5c', '#ffffff'], 320)
+      addShake(11)
+      addFlash(.25, '#ffd27a')
+      playSfx('boss')
+      setLog('守关者挣脱僵直：1 秒内不受僵直，随后 2 秒霸体（减伤 10%，可以行动）。')
+      return
+    }
+    foe.staggerTimer = Math.max(foe.staggerTimer ?? 0, .12)
+  } else {
+    foe.staggerTimer = Math.max(foe.staggerTimer ?? 0, .2)
+  }
+  // 被打断的蓄力与技能全部取消。
+  foe.skillWindup = undefined
+  foe.rangedWindup = undefined
+  foe.specialWindup = undefined
+  foe.dashWindup = undefined
+  foe.mirrorWindup = undefined
+  foe.attackAnim = 0
+}
 function strike(target: Foe, damage: number, label: string, fromClone = false) {
   if (!game || !foes.includes(target)) return
   if (target.tutorial && tutorialStep < 4) {
@@ -3961,10 +4114,12 @@ function strike(target: Foe, damage: number, label: string, fromClone = false) {
     return
   }
   playSfx('hit')
-  // 宿敌换武器前摇期间金光护体，但受到伤害增加 10%。
+  // 宿敌换武器前摇期间金光护体，但受到伤害增加 10%；Boss 霸体期间减伤 10%。
   const switchExposed = Boolean(target.mirror && (target.mirrorSwitch ?? 0) > 0)
-  const dealt = Math.max(1, Math.round(damage * (switchExposed ? 1.1 : 1)))
+  const superArmorMitigation = (target.superArmor ?? 0) > 0 ? .9 : 1
+  const dealt = Math.max(1, Math.round(damage * (switchExposed ? 1.1 : 1) * superArmorMitigation))
   target.hp -= dealt; target.flash = .18
+  applyStagger(target)
   addComboHit()
   addDamageText(target, dealt)
   const impactY = target.flying ? foeWorldY(target) - 14 : target.mirror ? world.floor - 68 : target.tutorial ? world.floor - 100 : world.floor - (target.boss ? 120 : 58)
@@ -4077,6 +4232,7 @@ function bookBoltAttack() {
 }
 function attack() {
   if ((scene !== 'battle' && scene !== 'town') || paused || bossVictory || storyState || lootReveal || !game || attackWait > 0) return
+  lastAttackPress = performance.now()
   const mode = activeSkillSet()
   attackWait = .42; attackSwing = .32
   const nearest = [...foes].sort((a, b) => Math.abs(a.x - heroX) - Math.abs(b.x - heroX))[0]
@@ -4091,6 +4247,9 @@ function attack() {
   }
   if (mode === 'sword') {
     const style = weaponStyle()
+    // 拔剑后再挥击，攻击结束后自动收剑。
+    swordOutTimer = Math.max(swordOutTimer, .55)
+    if (swordDrawAnim <= 0) { swordDrawAnim = .3; addFx('draw-sword', heroX, world.floor - 60 + heroY, facing, .32, weaponFxColor()) }
     const fxColor = weaponFxColor()
     const swingY = world.floor - 53 + heroY
     addFx(`weapon-swing-${style}`, heroX + facing * 42, swingY, facing, .4, fxColor)
@@ -4296,6 +4455,11 @@ function castBookSkill(index: number, power: number) {
 }
 function cast(index: number) {
   if ((scene !== 'battle' && scene !== 'town') || paused || bossVictory || storyState || lootReveal || !game || index < 0 || index > 3) return
+  if (index === 3) {
+    lastSkill4Press = performance.now()
+    // 隐藏必杀优先于普通技能 4，且不消耗法力。
+    if (hiddenUltimateReady()) { triggerHiddenUltimate(); return }
+  }
   const skillSet = activeSkillSet()
   if (skillSet === 'bow' && index === 0) {
     if (bowCharging) return
@@ -4328,6 +4492,9 @@ function cast(index: number) {
   } else if (skillSet === 'sword') {
     const style = weaponStyle()
     const fxColor = weaponFxColor()
+    // 所有剑类技能都会先拔剑。
+    swordOutTimer = Math.max(swordOutTimer, 1)
+    if (swordDrawAnim <= 0) { swordDrawAnim = .3; addFx('draw-sword', heroX, world.floor - 60 + heroY, facing, .32, fxColor) }
     if (index === 0) {
       const frontY = world.floor - 78 + heroY
       addFx(`weapon-swing-${style}`, heroX + facing * 56, frontY, facing, .56, fxColor)
@@ -4339,16 +4506,24 @@ function cast(index: number) {
       const target = targetForFacing(165)
       if (!target) setLog(foes.length ? '距离太远，攻击没有命中。' : '剑气划过空气。')
       else {
-        // 前斩附带一点击退，把目标推离角色。
+        // 拔剑术附带一点击退，把目标推离角色。
         if (!target.boss) target.x = clampFoeX(target.x + (Math.sign(target.x - heroX) || facing) * 34)
-        strike(target, power, '前斩')
+        strike(target, power, '拔剑术')
       }
     } else if (index === 1) {
-      addFx('whirlwind-storm', heroX, world.floor - 82 + heroY, facing, .8)
-      addSparks(heroX, world.floor - 70 + heroY, 14, [fxColor, '#e9d797'], 210)
-      addShake(5)
-      strikeNearby(power, '旋风斩', 205, true)
+      // 裂地剑爆：双手持剑插入地面，剑气从地下炸开。
+      const blastX = heroX + facing * 66
+      addFx('sword-impale', blastX, world.floor - 54 + heroY, facing, .95, fxColor)
+      addFx('great-quake', blastX, world.floor - 8, facing, .9, fxColor)
+      addFx('ground-break', blastX, world.floor - 40, facing, .85)
+      addFx('fire-nova', blastX, world.floor - 30, facing, .8, fxColor)
+      addSparks(blastX, world.floor - 20, 32, [fxColor, '#f2c46d', '#fff6d0', '#a98d55'], 300)
+      addShake(9)
+      addFlash(.24, fxColor)
+      strikeNearby(power, '裂地剑爆', 205, true)
     } else if (index === 2) {
+      // 拔剑突刺：先拔剑，再突进，结束后立刻收剑入鞘。
+      addFx('draw-sword', heroX, world.floor - 60 + heroY, facing, .34, fxColor)
       addFx('thrust-dash', heroX + facing * 88, world.floor - 82 + heroY, facing, .42)
       const startX = heroX
       const endX = scene === 'town'
@@ -4362,19 +4537,24 @@ function cast(index: number) {
         // 突刺会把非 Boss 目标一起带到落点前方。
         targets.forEach((foe, order) => {
           if (!foe.boss) foe.x = clampFoeX(endX + facing * (30 + order * 42))
-          strike(foe, power, '突刺')
+          strike(foe, power, '拔剑突刺')
         })
-      } else setLog('突刺穿过前方，未命中目标。')
+      } else setLog('拔剑突刺穿过前方，未命中目标。')
+      // 突刺结束后收剑。
+      swordOutTimer = .16
+      addFx('sheathe-sword', heroX, world.floor - 58 + heroY, facing, .32, fxColor)
     } else {
+      // 万剑归宗：十余把巨剑交错插满地面，连续爆发。
       const greatY = world.floor - 80 + heroY
       addFx(`weapon-swing-${style}`, heroX + facing * 60, greatY, facing, .7, fxColor)
       addFx('great-slash', heroX + facing * 92, greatY, facing, 1.15, fxColor)
-      addFx('great-quake', heroX + facing * 70, world.floor - 8, facing, 1.0, fxColor)
-      addFx('ground-break', heroX + facing * 60, world.floor - 70, facing, .85)
-      addSparks(heroX + facing * 60, world.floor - 8, 36, [fxColor, '#d8b96c', '#fff6d0', '#a98d55'], 340)
-      addShake(18)
-      addFlash(.55, fxColor)
-      strikeNearby(power, '蓄力重斩', 175, true)
+      addFx('myriad-swords', heroX + facing * 150, world.floor - 4, facing, 1.35, fxColor)
+      addFx('great-quake', heroX + facing * 70, world.floor - 8, facing, 1.2, fxColor)
+      addFx('ground-break', heroX + facing * 60, world.floor - 70, facing, .95)
+      addSparks(heroX + facing * 60, world.floor - 8, 48, [fxColor, '#d8b96c', '#fff6d0', '#a98d55'], 380)
+      addShake(20)
+      addFlash(.6, fxColor)
+      strikeNearby(power, '万剑归宗', 175, true)
     }
   } else if (index === 0) {
     buffTime = 7
@@ -4658,7 +4838,8 @@ function awardKillPoints() {
   toast(`获得 ${gain} 点属性点 · 本关 ${target} / ${ATTRIBUTE_POINT_CAP_PER_STAGE}`)
 }
 function weaponStyleRole(style: WeaponStyle): Role { return style === 'staff' || style === 'book' ? 'mage' : 'warrior' }
-function weaponStyleMultiplier(style: WeaponStyle) { return style === 'bow' ? .9 : style === 'book' ? .95 : 1 }
+// 剑/斧/刃与法杖获得 100% 武器攻击；弓与魔法书略低，魔法书约为剑的 90%。
+function weaponStyleMultiplier(style: WeaponStyle) { return style === 'bow' ? .9 : style === 'book' ? .9 : 1 }
 function styleSkillSet(style: WeaponStyle): SkillSetKey {
   if (style === 'bow') return 'bow'
   if (style === 'book') return 'book'
@@ -5008,6 +5189,7 @@ function retreatToTown() {
   if (!game) return
   paused = false
   resetCombo()
+  resetHiddenUltimate()
   hiddenBattle = false
   bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; cloneAttackPulse = 0; cloneCastPulse = 0; cloneStealthTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null; bombClones = []; arcaneOrb = null
   if (tutorialMode) { tutorialMode = false; tutorialStep = 0; game.tutorialDone = true }
@@ -5368,6 +5550,7 @@ app.addEventListener('pointerdown', (event) => {
   if (shieldButton && !shieldButton.disabled) {
     event.preventDefault()
     keys.add('l')
+    lastShieldPress = performance.now()
     touchPointers.set(event.pointerId, 'l')
   }
   // 手机端攻击、跳跃、技能与 S：在按下瞬间执行，支持一边移动一边攻击/跳跃。
@@ -5526,7 +5709,13 @@ window.addEventListener('keydown', (event) => {
   if ([' ', 'arrowleft', 'arrowright', 'arrowup'].includes(key)) event.preventDefault()
   if (key === 'p' && scene === 'battle') { paused = !paused; keys.clear(); renderGame(); return }
   if (paused) return
+  // 体验版：V 键直接释放隐藏必杀，无冷却、无次数限制。
+  if (DEMO_MODE && key === 'v' && scene === 'battle') {
+    if (!event.repeat) triggerDemoHiddenUltimate()
+    return
+  }
   keys.add(key)
+  if (key === 'l') lastShieldPress = performance.now()
   if (!event.repeat) {
     if (key === keyBinds.left || key === 'arrowleft') noteMoveTap(-1)
     else if (key === keyBinds.right || key === 'arrowright') noteMoveTap(1)
@@ -5688,6 +5877,8 @@ function update(dt: number) {
   if (scene !== 'battle' || bossVictory) shieldActive = false
   if (scene !== 'battle') cameraX = 0
   attackWait = Math.max(0, attackWait - dt); attackSwing = Math.max(0, attackSwing - dt); buffTime = Math.max(0, buffTime - dt)
+  swordOutTimer = Math.max(0, swordOutTimer - dt)
+  swordDrawAnim = Math.max(0, swordDrawAnim - dt)
   invisibleTimer = Math.max(0, invisibleTimer - dt)
   prisonTimer = Math.max(0, prisonTimer - dt)
   comboPop = Math.max(0, comboPop - dt)
@@ -5765,6 +5956,14 @@ function update(dt: number) {
       }
     }
     if (!shieldActive) game.mp = Math.min(stats().mp, game.mp + dt * 4)
+    // 隐藏必杀：触发判定与 2.5 秒施法进度。
+    if (hiddenUltTimer > 0) {
+      hiddenUltTimer = Math.max(0, hiddenUltTimer - dt)
+      if (!hiddenUltHit && hiddenUltTimer <= 1.3) { hiddenUltHit = true; applyHiddenUltimateDamage() }
+      if (hiddenUltTimer <= 0) hiddenUltKind = null
+    } else if (!hiddenUltUsed && hiddenUltimateReady()) {
+      triggerHiddenUltimate()
+    }
     const left = keys.has(keyBinds.left) || keys.has('arrowleft'); const right = keys.has(keyBinds.right) || keys.has('arrowright')
     if (left !== right) {
       const d = right ? 1 : -1
@@ -5803,9 +6002,17 @@ function update(dt: number) {
     for (const foe of [...foes]) {
       foe.flash = Math.max(0, foe.flash - dt)
       foe.attackAnim = Math.max(0, foe.attackAnim - dt)
+      // 先走 1 秒僵直免疫，随后再走 2 秒霸体，合计 3 秒不会被僵直。
+      if ((foe.staggerImmune ?? 0) > 0) foe.staggerImmune = Math.max(0, (foe.staggerImmune ?? 0) - dt)
+      else foe.superArmor = Math.max(0, (foe.superArmor ?? 0) - dt)
       if ((foe.stunTimer ?? 0) > 0) {
         foe.stunTimer = Math.max(0, (foe.stunTimer ?? 0) - dt)
         if (foe.stunTimer === 0) foe.skillTimer = Math.max(foe.skillTimer, .5)
+        continue
+      }
+      // 受击僵直：被打中时停止一切行动，连续攻击可以持续压制。
+      if ((foe.staggerTimer ?? 0) > 0) {
+        foe.staggerTimer = Math.max(0, (foe.staggerTimer ?? 0) - dt)
         continue
       }
       if (foe.tutorial) continue
@@ -5897,11 +6104,14 @@ function update(dt: number) {
           foe.attackAnim = .35
           addFx(bossFx('dash'), (startX + foe.x) / 2, world.floor - 70, foe.dashDirection ?? directionToHero, .55)
           if (Math.abs(heroX - foe.x) < 105 && (heroY > -35)) {
-            game.hp = Math.max(0, game.hp - foeDamage(foe, true))
-            takeComboHit()
-            armorHitFx()
-            addShake(9)
-            playSfx('hurt')
+            const dashDamage = shieldedDamage(foeDamage(foe, true))
+            game.hp = Math.max(0, game.hp - dashDamage)
+            if (dashDamage > 0) {
+              takeComboHit()
+              armorHitFx()
+              addShake(9)
+              playSfx('hurt')
+            }
             setLog('守关者冲刺命中 · 提前后退或跳跃可躲避。')
           } else setLog('守关者冲刺落空！')
         }
@@ -5940,17 +6150,19 @@ function update(dt: number) {
             playSfx(foe.boss ? 'boss' : 'slash')
             setLog('实体分身吸引了敌人的仇恨。')
           } else {
-            const damage = foeDamage(foe)
+            const damage = shieldedDamage(foeDamage(foe))
             game.hp = Math.max(0, game.hp - damage)
-            takeComboHit()
             playSfx(foe.boss ? 'boss' : 'slash')
-            playSfx('hurt')
-            addFx(foe.boss ? bossFx('melee') : 'enemy-swipe', heroX, world.floor - 52 + heroY, -directionToHero, .38)
-            armorHitFx()
-            addSparks(heroX, world.floor - 48 + heroY, foe.boss ? 8 : 5, [theme.accent, theme.glow], foe.boss ? 150 : 110)
-            if (foe.flying) addSparks(foe.x, foeWorldY(foe), 6, [theme.light, theme.accent], 100)
-            effects.push({ kind: 'damage-number', x: heroX, y: world.floor - 90 + heroY, life: .82, duration: .82, text: `-${displayNumber(damage)}` })
-            addShake(foe.boss ? 8 : 3)
+            if (damage > 0) {
+              takeComboHit()
+              playSfx('hurt')
+              addFx(foe.boss ? bossFx('melee') : 'enemy-swipe', heroX, world.floor - 52 + heroY, -directionToHero, .38)
+              armorHitFx()
+              addSparks(heroX, world.floor - 48 + heroY, foe.boss ? 8 : 5, [theme.accent, theme.glow], foe.boss ? 150 : 110)
+              if (foe.flying) addSparks(foe.x, foeWorldY(foe), 6, [theme.light, theme.accent], 100)
+              effects.push({ kind: 'damage-number', x: heroX, y: world.floor - 90 + heroY, life: .82, duration: .82, text: `-${displayNumber(damage)}` })
+              addShake(foe.boss ? 8 : 3)
+            }
             if (game.hp <= 0) { scene = 'defeat'; paused = false; game.dead = true; save(); renderGame(); break }
           }
         }
@@ -6019,13 +6231,15 @@ function update(dt: number) {
       const heroBottom = world.floor + heroY
       const heroTop = heroBottom - 70
       if (invisibleTimer <= 0 && Math.abs(shot.x - heroX) < 24 && shot.y > heroTop && shot.y < heroBottom + 6) {
-        const shotDamage = Math.max(3, Math.round(shot.damage - effectiveDefense()))
+        const shotDamage = shieldedDamage(Math.max(3, Math.round(shot.damage - effectiveDefense())))
         game.hp = Math.max(0, game.hp - shotDamage)
-        takeComboHit()
-        effects.push({ kind: 'damage-number', x: heroX, y: world.floor - 90 + heroY, life: .82, duration: .82, text: `-${displayNumber(shotDamage)}`, damage: shotDamage })
-        armorHitFx()
-        addShake(7)
-        playSfx('hurt')
+        if (shotDamage > 0) {
+          takeComboHit()
+          effects.push({ kind: 'damage-number', x: heroX, y: world.floor - 90 + heroY, life: .82, duration: .82, text: `-${displayNumber(shotDamage)}`, damage: shotDamage })
+          armorHitFx()
+          addShake(7)
+          playSfx('hurt')
+        }
         foeShots = foeShots.filter((entry) => entry !== shot)
         if (game.hp <= 0) { scene = 'defeat'; paused = false; game.dead = true; save(); renderGame(); break }
       } else if (shot.life <= 0 || shot.x < MAP_LEFT - 60 || shot.x > unlockedWidth + 60 || shot.y < -40 || shot.y > world.height + 40) {
@@ -6587,6 +6801,46 @@ function orbColor(level: number) {
   const colors = ['#b9e0d2', '#ffe28a', '#d6b4ff', '#9fe8ff', '#ffb38a']
   return colors[Math.max(0, Math.min(colors.length - 1, level - 1))] ?? colors[0]
 }
+// 剑鞘：挂在左侧腰间，金饰数量随武器品阶增加。
+function drawSwordScabbard(c: CanvasRenderingContext2D, tint: { light: string; dark: string; glow: string }, level: number) {
+  c.save(); c.translate(-17, -31); c.rotate(.85)
+  const sheath = c.createLinearGradient(-3, 0, 3, 0)
+  sheath.addColorStop(0, tint.dark); sheath.addColorStop(.5, tint.light); sheath.addColorStop(1, tint.dark)
+  c.fillStyle = sheath
+  c.beginPath(); c.moveTo(-3, 0); c.lineTo(3, 0); c.lineTo(2.4, 34); c.lineTo(0, 40); c.lineTo(-2.4, 34); c.closePath(); c.fill()
+  c.strokeStyle = 'rgba(20, 26, 22, .6)'; c.lineWidth = 1; c.stroke()
+  // 鞘口与金饰
+  c.fillStyle = '#c6a967'; c.fillRect(-4, -1, 8, 3)
+  const bands = Math.min(5, 1 + Math.floor(Math.max(1, level) / 2))
+  for (let band = 0; band < bands; band += 1) {
+    const y = 6 + band * (26 / bands)
+    c.fillStyle = band % 2 ? tint.glow || '#e7cf8e' : '#c6a967'
+    c.fillRect(-3.4, y, 6.8, 1.6)
+    if (level >= 4) { c.globalAlpha = .55; c.fillRect(-4.6, y - .8, 9.2, 3.2); c.globalAlpha = 1 }
+  }
+  c.fillStyle = '#c6a967'; c.beginPath(); c.ellipse(0, 40, 3, 5, 0, 0, Math.PI * 2); c.fill()
+  // 剑柄从鞘口露出
+  c.fillStyle = '#5a3f2a'; c.fillRect(-2, -13, 4, 12)
+  c.strokeStyle = '#c6a967'; c.lineWidth = 1; c.beginPath(); c.moveTo(-2, -10); c.lineTo(2, -8); c.moveTo(-2, -6); c.lineTo(2, -4); c.stroke()
+  c.fillStyle = '#c6a967'; c.fillRect(-7, -15, 14, 3.5)
+  c.beginPath(); c.moveTo(-7, -15); c.lineTo(-11, -18); c.lineTo(-8, -12.5); c.closePath(); c.fill()
+  c.beginPath(); c.moveTo(7, -15); c.lineTo(11, -18); c.lineTo(8, -12.5); c.closePath(); c.fill()
+  c.fillStyle = tint.glow || '#e7cf8e'; c.beginPath(); c.arc(0, -19, 2.6, 0, Math.PI * 2); c.fill()
+  if (level >= 3) { c.shadowColor = tint.glow || '#e7cf8e'; c.shadowBlur = 8; c.fillRect(-1, 3, 2, 30) }
+  c.restore()
+}
+// 拔剑时的金色出鞘弧光。
+function drawSwordDrawArc(c: CanvasRenderingContext2D, tint: { light: string; dark: string; glow: string }) {
+  if (swordDrawAnim <= 0) return
+  const progress = 1 - swordDrawAnim / .3
+  c.save()
+  c.globalAlpha = Math.max(0, 1 - progress) * .9
+  c.strokeStyle = tint.glow || '#ffe6a8'; c.lineWidth = 3; c.shadowColor = tint.glow || '#ffe6a8'; c.shadowBlur = 12
+  c.beginPath(); c.arc(-16, -22, 30 + progress * 18, 1.9, -.35); c.stroke()
+  c.strokeStyle = '#ffffff'; c.lineWidth = 1.2
+  c.beginPath(); c.arc(-16, -22, 26 + progress * 16, 2.1, -.15); c.stroke()
+  c.restore()
+}
 function drawWarriorHero(c: CanvasRenderingContext2D, now: number, walk: number) {
   const capeWave = Math.sin(now / 260) * 3
   const weaponLevel = equippedLevel('weapon')
@@ -6678,6 +6932,12 @@ function drawWarriorHero(c: CanvasRenderingContext2D, now: number, walk: number)
   c.fillStyle = '#d4543f'; c.beginPath(); c.moveTo(4, -96); c.quadraticCurveTo(10, -105, 12, -97); c.quadraticCurveTo(8, -99, 4, -96); c.fill()
   c.fillStyle = '#e3c985'; c.fillRect(-13, -88, 26, 2)
   if (fashion) drawFashionFront(c, fashionTier, fashion, now)
+  // 剑类平时收在剑鞘里，攻击或施放技能时才会拔出。
+  const swordStyle = weaponStyle()
+  const usesScabbard = swordStyle === 'sword' || swordStyle === 'blade'
+  if (usesScabbard) drawSwordScabbard(c, bladeTint, weaponLevel)
+  if (usesScabbard && swordOutTimer <= 0 && attackSwing <= 0) return
+  if (usesScabbard) drawSwordDrawArc(c, bladeTint)
   // 弓箭
   if (weaponStyle() === 'bow') {
     c.save(); c.translate(15, -54); if (attackSwing > 0) c.rotate(-.32)
@@ -7173,6 +7433,89 @@ function drawFx(c: CanvasRenderingContext2D, fx: Fx) {
     c.font = `700 ${fx.damage && fx.damage >= 100 ? 20 : 16}px 'Microsoft YaHei', sans-serif`
     c.textAlign = 'center'; c.lineWidth = 3; c.strokeStyle = 'rgba(20, 29, 28, .88)'; c.strokeText(fx.text ?? '', fx.x, fx.y - progress * 38)
     c.fillStyle = fx.text?.startsWith('-') ? '#ffe09a' : fx.text?.startsWith('+') ? '#9ff0a8' : '#ffc3a7'; c.fillText(fx.text ?? '', fx.x, fx.y - progress * 38)
+  } else if (fx.kind === 'draw-sword') {
+    const dir = fx.direction ?? 1
+    const color = fx.color ?? '#ffe08a'
+    c.shadowColor = color; c.shadowBlur = 14
+    c.strokeStyle = color; c.lineWidth = 3
+    c.beginPath(); c.arc(fx.x - dir * 12, fx.y, 36, dir > 0 ? 2.2 : .9, dir > 0 ? -.25 : 3.3, dir < 0); c.stroke()
+    c.globalAlpha = alpha * .8; c.strokeStyle = '#ffffff'; c.lineWidth = 1.2
+    c.beginPath(); c.arc(fx.x - dir * 12, fx.y, 31, dir > 0 ? 2.35 : .75, dir > 0 ? -.4 : 3.15, dir < 0); c.stroke()
+  } else if (fx.kind === 'sheathe-sword') {
+    const dir = fx.direction ?? 1
+    c.globalAlpha = alpha * .8; c.strokeStyle = '#c6a967'; c.lineWidth = 2
+    c.beginPath(); c.arc(fx.x - dir * 7, fx.y, 24, dir > 0 ? .3 : 2.8, dir > 0 ? 1.7 : 4.2, dir < 0); c.stroke()
+  } else if (fx.kind === 'sword-impale') {
+    const color = fx.color ?? '#ffe08a'
+    c.shadowColor = color; c.shadowBlur = 24
+    // 插入地面的巨剑
+    c.fillStyle = '#e8ddc0'
+    c.beginPath(); c.moveTo(fx.x - 6, fx.y - 118); c.lineTo(fx.x + 6, fx.y - 118); c.lineTo(fx.x + 4, fx.y - 10); c.lineTo(fx.x, fx.y + 2); c.lineTo(fx.x - 4, fx.y - 10); c.closePath(); c.fill()
+    c.fillStyle = color; c.fillRect(fx.x - 3, fx.y - 112, 2, 82)
+    c.fillStyle = '#c6a967'; c.fillRect(fx.x - 17, fx.y - 124, 34, 6)
+    c.fillRect(fx.x - 3, fx.y - 146, 6, 22)
+    c.fillStyle = color; c.beginPath(); c.arc(fx.x, fx.y - 150, 6, 0, Math.PI * 2); c.fill()
+    // 地面冲击环与裂纹
+    c.globalAlpha = alpha * .8; c.strokeStyle = color; c.lineWidth = 4
+    c.beginPath(); c.ellipse(fx.x, fx.y, 40 + progress * 160, 12 + progress * 30, 0, 0, Math.PI * 2); c.stroke()
+    c.globalAlpha = alpha * .55; c.strokeStyle = '#c6a967'; c.lineWidth = 2.5
+    for (let crack = 0; crack < 7; crack += 1) {
+      const angle = (crack / 7) * Math.PI * 2
+      const length = 44 + progress * 70
+      c.beginPath(); c.moveTo(fx.x, fx.y); c.lineTo(fx.x + Math.cos(angle) * length, fx.y + Math.sin(angle) * length * .32); c.stroke()
+    }
+    c.globalAlpha = alpha * .35; c.fillStyle = color
+    c.beginPath(); c.ellipse(fx.x, fx.y - 20, 30 + progress * 40, 110 + progress * 40, 0, 0, Math.PI * 2); c.fill()
+    c.globalAlpha = alpha * .8; c.fillStyle = '#fff4c4'
+    for (let ember = 0; ember < 12; ember += 1) {
+      const ex = fx.x + (Math.sin(ember * 2.7) * 70) * (0.3 + progress)
+      const ey = fx.y - progress * (40 + ember * 9)
+      c.beginPath(); c.arc(ex, ey, 1.6 + (ember % 3), 0, Math.PI * 2); c.fill()
+    }
+  } else if (fx.kind === 'myriad-swords') {
+    const color = fx.color ?? '#ffe08a'
+    const now = performance.now()
+    c.shadowColor = color; c.shadowBlur = 22
+    // 十余把剑交叉着从天而降，同时插进地面。
+    const swords = 12
+    for (let i = 0; i < swords; i += 1) {
+      const spread = (i - (swords - 1) / 2) * 26
+      const x = fx.x + spread
+      const delay = i * .035
+      const land = Math.min(1, Math.max(0, (progress - delay) / .55))
+      const fallY = (1 - land) * -260
+      const tilt = (i % 2 ? .34 : -.34) + (i % 3 - 1) * .12
+      c.save(); c.translate(x, fx.y + fallY); c.rotate(tilt)
+      c.globalAlpha = alpha * (.45 + land * .55)
+      c.fillStyle = '#e9e2c8'
+      c.beginPath(); c.moveTo(-4, -92); c.lineTo(4, -92); c.lineTo(3, -8); c.lineTo(0, 0); c.lineTo(-3, -8); c.closePath(); c.fill()
+      c.fillStyle = color; c.fillRect(-1.6, -86, 1.6, 70)
+      c.fillStyle = '#c6a967'; c.fillRect(-11, -98, 22, 5)
+      c.fillRect(-2, -112, 4, 14)
+      c.fillStyle = color; c.beginPath(); c.arc(0, -115, 4.5, 0, Math.PI * 2); c.fill()
+      c.restore()
+      // 落地爆点
+      if (land > 0) {
+        c.globalAlpha = alpha * (1 - land) * .9; c.strokeStyle = color; c.lineWidth = 2.5
+        c.beginPath(); c.ellipse(x, fx.y, 12 + land * 70, 4 + land * 18, 0, 0, Math.PI * 2); c.stroke()
+        c.globalAlpha = alpha * (1 - land) * .8; c.fillStyle = '#fff2c0'
+        for (let spark = 0; spark < 4; spark += 1) {
+          const angle = now / 160 + spark * 1.7 + i
+          c.beginPath(); c.arc(x + Math.cos(angle) * (10 + land * 34), fx.y - Math.abs(Math.sin(angle)) * (18 + land * 50), 1.8, 0, Math.PI * 2); c.fill()
+        }
+      }
+    }
+    // 剑气交叉的巨型十字
+    c.globalAlpha = alpha * .75; c.strokeStyle = color; c.lineWidth = 6; c.lineCap = 'round'
+    c.beginPath(); c.moveTo(fx.x - 170, fx.y - 120); c.lineTo(fx.x + 170, fx.y + 8); c.stroke()
+    c.beginPath(); c.moveTo(fx.x + 170, fx.y - 120); c.lineTo(fx.x - 170, fx.y + 8); c.stroke()
+    c.globalAlpha = alpha * .45; c.strokeStyle = '#ffffff'; c.lineWidth = 2
+    c.beginPath(); c.moveTo(fx.x - 150, fx.y - 114); c.lineTo(fx.x + 150, fx.y + 4); c.stroke()
+    // 多层地面冲击环
+    c.globalAlpha = alpha * .6; c.strokeStyle = color
+    for (let ring = 0; ring < 3; ring += 1) {
+      c.lineWidth = 4 - ring; c.beginPath(); c.ellipse(fx.x, fx.y, 60 + progress * (180 + ring * 50), 14 + progress * (34 + ring * 10), 0, 0, Math.PI * 2); c.stroke()
+    }
   } else if (fx.kind === 'sword' || fx.kind === 'sword-arc') {
     c.strokeStyle = '#f3db9c'; c.lineWidth = fx.kind === 'sword' ? 5 : 8; c.beginPath(); c.arc(fx.x, fx.y, 25 + progress * 32, fx.direction === -1 ? 2.35 : -.55, fx.direction === -1 ? 4.3 : 1.5); c.stroke()
   } else if (fx.kind === 'whirlwind') {
@@ -8299,6 +8642,205 @@ function drawBossChest(c: CanvasRenderingContext2D) {
   }
   c.restore()
 }
+// ── 隐藏必杀演出 ────────────────────────────────────
+function drawGiantSword(c: CanvasRenderingContext2D, x: number, y: number, scale: number, color: string) {
+  c.save(); c.translate(x, y); c.scale(scale, scale)
+  c.shadowColor = color; c.shadowBlur = 40
+  const blade = c.createLinearGradient(-14, -210, 14, -10)
+  blade.addColorStop(0, '#ffffff'); blade.addColorStop(.45, '#e9e2c8'); blade.addColorStop(1, '#b9ab86')
+  c.fillStyle = blade
+  c.beginPath(); c.moveTo(-14, -210); c.lineTo(14, -210); c.lineTo(10, -24); c.lineTo(0, 0); c.lineTo(-10, -24); c.closePath(); c.fill()
+  c.fillStyle = color; c.fillRect(-5, -200, 4, 168)
+  c.fillStyle = '#c6a967'
+  c.beginPath(); c.moveTo(-46, -222); c.lineTo(46, -222); c.lineTo(46, -208); c.lineTo(-46, -208); c.closePath(); c.fill()
+  c.fillRect(-7, -262, 14, 42)
+  c.fillStyle = color; c.beginPath(); c.arc(0, -268, 13, 0, Math.PI * 2); c.fill()
+  c.globalAlpha = .5; c.fillStyle = '#ffffff'; c.fillRect(-2, -205, 2, 165)
+  c.restore()
+}
+function drawHiddenUltimate(c: CanvasRenderingContext2D) {
+  if (!hiddenUltKind || hiddenUltTimer <= 0) return
+  const kind = hiddenUltKind
+  const color = hiddenUltimateColor(kind)
+  const dir = hiddenUltSide
+  const elapsed = 2.5 - hiddenUltTimer
+  const charge = Math.min(1, elapsed / 1.2)
+  const after = Math.max(0, Math.min(1, (elapsed - 1.2) / 1.3))
+  const impactX = heroX + dir * 235
+  const groundY = world.floor
+  const now = performance.now()
+  c.save()
+  // 全屏色调
+  c.globalAlpha = .16 + charge * .1
+  c.fillStyle = color
+  c.fillRect(cameraX - 100, -400, world.width + 200, world.height + 800)
+  c.globalAlpha = 1
+  if (kind === 'sword') {
+    // 巨剑从天而降
+    const fall = charge < 1 ? charge * charge : 1
+    const sy = groundY - (1 - fall) * 760
+    c.globalAlpha = .35 + charge * .65
+    drawGiantSword(c, impactX, sy, 2.35, color)
+    c.globalAlpha = 1
+    if (elapsed >= 1.2) {
+      // 落点爆炸：多层冲击环 + 插满地面的交叉剑 + 金色雷柱
+      c.globalAlpha = (1 - after) * .95
+      c.strokeStyle = color; c.lineWidth = 8; c.shadowColor = color; c.shadowBlur = 30
+      for (let ring = 0; ring < 4; ring += 1) {
+        c.lineWidth = 7 - ring
+        c.beginPath(); c.ellipse(impactX, groundY, 40 + after * (260 + ring * 90), 12 + after * (60 + ring * 22), 0, 0, Math.PI * 2); c.stroke()
+      }
+      c.fillStyle = '#fff6d0'; c.shadowBlur = 24
+      for (let sword = 0; sword < 8; sword += 1) {
+        const sx = impactX + (sword - 3.5) * 64
+        c.save(); c.translate(sx, groundY); c.rotate((sword % 2 ? .28 : -.28) * (1 + (sword % 3) * .25)); c.globalAlpha = (1 - after) * .9
+        c.fillStyle = '#e9e2c8'
+        c.beginPath(); c.moveTo(-5, -110); c.lineTo(5, -110); c.lineTo(3, -8); c.lineTo(0, 0); c.lineTo(-3, -8); c.closePath(); c.fill()
+        c.fillStyle = color; c.fillRect(-2, -102, 2, 90)
+        c.fillStyle = '#c6a967'; c.fillRect(-13, -116, 26, 5)
+        c.restore()
+      }
+      c.globalAlpha = (1 - after) * .6; c.fillStyle = color
+      c.beginPath(); c.moveTo(impactX - 46, groundY); c.lineTo(impactX - 12, -80); c.lineTo(impactX + 12, -80); c.lineTo(impactX + 46, groundY); c.closePath(); c.fill()
+      c.globalAlpha = 1
+      c.fillStyle = '#fff4c4'
+      for (let ember = 0; ember < 26; ember += 1) {
+        const ex = impactX + Math.sin(ember * 2.3 + now / 300) * (40 + after * 300)
+        const ey = groundY - after * (60 + (ember % 8) * 26)
+        c.globalAlpha = (1 - after) * (.5 + (ember % 3) * .15)
+        c.beginPath(); c.arc(ex, ey, 2 + (ember % 3), 0, Math.PI * 2); c.fill()
+      }
+    }
+  } else if (kind === 'bow') {
+    // 天穹蓄力箭：光环向箭尖收束
+    const sy = groundY - (1 - charge) * 780 - 260
+    c.save(); c.translate(impactX, sy)
+    c.shadowColor = color; c.shadowBlur = 40
+    c.rotate(Math.PI / 2)
+    c.fillStyle = '#f7ffd8'
+    c.beginPath(); c.moveTo(70, 0); c.lineTo(-70, -15); c.lineTo(-70, 15); c.closePath(); c.fill()
+    c.fillStyle = color; c.fillRect(-150, -5, 90, 10)
+    c.globalAlpha = .5 + charge * .5
+    for (let ring = 0; ring < 5; ring += 1) {
+      const rp = (now / 380 + ring * .2) % 1
+      c.strokeStyle = color; c.lineWidth = 3 - ring * .4
+      c.beginPath(); c.arc(-120 - ring * 26, 0, 18 + rp * 90, 0, Math.PI * 2); c.stroke()
+    }
+    c.restore()
+    if (elapsed >= 1.2) {
+      c.globalAlpha = (1 - after) * .9
+      const beam = c.createLinearGradient(impactX, -400, impactX, groundY)
+      beam.addColorStop(0, 'rgba(255,255,255,0)'); beam.addColorStop(.6, `${color}66`); beam.addColorStop(1, `${color}ee`)
+      c.fillStyle = beam
+      c.fillRect(impactX - 26 - after * 20, -400, 52 + after * 40, groundY + 400)
+      c.strokeStyle = color; c.lineWidth = 6
+      for (let ring = 0; ring < 3; ring += 1) {
+        c.beginPath(); c.ellipse(impactX, groundY, 50 + after * (280 + ring * 80), 14 + after * (50 + ring * 18), 0, 0, Math.PI * 2); c.stroke()
+      }
+      c.strokeStyle = '#f7ffd8'; c.lineWidth = 3
+      for (let arrow = 0; arrow < 10; arrow += 1) {
+        const ax = impactX + (arrow - 4.5) * 50
+        const ay = groundY - after * (30 + (arrow % 4) * 24)
+        c.beginPath(); c.moveTo(ax, ay - 90); c.lineTo(ax, ay); c.stroke()
+      }
+      c.globalAlpha = 1
+    }
+  } else if (kind === 'staff') {
+    // 乌云与紫雷
+    c.save()
+    c.globalAlpha = .55 + charge * .3
+    c.fillStyle = '#3b2a58'
+    for (let cloud = 0; cloud < 7; cloud += 1) {
+      const cx = cameraX + 80 + cloud * 150 + Math.sin(now / 900 + cloud) * 18
+      c.beginPath(); c.ellipse(cx, 78 + (cloud % 2) * 16, 120, 46, 0, 0, Math.PI * 2); c.fill()
+    }
+    c.globalAlpha = 1
+    c.shadowColor = color; c.shadowBlur = 40
+    c.strokeStyle = color
+    const bolts = elapsed >= 1.2 ? 5 : 2
+    for (let bolt = 0; bolt < bolts; bolt += 1) {
+      const bx = impactX + (bolt - bolts / 2) * 56
+      c.lineWidth = 4 + (bolt % 2) * 2
+      c.beginPath(); c.moveTo(bx + Math.sin(now / 90 + bolt) * 20, 96)
+      let py = 96
+      for (let seg = 0; seg < 9; seg += 1) {
+        py += (groundY - 96) / 9
+        c.lineTo(bx + Math.sin(now / 60 + seg * 1.7 + bolt) * 34, py)
+      }
+      c.stroke()
+      c.strokeStyle = '#ffffff'; c.lineWidth = 1.6
+      c.beginPath(); c.moveTo(bx, 96); c.lineTo(bx + Math.sin(now / 70 + bolt) * 18, groundY); c.stroke()
+      c.strokeStyle = color
+    }
+    c.restore()
+    if (elapsed >= 1.2) {
+      c.globalAlpha = (1 - after) * .95
+      c.shadowColor = color; c.shadowBlur = 34
+      c.fillStyle = color
+      c.beginPath(); c.ellipse(impactX, groundY, 90 + after * 240, 26 + after * 60, 0, 0, Math.PI * 2); c.fill()
+      c.fillStyle = '#ffffff'; c.globalAlpha = (1 - after) * .35
+      c.beginPath(); c.ellipse(impactX, groundY - 30, 22 + after * 60, 90 + after * 120, 0, 0, Math.PI * 2); c.fill()
+      for (let ring = 0; ring < 3; ring += 1) {
+        c.globalAlpha = (1 - after) * .8; c.strokeStyle = color; c.lineWidth = 5 - ring
+        c.beginPath(); c.ellipse(impactX, groundY, 40 + after * (300 + ring * 90), 12 + after * (60 + ring * 20), 0, 0, Math.PI * 2); c.stroke()
+      }
+      c.globalAlpha = 1
+    }
+  } else {
+    // 魔典：地图般巨大的巨兽从另一半地图踏下
+    const monsterX = heroX - dir * 260
+    const stomp = Math.min(1, elapsed / 1.2)
+    c.save()
+    c.globalAlpha = .5 + charge * .3
+    c.fillStyle = '#241a35'
+    // 巨兽身躯
+    c.beginPath(); c.ellipse(cameraX + 480, 120, 420, 150, 0, 0, Math.PI * 2); c.fill()
+    c.beginPath(); c.ellipse(monsterX, 60, 220, 120, 0, 0, Math.PI * 2); c.fill()
+    c.fillStyle = color
+    c.globalAlpha = .8
+    c.beginPath(); c.arc(monsterX - 60, 40, 14, 0, Math.PI * 2); c.fill()
+    c.beginPath(); c.arc(monsterX + 60, 40, 14, 0, Math.PI * 2); c.fill()
+    // 踩下的巨足
+    c.globalAlpha = .8
+    c.fillStyle = '#1c1528'
+    const footY = -160 + stomp * (groundY + 120)
+    c.beginPath(); c.ellipse(monsterX, footY, 150, 62, 0, 0, Math.PI * 2); c.fill()
+    for (let toe = 0; toe < 4; toe += 1) {
+      c.beginPath(); c.ellipse(monsterX - 96 + toe * 64, footY + 40, 28, 18, 0, 0, Math.PI * 2); c.fill()
+    }
+    c.restore()
+    if (elapsed >= 1.2) {
+      c.globalAlpha = (1 - after) * .9
+      c.strokeStyle = color; c.lineWidth = 7; c.shadowColor = color; c.shadowBlur = 30
+      for (let ring = 0; ring < 4; ring += 1) {
+        c.lineWidth = 6 - ring
+        c.beginPath(); c.ellipse(monsterX, groundY, 60 + after * (320 + ring * 80), 18 + after * (70 + ring * 20), 0, 0, Math.PI * 2); c.stroke()
+      }
+      c.globalAlpha = (1 - after) * .45; c.fillStyle = color
+      c.beginPath(); c.ellipse(monsterX, groundY - 20, 160 + after * 80, 120 + after * 90, 0, 0, Math.PI * 2); c.fill()
+      c.globalAlpha = 1
+    }
+  }
+  // 必杀期间角色周身的神圣护盾
+  if (hiddenUltTimer > 0) {
+    const pulse = .85 + Math.sin(now / 90) * .15
+    c.save(); c.translate(heroX, world.floor - 58 + heroY)
+    c.shadowColor = color; c.shadowBlur = 34
+    c.globalAlpha = .28; c.fillStyle = color
+    c.beginPath(); c.ellipse(0, 0, 52 * pulse, 82 * pulse, 0, 0, Math.PI * 2); c.fill()
+    c.globalAlpha = .95; c.strokeStyle = color; c.lineWidth = 3.5
+    c.beginPath(); c.ellipse(0, 0, 54 * pulse, 84 * pulse, 0, 0, Math.PI * 2); c.stroke()
+    c.globalAlpha = .7; c.strokeStyle = '#ffffff'; c.lineWidth = 1.5
+    c.beginPath(); c.ellipse(0, 0, 44 * pulse, 72 * pulse, 0, 0, Math.PI * 2); c.stroke()
+    c.globalAlpha = .9; c.fillStyle = '#ffffff'
+    for (let mote = 0; mote < 8; mote += 1) {
+      const angle = now / 420 + (mote * Math.PI) / 4
+      c.beginPath(); c.arc(Math.cos(angle) * 46, Math.sin(angle) * 70, 2.2, 0, Math.PI * 2); c.fill()
+    }
+    c.restore()
+  }
+  c.restore()
+}
 function draw() {
   if (!ctx) return
   ctx.setTransform(renderScale, 0, 0, renderScale, 0, 0)
@@ -8392,6 +8934,7 @@ function draw() {
     }
   }
   for (const fx of effects) drawFx(ctx, fx)
+  drawHiddenUltimate(ctx)
   if (game?.role === 'mage' && buffTime > 0) {
     const buffY = world.floor - Math.max(0, -heroY) - 118
     const buffWidth = 88
