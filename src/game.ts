@@ -17,7 +17,7 @@ type AttributeAllocation = Record<AttributeStat, number>
 type StageProgress = { kills: number; bossDefeated: boolean; pointsClaimed?: number }
 type Save = { role: Role; stage: number; unlockedStage: number; kills: number; stageProgress?: Record<string, StageProgress>; hp: number; mp: number; gear: Gear[]; equipped: string | null; weaponId?: string | null; weapon2Id?: string | null; armorId?: string | null; armor2Id?: string | null; fashionId?: string | null; extraSlot?: 'weapon' | 'armor'; level?: number; exp?: number; drops?: WorldDrop[]; bossDefeated?: boolean; attributePoints?: number; attributeAllocation?: AttributeAllocation; soul?: number; normalTalent?: number; normalTalentLevels?: number[]; advancedTalent?: number; advancedTalentLevel?: number; talentFragments?: number; talentCoins?: number; lotteryChances?: number; shopFashionBought?: boolean; reviveCoins?: number; reviveUsed?: boolean; fragmentBuyDay?: string; reviveBuyAt?: number; materials?: Record<string, number>; stones?: number[]; enhance?: { weapon: number; armor: number; armor2: number; weapon2: number; failWeapon: number; failArmor: number; failArmor2: number; failWeapon2: number }; nightmareCleared?: number[]; stamps?: number; tutorialDone?: boolean; hiddenCleared?: boolean; rivalTrust?: boolean; stage8Choice?: 'save' | 'chase' | 'together' | null; rescuedRock?: boolean; rescuedXiaoman?: boolean; rescuedZhou?: boolean; seenStories?: string[]; forgeIntroSeen?: boolean; shopIntroSeen?: boolean; lotteryIntroSeen?: boolean; townIntroSeen?: boolean; mainQuestsClaimed?: number[]; sideQuest?: { stage: number; clears: number } | null; sideQuestDay?: string; skillLevels?: Record<string, number>; gems?: Gem[]; punchStones?: number; punchBuyAt?: number; horns?: number; hornBuyAt?: number; hornBuff?: 'material' | 'attack' | 'gear' | null; hornBuffUntil?: number; town: boolean; completed: boolean; dead: boolean }
 type SaveSlot = { id: string; label: string; data: Save; updatedAt: number }
-type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; flyPhase?: number; flyAmplitude?: number; flySpeed?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number; specialTimer?: number; specialWindup?: number; specialKind?: 'pierce' | 'exclusive'; specialNext?: 'pierce' | 'exclusive'; mobSkillTimer?: number; skillWindup?: number; skillKind?: 'lunge' | 'slam'; staggerTimer?: number; staggerHits?: number; staggerImmune?: number; superArmor?: number; tutorial?: boolean; mirror?: boolean; mirrorRole?: Role; mp?: number; mirrorSkillTimer?: number; mirrorWindup?: number; mirrorSkill?: number; mirrorBuffTimer?: number; mirrorBurst?: number; mirrorBurstWait?: number; mirrorSwitch?: number; mirrorSwapTimer?: number; mirrorNextRole?: Role; wanderTimer?: number; wanderTargetX?: number | null }
+type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; flyPhase?: number; flyAmplitude?: number; flySpeed?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number; specialTimer?: number; specialWindup?: number; specialKind?: 'pierce' | 'exclusive'; specialNext?: 'pierce' | 'exclusive'; mobSkillTimer?: number; skillWindup?: number; skillKind?: 'lunge' | 'slam'; spiralLiftTimer?: number; lift?: number; staggerTimer?: number; staggerHits?: number; staggerImmune?: number; superArmor?: number; tutorial?: boolean; mirror?: boolean; mirrorRole?: Role; mp?: number; mirrorSkillTimer?: number; mirrorWindup?: number; mirrorSkill?: number; mirrorBuffTimer?: number; mirrorBurst?: number; mirrorBurstWait?: number; mirrorSwitch?: number; mirrorSwapTimer?: number; mirrorNextRole?: Role; wanderTimer?: number; wanderTargetX?: number | null }
 type Fx = { x: number; y: number; life: number; kind: string; direction?: number; text?: string; damage?: number; duration?: number; vx?: number; vy?: number; color?: string; radius?: number }
 type Projectile = { x: number; y: number; vx: number; vy?: number; life: number; damage: number; targetId: number; kind?: 'homing' | 'arrow' | 'book' | 'charged' | 'fall' | 'blast'; pierce?: boolean; hitIds?: number[]; maxDistance?: number; startX?: number; label?: string; radius?: number; fromClone?: boolean }
 type FoeShot = { x: number; y: number; vx: number; vy: number; damage: number; radius: number; color: string; life: number }
@@ -33,11 +33,11 @@ type BattlePlatform = { x: number; w: number; height: number; kind: 'tree' | 'ro
 const SAVE_KEY = 'elemental-expedition-save-v2'
 const DEMO_MODE = import.meta.env.MODE === 'demo'
 const DEMO_SAVE_KEY = `${SAVE_KEY}:demo`
-const GAME_VERSION = '1.83'
+const GAME_VERSION = '1.84'
 const stageNames = ['苔痕边境', '沉钟矿道', '赤岩峡谷', '风蚀高原', '幽蓝沼泽', '断星回廊', '灰烬王庭', '深渊裂谷', '苍白圣所', '终焉之门']
 const roleLabels: Record<Role, string> = { warrior: '战士', mage: '法师' }
 const SKILL_LABELS: Record<SkillSetKey, string[]> = {
-  sword: ['拔剑术', '裂地剑爆', '拔剑突刺', '万剑归宗'],
+  sword: ['拔剑术', '螺旋斩', '拔剑突刺', '万剑归宗'],
   bow: ['蓄力箭', '箭雨腾空', '花炸弹', '猎鹰坠击'],
   staff: ['奥术强化', '双生火柱', '闪现', '能量禁锢'],
   book: ['隐匿', '镜像分身', '爆裂分身', '魔典爆炸'],
@@ -582,6 +582,8 @@ let comboPop = 0
 // 战士剑类：拔剑 / 收剑状态与动画计时。
 let swordOutTimer = 0
 let swordDrawAnim = 0
+// 螺旋斩：旋转升空计时，用于角色旋转与怪物上浮。
+let spiralSlashTimer = 0
 // 隐藏必杀：触发条件、持续 2.5 秒、一局一次；期间拥有无敌护盾。
 let hiddenUltUsed = false
 let hiddenUltTimer = 0
@@ -1129,7 +1131,7 @@ function foeFlyOffset(foe: Foe) {
   const base = foe.flyHeight ?? 0
   const amplitude = foe.flyAmplitude ?? 0
   const speed = foe.flySpeed ?? 1
-  return base + Math.sin(performance.now() / 1000 * speed + (foe.flyPhase ?? 0)) * amplitude
+  return base + Math.sin(performance.now() / 1000 * speed + (foe.flyPhase ?? 0)) * amplitude + (foe.lift ?? 0)
 }
 function foeWorldY(foe: Foe) { return world.floor - foeFlyOffset(foe) }
 function foeScreenLeft(foe: Foe) { return `${((foe.x - cameraX) / world.width) * 100}%` }
@@ -1559,15 +1561,14 @@ function updateMirrorFoe(foe: Foe, dt: number, distance: number, direction: numb
     }
   }
 }
-function beginStage(stage: number, mode: 'continue' | 'restart' | 'boss' = 'continue') {
+function beginStage(stage: number, mode: 'restart' | 'boss' = 'restart') {
   if (!game) return
   hiddenBattle = false
   bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; cloneAttackPulse = 0; cloneCastPulse = 0; cloneStealthTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null; bombClones = []; arcaneOrb = null
   game.reviveUsed = false
   tutorialMode = false; tutorialStep = 0
-  const progress = getStageProgress(stage)
   game.stage = stage
-  game.kills = mode === 'restart' ? 0 : mode === 'boss' ? MAX_SMALL_KILLS : progress.kills
+  game.kills = mode === 'boss' ? MAX_SMALL_KILLS : 0
   game.bossDefeated = false
   game.town = false; game.dead = false; game.bossDefeated = false
   game.drops = []
@@ -3350,7 +3351,7 @@ function stageCircleMarkup() {
     const state = progress.bossDefeated ? 'Boss 已击败 · 可再次挑战' : (progress.kills ?? 0) > 0 ? `进度 ${progress.kills} / ${MAX_SMALL_KILLS}` : '尚未探索'
     return `<button class="stage-circle-row ${current.stage === stage ? 'active' : ''}" data-action="circle-enter-stage" data-stage="${stage}"><b>${String(stage).padStart(2, '0')}</b><span><strong>${stageNames[stage - 1]}</strong><small>${state}</small></span><i>进入 →</i></button>`
   }).join('')
-  return `<div class="bag-scrim stage-circle-scrim"><section class="bag-dialog stage-circle-dialog"><header><div><small>WAYPOINT · 冒险者小镇</small><h2>远征法阵</h2></div><button data-action="close-stage-circle" aria-label="关闭法阵">×</button></header><p>选择一处已解锁的遗迹。选中的关卡会从当前进度继续。</p><div class="stage-circle-list">${rows}</div></section></div>`
+  return `<div class="bag-scrim stage-circle-scrim"><section class="bag-dialog stage-circle-dialog"><header><div><small>WAYPOINT · 冒险者小镇</small><h2>远征法阵</h2></div><button data-action="close-stage-circle" aria-label="关闭法阵">×</button></header><p>选择一处已解锁的遗迹。进入后从第一波开始。</p><div class="stage-circle-list">${rows}</div></section></div>`
 }
 function openStageCircle() {
   if (!game || scene !== 'town') return
@@ -3902,9 +3903,7 @@ function mountTownStageActions() {
   const progress = getStageProgress(game.stage)
   const actionHtml = progress.bossDefeated
     ? `<p class="stage-progress-copy">本关 Boss 已击败</p><div class="town-stage-choices"><button class="secondary" data-action="restart-stage">重新开始（满状态）</button><button class="primary" data-action="challenge-boss">直接挑战 Boss</button></div>`
-    : game.kills > 0
-      ? `<p class="stage-progress-copy">未通关 · 可继续进度或重新开始</p><div class="town-stage-choices"><button class="primary" data-action="continue-progress">继续战斗（半血）</button><button class="secondary" data-action="restart-stage">重新开始（满状态）</button></div>`
-      : `<p class="stage-progress-copy">未通关 · 从第一波开始</p><button class="primary town-continue-stage" data-action="restart-stage">从第一波开始（满状态）</button>`
+    : `<p class="stage-progress-copy">未通关 · 从第一波开始</p><button class="primary town-continue-stage" data-action="restart-stage">从第一波开始（满状态）</button>`
   const choices = document.createElement('div')
   choices.className = 'town-stage-actions'
   choices.innerHTML = actionHtml
@@ -4511,16 +4510,30 @@ function cast(index: number) {
         strike(target, power, '拔剑术')
       }
     } else if (index === 1) {
-      // 裂地剑爆：双手持剑插入地面，剑气从地下炸开。
-      const blastX = heroX + facing * 66
-      addFx('sword-impale', blastX, world.floor - 54 + heroY, facing, .95, fxColor)
-      addFx('great-quake', blastX, world.floor - 8, facing, .9, fxColor)
-      addFx('ground-break', blastX, world.floor - 40, facing, .85)
-      addFx('fire-nova', blastX, world.floor - 30, facing, .8, fxColor)
-      addSparks(blastX, world.floor - 20, 32, [fxColor, '#f2c46d', '#fff6d0', '#a98d55'], 300)
-      addShake(9)
-      addFlash(.24, fxColor)
-      strikeNearby(power, '裂地剑爆', 205, true)
+      // 螺旋斩：在当前位置旋转升空，并把附近的非 Boss 敌人一起卷上天。
+      spiralSlashTimer = .95
+      const spiralX = heroX
+      addFx('spiral-slash', spiralX, world.floor - 66 + heroY, facing, .95, fxColor)
+      addFx('whirlwind-storm', spiralX, world.floor - 82 + heroY, facing, .8, fxColor)
+      addSparks(spiralX, world.floor - 40 + heroY, 18, [fxColor, '#f2c46d', '#fff6d0'], 240)
+      addShake(8)
+      addFlash(.2, fxColor)
+      // 角色原地旋转升空。
+      grounded = false
+      velocityY = Math.min(velocityY, -690)
+      jumpCount = 2
+      bowAirLocked = true
+      const spiralTargets = foes.filter((foe) => Math.abs(foe.x - heroX) <= 205)
+      spiralTargets.forEach((foe) => {
+        if (foe.boss) return
+        foe.spiralLiftTimer = .95
+        foe.staggerTimer = Math.max(foe.staggerTimer ?? 0, .95)
+        foe.skillWindup = undefined
+        foe.rangedWindup = undefined
+        foe.attackAnim = 0
+      })
+      if (spiralTargets.length) strikeNearby(power, '螺旋斩', 205, true)
+      setLog('螺旋斩：剑刃卷起旋风，将周围敌人一起带向空中。')
     } else if (index === 2) {
       // 拔剑突刺：先拔剑，再突进，结束后立刻收剑入鞘。
       addFx('draw-sword', heroX, world.floor - 60 + heroY, facing, .34, fxColor)
@@ -5178,13 +5191,6 @@ function unequipSlot(slot: string) {
   save(); bagOpen = true; renderGame()
   toast(`已卸下 ${removedName}，放回背包。`)
 }
-function continueCurrentProgress() {
-  if (!game || scene !== 'town' || game.kills <= 0 || game.bossDefeated) return
-  scene = 'battle'; game.town = false; game.dead = false; paused = false
-  game.hp = Math.max(1, Math.round(stats().hp * .5))
-  heroX = 480; heroY = 0; velocityY = 0; grounded = true; heroSupportTop = world.floor
-  projectiles = []; foeShots = []; effects = []; burst = 0; burstTargetId = null; enterBattlefield(); save(); renderGame()
-}
 function retreatToTown() {
   if (!game) return
   paused = false
@@ -5329,8 +5335,6 @@ function performAction(name: string, target: HTMLElement) {
     const stat = target.dataset.stat
     if (stat === 'hp' || stat === 'attack' || stat === 'mp' || stat === 'defense') allocateAttribute(stat, Number(target.dataset.delta ?? 1))
   }
-  if (name === 'continue-progress' && game && scene === 'town') continueCurrentProgress()
-  if (name === 'continue-stage' && game && scene === 'town') beginStage(game.stage, 'continue')
   if (name === 'restart-stage' && game && (scene === 'town' || scene === 'defeat')) {
     if (hiddenBattle) beginHiddenBattle()
     else beginStage(game.stage, 'restart')
@@ -5382,7 +5386,7 @@ function performAction(name: string, target: HTMLElement) {
   if (name === 'close-stage-circle') { stageCircleOpen = false; renderGame() }
   if (name === 'circle-enter-stage' && game && target.dataset.stage) {
     stageCircleOpen = false
-    beginStage(Math.max(1, Math.min(game.unlockedStage, Number(target.dataset.stage))))
+    beginStage(Math.max(1, Math.min(game.unlockedStage, Number(target.dataset.stage))), 'restart')
   }
   if (name === 'open-game-menu') { resetPanels(); gameMenuOpen = true; renderGame() }
   if (name === 'close-game-menu') { gameMenuOpen = false; renderGame() }
@@ -5478,7 +5482,7 @@ function performAction(name: string, target: HTMLElement) {
   if (name === 'lottery-spin') startLottery()
   if (name === 'enter-stage' && game) {
     const selected = Number(document.querySelector<HTMLSelectElement>('#stage-select')?.value ?? game.stage)
-    beginStage(Math.max(1, Math.min(game.unlockedStage, selected)))
+    beginStage(Math.max(1, Math.min(game.unlockedStage, selected)), 'restart')
   }
   if (name === 'respawn-town') retreatToTown()
   if (name === 'revive-coin') useReviveCoin()
@@ -5703,7 +5707,8 @@ window.addEventListener('keydown', (event) => {
     return
   }
   if (storyState) {
-    if (key === 'enter' || key === ' ') { event.preventDefault(); advanceStory() }
+    // 剧情中除了回车/空格，按攻击键（默认 J）也可以继续。
+    if (key === 'enter' || key === ' ' || key === keyBinds.attack) { event.preventDefault(); advanceStory() }
     return
   }
   if ([' ', 'arrowleft', 'arrowright', 'arrowup'].includes(key)) event.preventDefault()
@@ -5879,6 +5884,7 @@ function update(dt: number) {
   attackWait = Math.max(0, attackWait - dt); attackSwing = Math.max(0, attackSwing - dt); buffTime = Math.max(0, buffTime - dt)
   swordOutTimer = Math.max(0, swordOutTimer - dt)
   swordDrawAnim = Math.max(0, swordDrawAnim - dt)
+  spiralSlashTimer = Math.max(0, spiralSlashTimer - dt)
   invisibleTimer = Math.max(0, invisibleTimer - dt)
   prisonTimer = Math.max(0, prisonTimer - dt)
   comboPop = Math.max(0, comboPop - dt)
@@ -6005,6 +6011,15 @@ function update(dt: number) {
       // 先走 1 秒僵直免疫，随后再走 2 秒霸体，合计 3 秒不会被僵直。
       if ((foe.staggerImmune ?? 0) > 0) foe.staggerImmune = Math.max(0, (foe.staggerImmune ?? 0) - dt)
       else foe.superArmor = Math.max(0, (foe.superArmor ?? 0) - dt)
+      // 螺旋斩带起的怪物跟随角色升空，结束后落回地面。
+      if ((foe.spiralLiftTimer ?? 0) > 0) {
+        foe.spiralLiftTimer = Math.max(0, (foe.spiralLiftTimer ?? 0) - dt)
+        const targetLift = Math.max(0, -heroY) * .9
+        foe.lift = (foe.lift ?? 0) + (targetLift - (foe.lift ?? 0)) * Math.min(1, dt * 12)
+        if (!foe.boss) foe.x = clampFoeX(foe.x + (heroX - foe.x) * Math.min(1, dt * 2.5))
+      } else if ((foe.lift ?? 0) > 0) {
+        foe.lift = Math.max(0, (foe.lift ?? 0) - dt * 480)
+      }
       if ((foe.stunTimer ?? 0) > 0) {
         foe.stunTimer = Math.max(0, (foe.stunTimer ?? 0) - dt)
         if (foe.stunTimer === 0) foe.skillTimer = Math.max(foe.skillTimer, .5)
@@ -6558,6 +6573,7 @@ function drawHero(c: CanvasRenderingContext2D) {
   c.save(); c.globalAlpha = .22; c.strokeStyle = auraColor; c.lineWidth = 1.4
   c.beginPath(); c.ellipse(heroX, world.floor + 2, 31, 8, 0, 0, Math.PI * 2); c.stroke(); c.restore()
   c.save(); c.translate(heroX, world.floor - jumpHeight + sway); c.scale(facing * .8, .8); c.rotate(walk * .022)
+  if (spiralSlashTimer > 0) c.rotate((1 - spiralSlashTimer / .95) * Math.PI * 4)
   c.save(); c.shadowColor = auraColor; c.shadowBlur = 7
   if (game.role === 'warrior') drawWarriorHero(c, now, walk)
   else drawMageHero(c, now, walk)
@@ -7117,7 +7133,7 @@ function drawFoe(c: CanvasRenderingContext2D, foe: Foe) {
   const scale = foe.tutorial ? 1.7 : foe.mirror ? .9 : foe.boss ? 2.25 : .8
   const dir = heroX <= foe.x ? -1 : 1
   const now = performance.now()
-  const flyHeight = foe.flying ? foeFlyOffset(foe) : 0
+  const flyHeight = foe.flying ? foeFlyOffset(foe) : (foe.lift ?? 0)
   const attackPhase = foe.attackAnim > 0 ? Math.min(1, 1 - foe.attackAnim / .5) : 0
   const lunge = Math.sin(attackPhase * Math.PI) * (foe.boss ? 12 : 6)
   const bob = Math.sin(now / (foe.flying ? 240 : 420) + foe.id * 1.7) * (foe.flying ? 4 : foe.boss ? 2 : 1.2)
@@ -7542,6 +7558,34 @@ function drawFx(c: CanvasRenderingContext2D, fx: Fx) {
     c.globalAlpha = alpha * .7; c.strokeStyle = '#f7df9b'; c.lineWidth = 2
     c.beginPath(); c.moveTo(fx.x - dir * 20, fx.y - 30); c.lineTo(fx.x + dir * 70, fx.y - 8); c.stroke()
     c.beginPath(); c.moveTo(fx.x - dir * 20, fx.y + 18); c.lineTo(fx.x + dir * 60, fx.y + 30); c.stroke()
+  } else if (fx.kind === 'spiral-slash') {
+    const now = performance.now()
+    const color = fx.color ?? '#ffe08a'
+    const rise = progress * 150
+    c.shadowColor = color; c.shadowBlur = 20
+    // 盘旋上升的剑气环
+    for (let i = 0; i < 6; i += 1) {
+      const y = fx.y + 20 - i * 24 - rise * .55
+      c.globalAlpha = alpha * (.92 - i * .12)
+      c.strokeStyle = i % 2 ? '#fff6d0' : color; c.lineWidth = 4.5 - i * .45
+      c.save(); c.translate(fx.x, y); c.rotate(now / 70 + i * 1.1); c.scale(1, .42)
+      c.beginPath(); c.arc(0, 0, 34 + progress * 54 + i * 4, 0, Math.PI * 1.55); c.stroke()
+      c.restore()
+    }
+    // 上升气流
+    c.globalAlpha = alpha * .55; c.strokeStyle = color; c.lineWidth = 2
+    for (let w = 0; w < 6; w += 1) {
+      const wx = fx.x + Math.sin(now / 130 + w * 1.9) * (26 + progress * 34)
+      c.beginPath(); c.moveTo(wx, fx.y + 16); c.quadraticCurveTo(wx + 12, fx.y - 40 - rise * .5, wx - 8, fx.y - 130 - rise); c.stroke()
+    }
+    // 被卷起的碎石与光点
+    c.globalAlpha = alpha * .9; c.fillStyle = '#fff6d0'
+    for (let mote = 0; mote < 16; mote += 1) {
+      const angle = now / 90 + mote * 1.7
+      const radius = 26 + (mote % 5) * 12 + progress * 26
+      const my = fx.y + 18 - ((mote * 23 + rise * 1.4) % 160)
+      c.beginPath(); c.arc(fx.x + Math.cos(angle) * radius, my, 1.6 + (mote % 3), 0, Math.PI * 2); c.fill()
+    }
   } else if (fx.kind === 'whirlwind-storm') {
     const spin = performance.now() / 90
     for (let i = 0; i < 2; i++) {
