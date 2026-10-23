@@ -33,7 +33,7 @@ type BattlePlatform = { x: number; w: number; height: number; kind: 'tree' | 'ro
 const SAVE_KEY = 'elemental-expedition-save-v2'
 const DEMO_MODE = import.meta.env.MODE === 'demo'
 const DEMO_SAVE_KEY = `${SAVE_KEY}:demo`
-const GAME_VERSION = '1.86'
+const GAME_VERSION = '1.87'
 const stageNames = ['苔痕边境', '沉钟矿道', '赤岩峡谷', '风蚀高原', '幽蓝沼泽', '断星回廊', '灰烬王庭', '深渊裂谷', '苍白圣所', '终焉之门']
 const roleLabels: Record<Role, string> = { warrior: '战士', mage: '法师' }
 const SKILL_LABELS: Record<SkillSetKey, string[]> = {
@@ -2570,7 +2570,7 @@ function stageStoryData(stage: number): StoryData | null {
   const relation = game?.role === 'mage' ? '你看到了师父。' : '你看到了兄长。'
   switch (stage) {
     case 1: return { id: 'stage-story-1', title: '第一关 · 勇气印', lines: [
-      { speaker: '旁白', text: '百年前，第一位冒险王留下十座试炼场。每通过一座，得一枚王印。有人说，集齐十印者可以登王座；也有人说，冒险王根本不想让人集齐。' },
+      { speaker: '旁白', text: '百年前，第一位王者留下十座试炼场。每通过一座，得一枚王印。有人说，集齐十印者可以登临王座；也有人说，那位王者根本不愿有人集齐。' },
       { speaker: '宿敌', text: '你也是来拿勇气印的？' },
       { speaker: '主角', text: '不。我是来确认，这座试炼场到底在怕什么。' },
       { speaker: '守关者', text: '二人同至，试炼开启。一人后退，二人皆败。' },
@@ -2581,14 +2581,14 @@ function stageStoryData(stage: number): StoryData | null {
       { speaker: '旁白', text: '第二座试炼场比第一座更旧。门楣上刻着：坚韧不是不倒下，是倒下后还记得为什么站起来。' },
       { speaker: '守关者', text: '锁！锁！锁！都是锁！那就一起锁死吧！' },
       { speaker: '主角', text: '你被一段外来的指令压住了。我帮你改回来。' },
-      { speaker: '旁白', text: '你救下一名矿工。他低声说：三年前，有人带着希望往第五关去了。灰冠的灰烬味道，正从更深的地方飘来。' },
-      { speaker: '守关者', text: '他在找十印。他不是要成王，他是要开锁。' },
+      { speaker: '旁白', text: '你救下一名矿工。他喘着气说：三年前，有个背着沙漏的姑娘往第五关去了。她说，要去把坏掉的时间修好。灰冠的灰烬味，正从更深的地方飘来。' },
+      { speaker: '守关者', text: '灰冠在找十印。他不是要称王——他是要开锁。' },
     ] }
     case 3: return { id: 'stage-story-3', title: '第三关 · 冷静印', lines: [
       { speaker: '旁白', text: '试炼场中央，一个年轻冒险者被灰色锁链吊在半空。锁链连着他脚下的机关核心。他就是这关的“活钥匙”。' },
       { speaker: '阿岩', text: '别过来！我一动，机关就炸。灰冠说，要么我当钥匙，要么这关永远关着。' },
       { speaker: '宿敌', text: '救他，机关暴走；不救，机关平稳。你选。' },
-      { speaker: '主角', text: '那就让它炸。冒险王不是靠扔下活人当上的。' },
+      { speaker: '主角', text: '那就让它炸。王者不是靠丢下活人当上的。' },
       { speaker: '阿岩', text: '我叫阿岩。左边第三个齿轮！灰冠改过顺序，我记住了！打胸口！' },
       { speaker: '阿岩', text: '等我修完这台机关就回小镇。营火集市，我在那儿支个摊——以后你救的命，我拿一辈子还。' },
       { speaker: '旁白', text: '你救出阿岩。他回到小镇常驻，成为营火集市的商人。' },
@@ -2596,36 +2596,36 @@ function stageStoryData(stage: number): StoryData | null {
     case 4: return { id: 'stage-story-4', title: '第四关 · 洞察印', lines: [
       { speaker: '旁白', text: `第四关没有门。你走进去时，四周变成了你最熟悉的地方。${relation}` },
       { speaker: '幻象', text: '打赢我，你就能看清自己。打不赢，你就留在这儿，当我的新脸。' },
-      { speaker: '心魔', text: '十印不是王冠，是十道锁。你每拿一枚，锁就松一分。灰冠想全拿走。' },
+      { speaker: '心魔', text: '十印不是王冠，是十道锁。你每拿走一枚，锁就松一分。灰冠想把它们全拿走。' },
       { speaker: '主角', text: '我想知道怎么补。' },
-      { speaker: '心魔', text: '补锁需要牺牲印。第十关。前任冒险王把自己锁在那里。' },
+      { speaker: '心魔', text: '补锁需要牺牲印。第十关。前任王者把自己锁在了那里。' },
     ] }
     case 5: return { id: 'stage-story-5', title: '第五关 · 时间印', lines: [
-      { speaker: '旁白', text: '第五关的时间是坏的。你走进大厅，看到三分钟前的自己正在被击倒。第三次循环时，你看到了她。' },
-      { speaker: '小满', text: '你又来了。我每次都在这里死。灰冠拿我当“时间锚点”。' },
+      { speaker: '旁白', text: '第五关的时间是坏的。你走进大厅，看见三分钟前的自己正被击倒。第三次循环时，你终于看清了她。' },
+      { speaker: '小满', text: '你又来了。我每一次都死在这里。灰冠拿我当“时间锚点”。' },
       { speaker: '主角', text: '这次我记住你了。你叫小满。不是时间锚点。' },
-      { speaker: '小满', text: '灰冠拿走了一部分时间印。真正的记录在后厅。我带你们去。' },
-      { speaker: '旁白', text: '后厅记录：十印是锁。我是第一道锁。去第七关看我的记忆，然后去第十关做选择。别学我——别一个人扛。' },
+      { speaker: '小满', text: '灰冠抢走了一部分时间印。真正的记录还在后厅。我带你去。' },
+      { speaker: '旁白', text: '后厅的记录只有一句话：十印是十道锁，取走一枚，锁就松一分。我把自己变成了第十一道。去第七关看我的记忆，再去第十关做选择。别学我——别一个人扛。' },
     ] }
     case 6: return { id: 'stage-story-6', title: '第六关 · 平衡印', lines: [
       { speaker: '宿敌', text: '灰冠的人先到了。临时再合作一次，出去就散。' },
       { speaker: '主角', text: '第五关，你想用时间印复活谁？' },
-      { speaker: '宿敌', text: '上一届选拔，我朋友死在试炼里。灰冠说时间印能改写结果。我知道他在利用我，但我需要那一次“重选”。' },
+      { speaker: '宿敌', text: '上一届选拔，我朋友死在试炼里。灰冠说时间印能改写结果。我知道他在利用我，可我只需要那一次“重选”。' },
       { speaker: '主角', text: '你朋友不会希望你这样。' },
       { speaker: '旁白', text: '击败守关者后，宿敌转身离开：第七关我不去了。第八关如果我还活着，我会出现。' },
     ] }
     case 7: return { id: 'stage-story-7', title: '第七关 · 记忆印', lines: [
       { speaker: '老周', text: '别一个人扛。别一个人扛……' },
-      { speaker: '老周', text: '我是前任冒险王的同伴。他把自己锁进第十关那天，我就在旁边。灰冠把我塞进记忆里，让我一遍遍看这段。' },
-      { speaker: '旁白', text: '记忆里，前任冒险王集齐十印，发现王座下压着灾厄之心。他说：十印不是王冠，是十道锁。我把自己变成第十一道锁，才勉强压住它。' },
-      { speaker: '老周', text: '一百年了。第一次有人跟我说“够了”。小子，第十关见。门可以不开，锁可以不守。' },
+      { speaker: '老周', text: '我是前任王者的同伴。他把自己锁进第十关那天，我就在旁边。灰冠把我塞进这段记忆里，让我一遍遍看着它重演。' },
+      { speaker: '旁白', text: '记忆里，十枚王印被逐一取走，王座下的灾厄之心开始苏醒。前任王者用自己的命补上第十一道锁，才勉强压住它。他说：十印不是王冠，是十道锁，别让它们全部离位。' },
+      { speaker: '老周', text: '一百年了。第一次有人对我说“够了”。小子，第十关见。门可以不开，锁也可以不守。' },
       { speaker: '旁白', text: '你救出老周。他前往第十关等候，而灾厄之心即将苏醒。' },
     ] }
     case 8: return { id: 'stage-story-8', title: '第八关 · 净化印', lines: [
       { speaker: '旁白', text: '第八关的空气是脏的。宿敌被吊在试炼场中央，身上缠着灰色锁链，眼睛半灰。' },
       { speaker: '宿敌', text: '他在用我当锚点。净化试炼场，就会净化我。我可能变回那个想复活朋友的蠢货，也可能直接没了。' },
-      { speaker: '灰冠', text: '选吧。救他，污染扩散；追我，印到手，他变成污染源。冒险王不是要果断吗？果断一个给我看。' },
-      { speaker: '旁白', text: '你握紧了净化印。无论选哪一边，蚀都会在你做选择时动手。' },
+      { speaker: '灰冠', text: '选吧。救他，污染扩散；追我，印到手，他变成污染源。王者不是要果断吗？果断一个给我看。' },
+      { speaker: '旁白', text: '你握紧了净化印。无论选哪一边，灰冠都会趁你做出选择时动手。' },
     ], choices: [
       { label: '先救宿敌', value: 'save' },
       { label: '先追灰冠', value: 'chase' },
@@ -2636,15 +2636,16 @@ function stageStoryData(stage: number): StoryData | null {
         ? '阿岩、小满、老周从三面赶来。阿岩喊着左边第三个齿轮，小满举起时间记录，老周的灵魂出现在王座投影旁。'
         : '宿敌从侧门走出：我来看看这个蠢货能不能赢你。顺便——你要开锁，我先打你。'
       return { id: 'stage-story-9', title: '第九关 · 荣耀印', lines: [
-        { speaker: '旁白', text: '王城竞技场。灰冠站在中央，身后是九枚王印的投影。他手里拿着时间印。' },
-        { speaker: '灰冠', text: '十印是锁！冒险王不是英雄，是看门人！今天，我打开这扇门，让所有人看看门后是什么。' },
+        { speaker: '旁白', text: '王城竞技场。灰冠站在中央，身后浮着九道王印的虚影——那是他从各座试炼场截下的印记。他手里握着时间印。' },
+        { speaker: '灰冠', text: '十印是锁！王者不是英雄，是看门人！今天，我打开这扇门，让所有人看看门后是什么。' },
         { speaker: '旁白', text: helpers },
         { speaker: '主角', text: '他们不是废物。他们是我救过的人。现在，他们来救我了。' },
       ] }
     }
     case 10: return { id: 'stage-story-10', title: '第十关 · 牺牲印', lines: [
-      { speaker: '旁白', text: '第十关没有门，只有一座王座。王座下压着一颗跳动的心——灾厄之心。王座旁坐着一尊快散架的雕像，前任冒险王的残影。' },
-      { speaker: '残影', text: '你来了。十印齐了，但门还没开。因为最后一道锁，是我。打赢我，然后做选择。' },
+      { speaker: '旁白', text: '第十关没有门，只有一座王座。王座下压着一颗跳动的心——灾厄之心。王座旁坐着一尊快散架的雕像，那是前任王者的残影。' },
+      { speaker: '残影', text: '你来了。十印齐了，门却还没开。因为最后一道锁，是我。打赢我，然后做选择。' },
+      { speaker: '旁白', text: '残影从王座旁站起，化作守锁的锁灵，向你攻来。' },
       { speaker: '锁灵', text: '我守了一百年。让我看看，你配不配做选择。' },
       { speaker: '旁白', text: '击败锁灵后，残影问你：坐上王座成为新的锁，或者把十印按进灾厄之心，让它和锁一起消失。' },
     ] }
@@ -2680,10 +2681,10 @@ function stageEndingStoryData(): StoryData {
     ? '宿敌冲上来帮你扛住一半反噬；阿岩、小满、老周从三面稳住王座残骸。十印化为光点，王座崩塌。'
     : '宿敌没有动。你独自把十印按进灾厄之心。反噬爆发，没有人扛。灾厄之心消失，你活了下来，但身边没有人。'
   const rival = trust
-    ? '宿敌站起来，拍了拍灰，忽然拔出武器：既然没有冒险王了……第一关那笔账，该算算了。就你和我，打一场。'
+    ? '宿敌站起来，拍了拍灰，忽然拔出武器：既然没有王者了……第一关那笔账，该算算了。就你和我，打一场。'
     : '宿敌站在出口外，没有回头：第一关你让我先拿印，第八关你选印不选人。这两笔账，今天一起算。不是切磋，是决战。'
   return { id: 'stage-ending-story', title: '终章 · 牺牲印', lines: [
-    { speaker: '旁白', text: '锁灵跪下，残影恢复。他笑：行。你比我强。我当年只想着自己扛，你想着下一个。' },
+    { speaker: '旁白', text: '锁灵跪下，残影重新凝聚。他笑了笑：行，你比我强。我当年只想着自己扛，你想着下一个人。' },
     { speaker: '残影', text: '现在你面前只有一件事：坐上王座成为新的锁，或者把十印按进灾厄之心，让它和锁一起消失。' },
     { speaker: '旁白', text: helpers },
     { speaker: '宿敌', text: rival },
@@ -2706,10 +2707,10 @@ function hiddenCompleteStoryData(): StoryData {
   const trust = game?.rivalTrust
   return { id: 'hidden-complete', title: '隐藏关卡 · 终局', lines: trust ? [
     { speaker: '宿敌', text: '……行。你确实有点东西。第一关那笔账，清了。第八关那笔，也清了。下次冒险，你探路，我殿后。' },
-    { speaker: '旁白', text: '没有王印的冒险，也是冒险。冒险王从来不是王，是那个先迈出一步的人。' },
+    { speaker: '旁白', text: '没有王印的冒险，依然是冒险。王者从来不是坐在王座上的人，而是那个先迈出一步的人。' },
   ] : [
     { speaker: '宿敌', text: '你赢了。第一关那笔，第八关那笔，都清了。你走吧。' },
-    { speaker: '旁白', text: '宿敌没有回头。你是个好冒险王，但你不是个好同伴。保重。' },
+    { speaker: '旁白', text: '宿敌没有回头。你是个好王者，但你不是个好同伴。保重。' },
   ] }
 }
 function townIntroStoryData(): StoryData {
@@ -3493,7 +3494,7 @@ function townCompanions(): TownCompanion[] {
 }
 function companionThanksStoryData(id: TownCompanion['id']): StoryData {
   if (id === 'xiaoman') return { id: 'thanks-xiaoman', title: '小满 · 谢谢', lines: [
-    { speaker: '小满', text: '谢谢你，冒险王。时间回放里我死过很多次，这一次你把我拉了回来。' },
+    { speaker: '小满', text: '谢谢你，王者。时间回放里我死过很多次，这一次你把我拉了回来。' },
     { speaker: '小满', text: '以后我就在小镇帮你看着时间。出发前记得回来看看。' },
   ] }
   return { id: 'thanks-zhou', title: '老周 · 谢谢', lines: [
