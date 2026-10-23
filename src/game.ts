@@ -15,7 +15,7 @@ type WorldDrop = { id: string; type: 'hp-potion' | 'mp-potion' | 'material'; x: 
 type AttributeStat = 'hp' | 'attack' | 'mp' | 'defense'
 type AttributeAllocation = Record<AttributeStat, number>
 type StageProgress = { kills: number; bossDefeated: boolean; pointsClaimed?: number }
-type Save = { role: Role; stage: number; unlockedStage: number; kills: number; stageProgress?: Record<string, StageProgress>; hp: number; mp: number; gear: Gear[]; equipped: string | null; weaponId?: string | null; weapon2Id?: string | null; armorId?: string | null; armor2Id?: string | null; fashionId?: string | null; extraSlot?: 'weapon' | 'armor'; level?: number; exp?: number; drops?: WorldDrop[]; bossDefeated?: boolean; attributePoints?: number; attributeAllocation?: AttributeAllocation; soul?: number; normalTalent?: number; normalTalentLevels?: number[]; advancedTalent?: number; advancedTalentLevel?: number; talentFragments?: number; talentCoins?: number; lotteryChances?: number; shopFashionBought?: boolean; reviveCoins?: number; reviveUsed?: boolean; fragmentBuyDay?: string; reviveBuyAt?: number; materials?: Record<string, number>; stones?: number[]; enhance?: { weapon: number; armor: number; armor2: number; weapon2: number; failWeapon: number; failArmor: number; failArmor2: number; failWeapon2: number }; nightmareCleared?: number[]; stamps?: number; freeReviveDay?: string; tutorialDone?: boolean; hiddenCleared?: boolean; rivalTrust?: boolean; stage8Choice?: 'save' | 'chase' | 'together' | null; rescuedRock?: boolean; rescuedXiaoman?: boolean; rescuedZhou?: boolean; seenStories?: string[]; forgeIntroSeen?: boolean; shopIntroSeen?: boolean; lotteryIntroSeen?: boolean; townIntroSeen?: boolean; mainQuestsClaimed?: number[]; sideQuest?: { stage: number; clears: number } | null; sideQuestDay?: string; skillLevels?: Record<string, number>; gems?: Gem[]; punchStones?: number; punchBuyAt?: number; horns?: number; hornBuyAt?: number; hornBuff?: 'material' | 'attack' | 'gear' | null; hornBuffUntil?: number; town: boolean; completed: boolean; dead: boolean }
+type Save = { role: Role; stage: number; unlockedStage: number; kills: number; stageProgress?: Record<string, StageProgress>; hp: number; mp: number; gear: Gear[]; equipped: string | null; weaponId?: string | null; weapon2Id?: string | null; armorId?: string | null; armor2Id?: string | null; fashionId?: string | null; extraSlot?: 'weapon' | 'armor'; level?: number; exp?: number; drops?: WorldDrop[]; bossDefeated?: boolean; attributePoints?: number; attributeAllocation?: AttributeAllocation; soul?: number; normalTalent?: number; normalTalentLevels?: number[]; advancedTalent?: number; advancedTalentLevel?: number; talentFragments?: number; talentCoins?: number; lotteryChances?: number; shopFashionBought?: boolean; reviveCoins?: number; reviveUsed?: boolean; fragmentBuyDay?: string; reviveBuyAt?: number; materials?: Record<string, number>; stones?: number[]; enhance?: { weapon: number; armor: number; armor2: number; weapon2: number; failWeapon: number; failArmor: number; failArmor2: number; failWeapon2: number }; nightmareCleared?: number[]; nightmareDay?: string; nightmareAttempts?: number; stamps?: number; freeReviveDay?: string; tutorialDone?: boolean; hiddenCleared?: boolean; rivalTrust?: boolean; stage8Choice?: 'save' | 'chase' | 'together' | null; rescuedRock?: boolean; rescuedXiaoman?: boolean; rescuedZhou?: boolean; seenStories?: string[]; forgeIntroSeen?: boolean; shopIntroSeen?: boolean; lotteryIntroSeen?: boolean; townIntroSeen?: boolean; mainQuestsClaimed?: number[]; sideQuest?: { stage: number; clears: number } | null; sideQuestDay?: string; skillLevels?: Record<string, number>; gems?: Gem[]; punchStones?: number; punchBuyAt?: number; horns?: number; hornBuyAt?: number; hornBuff?: 'material' | 'attack' | 'gear' | null; hornBuffUntil?: number; town: boolean; completed: boolean; dead: boolean }
 type SaveSlot = { id: string; label: string; data: Save; updatedAt: number }
 type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; flyPhase?: number; flyAmplitude?: number; flySpeed?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number; specialTimer?: number; specialWindup?: number; specialKind?: 'pierce' | 'exclusive'; specialNext?: 'pierce' | 'exclusive'; mobSkillTimer?: number; skillWindup?: number; skillKind?: 'lunge' | 'slam'; preferredAttack?: 'melee' | 'ranged'; spiralLiftTimer?: number; lift?: number; staggerTimer?: number; staggerHits?: number; staggerImmune?: number; superArmor?: number; tutorial?: boolean; mirror?: boolean; mirrorRole?: Role; mp?: number; mirrorSkillTimer?: number; mirrorWindup?: number; mirrorSkill?: number; mirrorBuffTimer?: number; mirrorBurst?: number; mirrorBurstWait?: number; mirrorSwitch?: number; mirrorSwapTimer?: number; mirrorNextRole?: Role; wanderTimer?: number; wanderTargetX?: number | null }
 type Fx = { x: number; y: number; life: number; kind: string; direction?: number; text?: string; damage?: number; duration?: number; vx?: number; vy?: number; color?: string; radius?: number }
@@ -33,7 +33,7 @@ type BattlePlatform = { x: number; w: number; height: number; kind: 'tree' | 'ro
 const SAVE_KEY = 'elemental-expedition-save-v2'
 const DEMO_MODE = import.meta.env.MODE === 'demo'
 const DEMO_SAVE_KEY = `${SAVE_KEY}:demo`
-const GAME_VERSION = '1.85'
+const GAME_VERSION = '1.86'
 const stageNames = ['苔痕边境', '沉钟矿道', '赤岩峡谷', '风蚀高原', '幽蓝沼泽', '断星回廊', '灰烬王庭', '深渊裂谷', '苍白圣所', '终焉之门']
 const roleLabels: Record<Role, string> = { warrior: '战士', mage: '法师' }
 const SKILL_LABELS: Record<SkillSetKey, string[]> = {
@@ -127,6 +127,8 @@ const TOWN_CIRCLE_X = 430
 const TOWN_NPC_NAME = '阿岩'
 const SECOND_NPC_X = 190
 const SECOND_NPC_NAME = '铸魂师·霍恩'
+const HIDDEN_NPC_X = 520
+const HIDDEN_NPC_NAME = '守印人·岚'
 // 每关小怪的 3 种专属掉落物。
 const STAGE_MATERIALS: string[][] = [
   ['苔痕叶片', '古木碎屑', '勇气碎晶'],
@@ -164,7 +166,16 @@ function addStone(tier: number, amount = 1) {
 }
 function stoneName(tier: number) { return STONE_NAMES[tier - 1] ?? `${tier} 阶强化石` }
 function secondNpcUnlocked() { return Boolean(game && (game.unlockedStage > 5 || game.stageProgress?.['5']?.bossDefeated)) }
+const NIGHTMARE_DAILY_ATTEMPTS = 2
+function nightmareAttemptsUsed() {
+  return game && game.nightmareDay === todayKey() ? Math.max(0, game.nightmareAttempts ?? 0) : 0
+}
+function nightmareAttemptsLeft() {
+  return Math.max(0, NIGHTMARE_DAILY_ATTEMPTS - nightmareAttemptsUsed())
+}
 function nightmareUnlocked(stage: number) {
+  // 体验版直接开放全部噩梦副本，方便试玩；正式版仍需按顺序逐关解锁。
+  if (DEMO_MODE) return true
   if (!game?.stageProgress?.[String(stage)]?.bossDefeated) return false
   return stage === 1 || Boolean(game.nightmareCleared?.includes(stage - 1))
 }
@@ -537,6 +548,7 @@ let storyLogOpen = false
 let storyLogStage = 1
 let skillPanelOpen = false
 let secondNpcOpen = false
+let hiddenNpcOpen = false
 let secondView: 'menu' | 'dungeon' | 'gems' = 'menu'
 let enhanceSlot: 'weapon' | 'weapon2' | 'armor' | 'armor2' = 'weapon'
 let nightmareStage: number | null = null
@@ -585,6 +597,9 @@ let swordOutTimer = 0
 let swordDrawAnim = 0
 // 螺旋斩：旋转升空计时，用于角色旋转与怪物上浮。
 let spiralSlashTimer = 0
+// 万剑归宗：落剑后的第二段伤害。
+let myriadImpactTimer = 0
+let myriadImpactPower = 0
 // 隐藏必杀：触发条件、持续 2.5 秒、一局一次；期间拥有无敌护盾。
 let hiddenUltUsed = false
 let hiddenUltTimer = 0
@@ -677,6 +692,8 @@ function normalizeSave(data: Save): Save {
   data.extraSlot = data.extraSlot === 'armor' ? 'armor' : 'weapon'
   data.armor2Id ??= null
   data.nightmareCleared = Array.isArray(data.nightmareCleared) ? [...new Set(data.nightmareCleared.map((stage) => Math.floor(Number(stage))).filter((stage) => stage >= 1 && stage <= 10))] : []
+  data.nightmareDay = typeof data.nightmareDay === 'string' ? data.nightmareDay : ''
+  data.nightmareAttempts = Math.max(0, Math.floor(Number(data.nightmareAttempts ?? 0)))
   data.talentFragments ??= 0
   data.talentCoins ??= 0
   data.lotteryChances ??= 0
@@ -1326,6 +1343,7 @@ function enterBattlefield() {
   battleTime = 0
   resetCombo()
   resetHiddenUltimate()
+  myriadImpactTimer = 0
   refreshMap()
   foes = []
   waveReady = false
@@ -1622,7 +1640,7 @@ function start(role: Role, previous?: Save) {
 }
 function freshSave(role: Role): Save {
   const base = ROLE_BASE[role]
-  return { role, stage: 1, unlockedStage: 1, kills: 0, hp: base.hp, mp: base.mp, gear: [], equipped: null, weaponId: null, weapon2Id: null, armorId: null, armor2Id: null, fashionId: null, extraSlot: 'weapon', level: 1, exp: 0, drops: [], bossDefeated: false, attributePoints: 0, attributeAllocation: { hp: 0, attack: 0, mp: 0, defense: 0 }, soul: 0, normalTalent: 0, normalTalentLevels: [0, 0, 0, 0], advancedTalent: 0, advancedTalentLevel: 0, talentFragments: 0, talentCoins: 0, lotteryChances: 0, shopFashionBought: false, reviveCoins: 0, reviveUsed: false, fragmentBuyDay: '', reviveBuyAt: 0, freeReviveDay: '', materials: {}, stones: [0, 0, 0, 0, 0], enhance: { weapon: 0, armor: 0, armor2: 0, weapon2: 0, failWeapon: 0, failArmor: 0, failArmor2: 0, failWeapon2: 0 }, nightmareCleared: [], stamps: 0, tutorialDone: false, hiddenCleared: false, rivalTrust: false, stage8Choice: null, rescuedRock: false, rescuedXiaoman: false, rescuedZhou: false, seenStories: [], forgeIntroSeen: false, shopIntroSeen: false, lotteryIntroSeen: false, townIntroSeen: false, mainQuestsClaimed: [], sideQuest: null, sideQuestDay: '', skillLevels: {}, gems: [], punchStones: 0, punchBuyAt: 0, horns: 0, hornBuyAt: 0, hornBuff: null, hornBuffUntil: 0, town: true, completed: false, dead: false }
+  return { role, stage: 1, unlockedStage: 1, kills: 0, hp: base.hp, mp: base.mp, gear: [], equipped: null, weaponId: null, weapon2Id: null, armorId: null, armor2Id: null, fashionId: null, extraSlot: 'weapon', level: 1, exp: 0, drops: [], bossDefeated: false, attributePoints: 0, attributeAllocation: { hp: 0, attack: 0, mp: 0, defense: 0 }, soul: 0, normalTalent: 0, normalTalentLevels: [0, 0, 0, 0], advancedTalent: 0, advancedTalentLevel: 0, talentFragments: 0, talentCoins: 0, lotteryChances: 0, shopFashionBought: false, reviveCoins: 0, reviveUsed: false, fragmentBuyDay: '', reviveBuyAt: 0, freeReviveDay: '', materials: {}, stones: [0, 0, 0, 0, 0], enhance: { weapon: 0, armor: 0, armor2: 0, weapon2: 0, failWeapon: 0, failArmor: 0, failArmor2: 0, failWeapon2: 0 }, nightmareCleared: [], nightmareDay: '', nightmareAttempts: 0, stamps: 0, tutorialDone: false, hiddenCleared: false, rivalTrust: false, stage8Choice: null, rescuedRock: false, rescuedXiaoman: false, rescuedZhou: false, seenStories: [], forgeIntroSeen: false, shopIntroSeen: false, lotteryIntroSeen: false, townIntroSeen: false, mainQuestsClaimed: [], sideQuest: null, sideQuestDay: '', skillLevels: {}, gems: [], punchStones: 0, punchBuyAt: 0, horns: 0, hornBuyAt: 0, hornBuff: null, hornBuffUntil: 0, town: true, completed: false, dead: false }
 }
 function awardExperience(amount: number) {
   if (!game) return
@@ -2297,13 +2315,14 @@ function dungeonMarkup() {
   if (!game) return ''
   // 只显示已经解锁的噩梦关卡；前一关未通关时不提前暴露后续关卡。
   const unlockedStages = Array.from({ length: 10 }, (_, index) => index + 1).filter((stage) => nightmareUnlocked(stage))
+  const attemptsLeft = nightmareAttemptsLeft()
   const rows = unlockedStages.map((stage) => {
     const cleared = game!.nightmareCleared?.includes(stage)
     const config = STAGE_CONFIG[stage - 1]
-    return `<article class="forge-item"><span class="gear-glyph">${itemIcon('stamp')}</span><span class="gear-copy"><b>第 ${stage} 关 · ${stageNames[stage - 1]}</b><small>噩梦守关者 · 生命 ${displayNumber(config.bossHp * 2)} · 攻击 ${displayNumber(config.bossAtk * 1.5)}${cleared ? ' · 已通关' : ''}</small></span><button data-action="nightmare-enter" data-stage="${stage}">挑战</button></article>`
+    return `<article class="forge-item"><span class="gear-glyph">${itemIcon('stamp')}</span><span class="gear-copy"><b>第 ${stage} 关 · ${stageNames[stage - 1]}</b><small>噩梦守关者 · 生命 ${displayNumber(config.bossHp * 2)} · 攻击 ${displayNumber(config.bossAtk * 1.5)}${cleared ? ' · 已通关' : ''}</small></span><button data-action="nightmare-enter" data-stage="${stage}" ${attemptsLeft > 0 ? '' : 'disabled'}>${attemptsLeft > 0 ? '挑战' : '次数已用完'}</button></article>`
   }).join('')
   const list = rows || '<div class="empty-gear">暂无已解锁的噩梦副本<small>通关普通关卡后，噩梦副本会逐关解锁</small></div>'
-  return `<p>直接挑战对应普通关卡的 Boss。噩梦守关者生命为普通 Boss 的 2 倍、攻击为 1.5 倍；通关前一关噩梦后才会显示下一关。</p><div class="forge-bag-list dungeon-list">${list}</div>`
+  return `<p>直接挑战对应普通关卡的 Boss。噩梦守关者生命为普通 Boss 的 2 倍、攻击为 1.5 倍；通关前一关噩梦后才会显示下一关。每日可挑战 ${NIGHTMARE_DAILY_ATTEMPTS} 次，今日剩余 ${attemptsLeft} / ${NIGHTMARE_DAILY_ATTEMPTS} 次。</p><div class="forge-bag-list dungeon-list">${list}</div>`
 }
 function secondNpcMarkup() {
   if (!game || !secondNpcOpen) return ''
@@ -2335,6 +2354,9 @@ function performEnhance() {
 }
 function beginNightmare(stage: number) {
   if (!game || !secondNpcUnlocked() || !nightmareUnlocked(stage)) return
+  if (nightmareAttemptsLeft() <= 0) { toast(`今天的噩梦挑战次数已用完（每日 ${NIGHTMARE_DAILY_ATTEMPTS} 次），明天再来吧。`); return }
+  game.nightmareDay = todayKey()
+  game.nightmareAttempts = nightmareAttemptsUsed() + 1
   resetPanels()
   battleTime = 0
   resetCombo()
@@ -2381,6 +2403,53 @@ function drawSecondNpc(c: CanvasRenderingContext2D) {
   c.restore()
   drawCompanionNameplates(c, SECOND_NPC_NAME, x, near, world.floor - 118 + bob)
 }
+function hiddenNpcMarkup() {
+  if (!game || !hiddenNpcOpen) return ''
+  const stamps = game.stamps ?? 0
+  const ready = hiddenUnlocked()
+  return `<div class="bag-scrim npc-scrim"><section class="bag-dialog npc-dialog"><header><div><small>SEAL KEEPER · 冒险者小镇</small><h2>${HIDDEN_NPC_NAME}</h2></div><button data-action="close-hidden-npc" aria-label="关闭">×</button></header><p>“王印共鸣已经足够强烈……宿敌就在遗迹深处等你。”</p><div class="npc-menu"><button data-action="hidden-npc-challenge" ${ready ? '' : 'disabled'}><b>◈</b><span><strong>王印试炼</strong><small>${ready ? '进入隐藏关卡 · 挑战宿敌' : `还需 ${STAMP_UNLOCK - stamps} 枚王印印章`}</small></span></button></div><div class="npc-currency"><span>${DEMO_MODE ? `${itemIcon('stamp')} 体验版 · 无需王印印章` : `${itemIcon('stamp')} 王印印章 ${displayNumber(stamps)} / ${STAMP_UNLOCK}`}</span></div><button class="secondary npc-back" data-action="close-hidden-npc">离开</button></section></div>`
+}
+function openHiddenNpcMenu() {
+  if (!game || scene !== 'town' || !hiddenUnlocked()) return
+  resetPanels()
+  hiddenNpcOpen = true
+  renderGame()
+}
+function drawHiddenNpc(c: CanvasRenderingContext2D) {
+  if (!game || scene !== 'town' || !hiddenUnlocked()) return
+  const x = HIDDEN_NPC_X
+  const now = performance.now()
+  const bob = Math.sin(now / 520) * 1.2
+  const near = Math.abs(heroX - x) <= 70
+  c.save()
+  c.fillStyle = 'rgba(8, 17, 17, .3)'; c.beginPath(); c.ellipse(x, world.floor + 2, 20, 6, 0, 0, Math.PI * 2); c.fill()
+  c.translate(x, world.floor + bob)
+  // 深紫长袍
+  const robe = c.createLinearGradient(0, -68, 0, -4)
+  robe.addColorStop(0, '#6a5b93'); robe.addColorStop(.55, '#433560'); robe.addColorStop(1, '#211a33')
+  c.fillStyle = robe; c.beginPath(); c.moveTo(-16, -60); c.lineTo(16, -60); c.lineTo(24, -5); c.lineTo(-24, -5); c.closePath(); c.fill()
+  c.strokeStyle = 'rgba(12, 10, 20, .6)'; c.lineWidth = 1.2; c.stroke()
+  c.fillStyle = '#c9b273'; c.fillRect(-18, -34, 36, 3)
+  // 手臂与袖口
+  c.fillStyle = '#4d3f6d'; c.fillRect(-23, -55, 8, 24); c.fillRect(15, -55, 8, 24)
+  c.fillStyle = '#c9b273'; c.fillRect(-24, -34, 10, 3); c.fillRect(14, -34, 10, 3)
+  // 兜帽与阴影中的脸
+  c.fillStyle = '#302646'; c.beginPath(); c.moveTo(-14, -58); c.quadraticCurveTo(-15, -92, 0, -96); c.quadraticCurveTo(15, -92, 14, -58); c.closePath(); c.fill()
+  c.fillStyle = '#0f0b16'; c.beginPath(); c.ellipse(0, -72, 9, 11, 0, 0, Math.PI * 2); c.fill()
+  glint(c, -4, -74, 2, '#ffd27a'); glint(c, 4, -74, 2, '#ffd27a')
+  c.strokeStyle = '#c9b273'; c.lineWidth = 1.2
+  c.beginPath(); c.moveTo(-14, -59); c.quadraticCurveTo(0, -53, 14, -59); c.stroke()
+  // 悬浮的王印
+  c.save()
+  c.translate(27, -66 + Math.sin(now / 360) * 3); c.rotate(Math.sin(now / 700) * .25)
+  c.shadowColor = '#ffd27a'; c.shadowBlur = 16
+  c.fillStyle = '#e4cf8f'; c.fillRect(-8, -8, 16, 16)
+  c.strokeStyle = '#fff2c0'; c.lineWidth = 1.2; c.strokeRect(-5, -5, 10, 10)
+  c.fillStyle = '#8a6c32'; c.fillRect(-2, -5, 4, 10); c.fillRect(-5, -2, 10, 4)
+  c.restore()
+  c.restore()
+  drawCompanionNameplates(c, HIDDEN_NPC_NAME, x, near, world.floor - 118 + bob)
+}
 function attributeMarkup() {
   if (!game) return ''
   const allocation = game.attributeAllocation ?? { hp: 0, attack: 0, mp: 0, defense: 0 }
@@ -2404,17 +2473,14 @@ function townPanelMarkup() {
   const npcButton = npcUnlocked()
     ? `<button class="secondary town-npc" data-action="open-npc">${itemIcon('npc')} ${TOWN_NPC_NAME} · 天赋/抽奖 · S</button>`
     : '<button class="secondary" disabled title="通关第一关后解锁">阿岩 · 第1关解锁</button>'
-  const hiddenButton = (current.stamps ?? 0) >= STAMP_UNLOCK
-    ? `<button class="secondary town-hidden" data-action="open-hidden">${itemIcon('stamp')} 王印试炼 · 挑战宿敌</button>`
-    : ''
-  return `<section class="panel town-panel"><header><span>冒险者小镇</span><small>SAFE HAVEN</small></header><p>在镇内自由走动整备；可以跳跃、攻击和练习技能，不消耗法力。走到镇中央的远征法阵按 S 可以直接选择关卡。</p><div class="town-shortcuts">${forgeButton}<button class="secondary" data-action="open-attributes">✦ 属性分配 · ${current.attributePoints ?? 0} 点</button><button class="secondary town-lottery" data-action="open-lottery" ${(current.lotteryChances ?? 0) > 0 ? '' : 'disabled'}>🎟 抽奖 · ${current.lotteryChances ?? 0} 次</button>${npcButton}${hiddenButton}</div><div class="town-currency"><span>${itemIcon('soul')} 灵魂 ${displayCurrency(current.soul ?? 0)}</span><span>${itemIcon('fragment')} 碎片 ${displayCurrency(current.talentFragments ?? 0)}</span><span>${itemIcon('coin')} 天赋币 ${displayCurrency(current.talentCoins ?? 0)}</span><span>${itemIcon('stamp')} 印章 ${displayCurrency(current.stamps ?? 0)} / ${STAMP_UNLOCK}</span></div>${npcUnlocked() ? `<p class="npc-hint">${TOWN_NPC_NAME}已经回到镇上：走到他面前按 S 对话。</p>` : '<p class="npc-hint">通关第一关后，阿岩会出现在镇上。</p>'}${current.completed ? `<p class="stage-progress-copy">十片遗迹皆已沉寂</p><button class="primary" data-action="role-select">返回角色选择</button>` : `<label class="stage-picker"><span>选择关卡</span><select id="stage-select">${options}</select></label><button class="primary" data-action="enter-stage">进入遗迹　→</button>`}</section>`
+  return `<section class="panel town-panel"><header><span>冒险者小镇</span><small>SAFE HAVEN</small></header><p>在镇内自由走动整备；可以跳跃、攻击和练习技能，不消耗法力。走到镇中央的远征法阵按 S 可以直接选择关卡。</p><div class="town-shortcuts">${forgeButton}<button class="secondary" data-action="open-attributes">✦ 属性分配 · ${current.attributePoints ?? 0} 点</button><button class="secondary town-lottery" data-action="open-lottery" ${(current.lotteryChances ?? 0) > 0 ? '' : 'disabled'}>🎟 抽奖 · ${current.lotteryChances ?? 0} 次</button>${npcButton}</div><div class="town-currency"><span>${itemIcon('soul')} 灵魂 ${displayCurrency(current.soul ?? 0)}</span><span>${itemIcon('fragment')} 碎片 ${displayCurrency(current.talentFragments ?? 0)}</span><span>${itemIcon('coin')} 天赋币 ${displayCurrency(current.talentCoins ?? 0)}</span><span>${itemIcon('stamp')} 印章 ${displayCurrency(current.stamps ?? 0)} / ${STAMP_UNLOCK}</span></div>${npcUnlocked() ? `<p class="npc-hint">${TOWN_NPC_NAME}已经回到镇上：走到他面前按 S 对话。</p>` : '<p class="npc-hint">通关第一关后，阿岩会出现在镇上。</p>'}${current.completed ? `<p class="stage-progress-copy">十片遗迹皆已沉寂</p><button class="primary" data-action="role-select">返回角色选择</button>` : `<label class="stage-picker"><span>选择关卡</span><select id="stage-select">${options}</select></label><button class="primary" data-action="enter-stage">进入遗迹　→</button>`}</section>`
 }
 function stageOneCleared() {
   return Boolean(game && (game.unlockedStage > 1 || game.stageProgress?.['1']?.bossDefeated))
 }
 function forgeUnlocked() { return stageOneCleared() }
 function npcUnlocked() { return stageOneCleared() }
-function hiddenUnlocked() { return Boolean(game && (game.stamps ?? 0) >= STAMP_UNLOCK) }
+function hiddenUnlocked() { return Boolean(game && (DEMO_MODE || (game.stamps ?? 0) >= STAMP_UNLOCK)) }
 function talentUnlocked() { return Boolean(game && (game.level ?? 1) >= 5) }
 // 统一的物品图标：背包、商城、抽奖与货币展示共用。
 const ITEM_ICON_PATHS: Record<string, string> = {
@@ -3166,7 +3232,7 @@ function closeLottery() {
 }
 // 打开任意面板前统一收起其它弹窗，避免多个遮罩叠加。
 function resetPanels() {
-  bagOpen = false; hornPickerOpen = false; craftingOpen = false; attributesOpen = false; npcOpen = false; secondNpcOpen = false; lotteryOpen = false; stageCircleOpen = false; gameMenuOpen = false; settingsOpen = false; creditsOpen = false; quitConfirmOpen = false; storyLogOpen = false; skillPanelOpen = false; listeningBind = null; forgeSlots = []; specialSlots = []
+  bagOpen = false; hornPickerOpen = false; craftingOpen = false; attributesOpen = false; npcOpen = false; secondNpcOpen = false; hiddenNpcOpen = false; lotteryOpen = false; stageCircleOpen = false; gameMenuOpen = false; settingsOpen = false; creditsOpen = false; quitConfirmOpen = false; storyLogOpen = false; skillPanelOpen = false; listeningBind = null; forgeSlots = []; specialSlots = []
   lotterySpinning = false; lotteryResult = null; lotteryHighlight = -1
   if (lotteryInterval !== null) { window.clearInterval(lotteryInterval); lotteryInterval = null }
   if (lotteryTimeout !== null) { window.clearTimeout(lotteryTimeout); lotteryTimeout = null }
@@ -3624,8 +3690,6 @@ function gameMenuMarkup() {
       { action: 'open-attributes', icon: itemIcon('attribute'), title: '属性分配', desc: `${game.attributePoints ?? 0} 点可用属性点` },
       { action: 'open-lottery', icon: itemIcon('ticket'), title: '抽奖', desc: `${game.lotteryChances ?? 0} 次抽奖机会`, disabled: (game.lotteryChances ?? 0) <= 0 },
     )
-    // 集齐 10 枚王印印章后才显示隐藏关卡入口。
-    if (hiddenUnlocked()) items.push({ action: 'open-hidden', icon: '◈', title: '隐藏关卡', desc: '挑战宿敌' })
   }
   return `<div class="bag-scrim game-menu-scrim"><section class="bag-dialog game-menu-dialog"><header><div><small>MENU · ${isTown ? '冒险者小镇' : '远征中'}</small><h2>功能菜单</h2></div><button data-action="close-game-menu" aria-label="关闭菜单">×</button></header><div class="game-menu-grid">${items.map((item) => `<button class="game-menu-item" data-action="${item.action}" ${item.disabled ? 'disabled' : ''}><b>${item.icon}</b><span><strong>${item.title}</strong><small>${item.desc}</small></span><i>→</i></button>`).join('')}</div></section></div>`
 }
@@ -3801,6 +3865,7 @@ function renderGame() {
   document.querySelector('.arena')?.insertAdjacentHTML('beforeend', hudMarkup())
   if (npcOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', npcMarkup())
   if (secondNpcOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', secondNpcMarkup())
+  if (hiddenNpcOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', hiddenNpcMarkup())
   if (stageCircleOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', stageCircleMarkup())
   if (lotteryOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', lotteryMarkup())
   if (gameMenuOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', gameMenuMarkup())
@@ -4121,8 +4186,8 @@ function canStrikeVertically(foe: Foe) {
 }
 function strike(target: Foe, damage: number, label: string, fromClone = false) {
   if (!game || !foes.includes(target)) return
-  // 剑类近战攻击需要满足垂直高度：站在石头或跳到空中时打不到下方地面上的敌人。
-  if (activeSkillSet() === 'sword' && !canStrikeVertically(target)) return
+  // 剑类近战与法系攻击需要满足垂直高度：站在石头或跳到空中时打不到下方地面上的敌人。
+  if (activeSkillSet() !== 'bow' && !canStrikeVertically(target)) return
   if (target.tutorial && tutorialStep < 4) {
     setLog('先完成训练目标，训练傀儡暂时不会受伤。')
     addFx('impact', target.x, world.floor - 58, -1, .22)
@@ -4211,22 +4276,22 @@ function releaseBowCharge() {
 function staffLightningAttack() {
   if (!game) return
   const dir = facing
-  const range = 230
+  const range = 480
   const y = world.floor - 62 + heroY
   // 法杖普攻只命中前方最近的一个目标，闪电在目标处收束，不再穿透。
   const target = foes
-    .filter((foe) => (foe.x - heroX) * dir >= -30 && Math.abs(foe.x - heroX) <= range)
+    .filter((foe) => (foe.x - heroX) * dir >= -30 && Math.abs(foe.x - heroX) <= range && canStrikeVertically(foe))
     .sort((a, b) => Math.abs(a.x - heroX) - Math.abs(b.x - heroX))[0]
   const span = target ? Math.max(48, Math.abs(target.x - heroX)) : range
   effects.push({ kind: 'staff-lightning', x: heroX + dir * span / 2, y, direction: dir, life: .5, color: '#ffd84a', radius: span })
-  addSparks(target ? target.x : heroX + dir * 120, y, 14, ['#ffe66a', '#fff6b0', '#ffc21a'], 200)
+  addSparks(target ? target.x : heroX + dir * 240, y, 14, ['#ffe66a', '#fff6b0', '#ffc21a'], 200)
   addFlash(.1, '#ffd84a')
   if (target) strike(target, stats().attack, '法杖闪电')
   else setLog('黄色横向闪电划过前方。')
 }
 function bookBoltAttack() {
   if (!game) return
-  const target = targetForFacing(480)
+  const target = targetForFacing(230)
   const dir = target ? Math.sign(target.x - heroX) || facing : facing
   projectiles.push({
     x: heroX + dir * 22,
@@ -4238,7 +4303,7 @@ function bookBoltAttack() {
     kind: 'book',
     pierce: true,
     hitIds: [],
-    maxDistance: 480,
+    maxDistance: 230,
     startX: heroX + dir * 22,
     label: '魔法弹',
   })
@@ -4578,14 +4643,16 @@ function cast(index: number) {
       // 万剑归宗：十余把巨剑交错插满地面，连续爆发。
       const greatY = world.floor - 80 + heroY
       addFx(`weapon-swing-${style}`, heroX + facing * 60, greatY, facing, .7, fxColor)
-      addFx('great-slash', heroX + facing * 92, greatY, facing, 1.15, fxColor)
       addFx('myriad-swords', heroX + facing * 150, world.floor - 4, facing, 1.35, fxColor)
       addFx('great-quake', heroX + facing * 70, world.floor - 8, facing, 1.2, fxColor)
       addFx('ground-break', heroX + facing * 60, world.floor - 70, facing, .95)
       addSparks(heroX + facing * 60, world.floor - 8, 48, [fxColor, '#d8b96c', '#fff6d0', '#a98d55'], 380)
       addShake(20)
       addFlash(.6, fxColor)
-      strikeNearby(power, '万剑归宗', 175, true)
+      // 总伤害保持 200%：起手剑气 100%，落剑追加 100%。
+      strikeNearby(Math.max(1, Math.round(power * .5)), '万剑归宗', 175, true)
+      myriadImpactTimer = .7
+      myriadImpactPower = Math.max(1, Math.round(power * .5))
     }
   } else if (index === 0) {
     buffTime = 7
@@ -5043,6 +5110,7 @@ function pickupDrop() {
     }
     if (Math.abs(heroX - TOWN_CIRCLE_X) <= 60) { openStageCircle(); return }
     if (secondNpcUnlocked() && Math.abs(heroX - SECOND_NPC_X) <= 75) { openSecondNpcMenu(); return }
+    if (hiddenUnlocked() && Math.abs(heroX - HIDDEN_NPC_X) <= 70) { openHiddenNpcMenu(); return }
     if (npcUnlocked() && Math.abs(heroX - TOWN_NPC_X) <= 80) openNpcMenu()
     return
   }
@@ -5363,7 +5431,8 @@ function performAction(name: string, target: HTMLElement) {
     if (hiddenBattle) beginHiddenBattle()
     else beginStage(game.stage, 'restart')
   }
-  if (name === 'open-hidden' && game && scene === 'town') beginHiddenBattle()
+  if (name === 'hidden-npc-challenge') { hiddenNpcOpen = false; beginHiddenBattle() }
+  if (name === 'close-hidden-npc') { hiddenNpcOpen = false; renderGame() }
   if (name === 'challenge-boss' && game && scene === 'town') beginStage(game.stage, 'boss')
   if (name === 'attack') attack()
   if (name === 'pickup') pickupDrop()
@@ -5719,10 +5788,11 @@ window.addEventListener('keydown', (event) => {
   if (stageCircleOpen && key === 'escape') { stageCircleOpen = false; renderGame(); return }
   if (npcOpen && key === 'escape') { npcOpen = false; renderGame(); return }
   if (secondNpcOpen && key === 'escape') { secondNpcOpen = false; renderGame(); return }
+  if (hiddenNpcOpen && key === 'escape') { hiddenNpcOpen = false; renderGame(); return }
   if (bagOpen && key === 'escape') { bagOpen = false; renderGame(); return }
   if (attributesOpen && key === 'escape') { attributesOpen = false; renderGame(); return }
   if (craftingOpen && key === 'escape') { craftingOpen = false; renderGame(); return }
-  if (bagOpen || hornPickerOpen || craftingOpen || attributesOpen || npcOpen || secondNpcOpen || lotteryOpen || stageCircleOpen || settingsOpen || gameMenuOpen || creditsOpen || storyLogOpen || skillPanelOpen) return
+  if (bagOpen || hornPickerOpen || craftingOpen || attributesOpen || npcOpen || secondNpcOpen || hiddenNpcOpen || lotteryOpen || stageCircleOpen || settingsOpen || gameMenuOpen || creditsOpen || storyLogOpen || skillPanelOpen) return
   if (lootReveal) return
   if (bossVictory) {
     if (key === ' ' || key === 'enter') event.preventDefault()
@@ -5984,6 +6054,16 @@ function update(dt: number) {
       }
     }
     if (!shieldActive) game.mp = Math.min(stats().mp, game.mp + dt * 4)
+    // 万剑归宗：巨剑落地后的追加伤害。
+    if (myriadImpactTimer > 0) {
+      myriadImpactTimer = Math.max(0, myriadImpactTimer - dt)
+      if (myriadImpactTimer <= 0) {
+        strikeNearby(myriadImpactPower, '万剑归宗 · 落剑', 220, true)
+        addSparks(heroX + facing * 150, world.floor - 10, 34, [weaponFxColor(), '#fff6d0', '#d8b96c'], 320)
+        addShake(14)
+        addFlash(.28, weaponFxColor())
+      }
+    }
     // 隐藏必杀：触发判定与 2.5 秒施法进度。
     if (hiddenUltTimer > 0) {
       hiddenUltTimer = Math.max(0, hiddenUltTimer - dt)
@@ -6235,9 +6315,8 @@ function update(dt: number) {
           if (projectile.kind === 'blast') { touched = true; break }
           if (projectile.kind === 'charged') {
             addFx('charged-arrow', foe.x, foeY, Math.sign(projectile.vx) || 1, .55, '#ffe28a')
-            addFx('great-quake', foe.x, world.floor - 8, 1, .65, '#ffe28a')
             addSparks(foe.x, foeY, 22, ['#ffe28a', '#fff6c0', '#c8f0a0'], 250)
-            addShake(6); addFlash(.1, '#ffe28a')
+            addShake(3)
           }
           strike(foe, projectile.damage, projectile.label ?? '箭矢', projectile.fromClone ?? false)
           if (projectile.pierce) { projectile.hitIds ??= []; projectile.hitIds.push(foe.id) }
@@ -7543,12 +7622,6 @@ function drawFx(c: CanvasRenderingContext2D, fx: Fx) {
         }
       }
     }
-    // 剑气交叉的巨型十字
-    c.globalAlpha = alpha * .75; c.strokeStyle = color; c.lineWidth = 6; c.lineCap = 'round'
-    c.beginPath(); c.moveTo(fx.x - 170, fx.y - 120); c.lineTo(fx.x + 170, fx.y + 8); c.stroke()
-    c.beginPath(); c.moveTo(fx.x + 170, fx.y - 120); c.lineTo(fx.x - 170, fx.y + 8); c.stroke()
-    c.globalAlpha = alpha * .45; c.strokeStyle = '#ffffff'; c.lineWidth = 2
-    c.beginPath(); c.moveTo(fx.x - 150, fx.y - 114); c.lineTo(fx.x + 150, fx.y + 4); c.stroke()
     // 多层地面冲击环
     c.globalAlpha = alpha * .6; c.strokeStyle = color
     for (let ring = 0; ring < 3; ring += 1) {
@@ -8925,7 +8998,7 @@ function draw() {
   if (scene === 'battle') drawBossChest(ctx)
   for (const foe of foes) drawFoe(ctx, foe)
   drawPrisonEffect(ctx)
-  if (scene === 'town') { drawTownWaypoint(ctx); drawTownNpc(ctx); drawTownCompanions(ctx); drawSecondNpc(ctx) }
+  if (scene === 'town') { drawTownWaypoint(ctx); drawTownNpc(ctx); drawTownCompanions(ctx); drawSecondNpc(ctx); drawHiddenNpc(ctx) }
   ctx.save(); if (invisibleTimer > 0) ctx.globalAlpha = .16
   drawHero(ctx)
   ctx.restore()
