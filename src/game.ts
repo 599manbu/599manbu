@@ -15,9 +15,9 @@ type WorldDrop = { id: string; type: 'hp-potion' | 'mp-potion' | 'material'; x: 
 type AttributeStat = 'hp' | 'attack' | 'mp' | 'defense'
 type AttributeAllocation = Record<AttributeStat, number>
 type StageProgress = { kills: number; bossDefeated: boolean; pointsClaimed?: number }
-type Save = { role: Role; stage: number; unlockedStage: number; kills: number; stageProgress?: Record<string, StageProgress>; hp: number; mp: number; gear: Gear[]; equipped: string | null; weaponId?: string | null; weapon2Id?: string | null; armorId?: string | null; armor2Id?: string | null; fashionId?: string | null; extraSlot?: 'weapon' | 'armor'; level?: number; exp?: number; drops?: WorldDrop[]; bossDefeated?: boolean; attributePoints?: number; attributeAllocation?: AttributeAllocation; soul?: number; normalTalent?: number; normalTalentLevels?: number[]; advancedTalent?: number; advancedTalentLevel?: number; talentFragments?: number; talentCoins?: number; lotteryChances?: number; shopFashionBought?: boolean; reviveCoins?: number; reviveUsed?: boolean; fragmentBuyDay?: string; reviveBuyAt?: number; materials?: Record<string, number>; stones?: number[]; enhance?: { weapon: number; armor: number; armor2: number; weapon2: number; failWeapon: number; failArmor: number; failArmor2: number; failWeapon2: number }; nightmareCleared?: number[]; nightmareDay?: string; nightmareAttempts?: number; stamps?: number; freeReviveDay?: string; tutorialDone?: boolean; hiddenCleared?: boolean; rivalTrust?: boolean; stage8Choice?: 'save' | 'chase' | 'together' | null; rescuedRock?: boolean; rescuedXiaoman?: boolean; rescuedZhou?: boolean; seenStories?: string[]; forgeIntroSeen?: boolean; shopIntroSeen?: boolean; lotteryIntroSeen?: boolean; townIntroSeen?: boolean; mainQuestsClaimed?: number[]; sideQuest?: { stage: number; clears: number } | null; sideQuestDay?: string; skillLevels?: Record<string, number>; gems?: Gem[]; punchStones?: number; punchBuyAt?: number; horns?: number; hornBuyAt?: number; hornBuff?: 'material' | 'attack' | 'gear' | null; hornBuffUntil?: number; mailClaimed?: boolean; redeemedCodes?: string[]; town: boolean; completed: boolean; dead: boolean }
+type Save = { role: Role; stage: number; unlockedStage: number; kills: number; stageProgress?: Record<string, StageProgress>; hp: number; mp: number; gear: Gear[]; equipped: string | null; weaponId?: string | null; weapon2Id?: string | null; armorId?: string | null; armor2Id?: string | null; fashionId?: string | null; extraSlot?: 'weapon' | 'armor'; level?: number; exp?: number; drops?: WorldDrop[]; bossDefeated?: boolean; attributePoints?: number; attributeAllocation?: AttributeAllocation; soul?: number; normalTalent?: number; normalTalentLevels?: number[]; advancedTalent?: number; advancedTalentLevel?: number; talentFragments?: number; talentCoins?: number; lotteryChances?: number; shopFashionBought?: boolean; reviveCoins?: number; reviveUsed?: boolean; fragmentBuyDay?: string; reviveBuyAt?: number; materials?: Record<string, number>; stones?: number[]; enhance?: { weapon: number; armor: number; armor2: number; weapon2: number; failWeapon: number; failArmor: number; failArmor2: number; failWeapon2: number }; nightmareCleared?: number[]; nightmareDay?: string; nightmareAttempts?: number; stamps?: number; freeReviveDay?: string; tutorialDone?: boolean; hiddenCleared?: boolean; rivalTrust?: boolean; stage8Choice?: 'save' | 'chase' | 'together' | null; rescuedRock?: boolean; rescuedXiaoman?: boolean; rescuedZhou?: boolean; seenStories?: string[]; forgeIntroSeen?: boolean; shopIntroSeen?: boolean; lotteryIntroSeen?: boolean; townIntroSeen?: boolean; mainQuestsClaimed?: number[]; sideQuest?: { stage: number; clears: number } | null; sideQuestDay?: string; skillLevels?: Record<string, number>; gems?: Gem[]; punchStones?: number; punchBuyAt?: number; horns?: number; hornBuyAt?: number; hornBuff?: 'material' | 'attack' | 'gear' | null; hornBuffUntil?: number; mailClaimed?: boolean; redeemedCodes?: string[]; combatData?: { attacks: number; skills: number; defends: number; skillUses: number[]; stages: number[] }; town: boolean; completed: boolean; dead: boolean }
 type SaveSlot = { id: string; label: string; data: Save; updatedAt: number }
-type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; flyPhase?: number; flyAmplitude?: number; flySpeed?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number; specialTimer?: number; specialWindup?: number; specialKind?: 'pierce' | 'exclusive'; specialNext?: 'pierce' | 'exclusive'; mobSkillTimer?: number; skillWindup?: number; skillKind?: 'lunge' | 'slam'; preferredAttack?: 'melee' | 'ranged'; spiralLiftTimer?: number; lift?: number; staggerTimer?: number; staggerHits?: number; staggerImmune?: number; superArmor?: number; tutorial?: boolean; mirror?: boolean; mirrorRole?: Role; mp?: number; mirrorSkillTimer?: number; mirrorWindup?: number; mirrorSkill?: number; mirrorBuffTimer?: number; mirrorBurst?: number; mirrorBurstWait?: number; mirrorSwitch?: number; mirrorSwapTimer?: number; mirrorNextRole?: Role; wanderTimer?: number; wanderTargetX?: number | null }
+type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; flyPhase?: number; flyAmplitude?: number; flySpeed?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number; specialTimer?: number; specialWindup?: number; specialKind?: 'pierce' | 'exclusive'; specialNext?: 'pierce' | 'exclusive'; mobSkillTimer?: number; skillWindup?: number; skillKind?: 'lunge' | 'slam'; preferredAttack?: 'melee' | 'ranged'; spiralLiftTimer?: number; lift?: number; staggerTimer?: number; staggerHits?: number; staggerImmune?: number; superArmor?: number; tutorial?: boolean; mirror?: boolean; mirrorRole?: Role; mp?: number; mirrorSkillTimer?: number; mirrorWindup?: number; mirrorSkill?: number; mirrorBuffTimer?: number; mirrorBurst?: number; mirrorBurstWait?: number; mirrorSwitch?: number; mirrorSwapTimer?: number; mirrorNextRole?: Role; mirrorGuard?: number; mirrorGuardCd?: number; mirrorBoltTimer?: number; wanderTimer?: number; wanderTargetX?: number | null }
 type Fx = { x: number; y: number; life: number; kind: string; direction?: number; text?: string; damage?: number; duration?: number; vx?: number; vy?: number; color?: string; radius?: number }
 type Projectile = { x: number; y: number; vx: number; vy?: number; life: number; damage: number; targetId: number; kind?: 'homing' | 'arrow' | 'book' | 'charged' | 'fall' | 'blast'; pierce?: boolean; hitIds?: number[]; maxDistance?: number; startX?: number; label?: string; radius?: number; fromClone?: boolean }
 type FoeShot = { x: number; y: number; vx: number; vy: number; damage: number; radius: number; color: string; life: number }
@@ -33,7 +33,7 @@ type BattlePlatform = { x: number; w: number; height: number; kind: 'tree' | 'ro
 const SAVE_KEY = 'elemental-expedition-save-v2'
 const DEMO_MODE = import.meta.env.MODE === 'demo'
 const DEMO_SAVE_KEY = `${SAVE_KEY}:demo`
-const GAME_VERSION = '1.88'
+const GAME_VERSION = '1.89'
 const stageNames = ['苔痕边境', '沉钟矿道', '赤岩峡谷', '风蚀高原', '幽蓝沼泽', '断星回廊', '灰烬王庭', '深渊裂谷', '苍白圣所', '终焉之门']
 const roleLabels: Record<Role, string> = { warrior: '战士', mage: '法师' }
 const SKILL_LABELS: Record<SkillSetKey, string[]> = {
@@ -382,30 +382,30 @@ const BOSS_RANGED: Array<BossRangedConfig | null> = [
   null,
   null,
   null,
-  { count: 1, spread: 0, interval: 3.4, speed: 300, damageScale: .8 },
-  { count: 2, spread: .18, interval: 3.2, speed: 310, damageScale: .8 },
-  { count: 3, spread: .32, interval: 3.0, speed: 320, damageScale: .82 },
-  { count: 3, spread: .38, interval: 2.8, speed: 340, damageScale: .85 },
-  { count: 5, spread: .55, interval: 2.6, speed: 350, damageScale: .85 },
-  { count: 5, spread: .68, interval: 2.5, speed: 365, damageScale: .9 },
-  { count: 8, spread: Math.PI * 2, interval: 2.3, speed: 330, damageScale: .9 },
+  { count: 1, spread: 0, interval: 3.4, speed: 300, damageScale: 1.05 },
+  { count: 2, spread: .18, interval: 3.2, speed: 310, damageScale: 1.05 },
+  { count: 3, spread: .32, interval: 3.0, speed: 320, damageScale: 1.1 },
+  { count: 3, spread: .38, interval: 2.8, speed: 340, damageScale: 1.12 },
+  { count: 5, spread: .55, interval: 2.6, speed: 350, damageScale: 1.12 },
+  { count: 5, spread: .68, interval: 2.5, speed: 365, damageScale: 1.18 },
+  { count: 8, spread: Math.PI * 2, interval: 2.3, speed: 330, damageScale: 1.2 },
 ]
 // 第 4 关起小怪也会使用远程攻击，越往后弹幕越多。
 // 第 1 关起小怪就会区分远程与近战；远程弹幕随关卡逐渐增强。
 const MOB_RANGED: Array<BossRangedConfig | null> = [
-  { count: 1, spread: 0, interval: 6.0, speed: 230, damageScale: .62 },
-  { count: 1, spread: .1, interval: 5.6, speed: 240, damageScale: .66 },
-  { count: 1, spread: .18, interval: 5.2, speed: 250, damageScale: .7 },
-  { count: 1, spread: 0, interval: 5.2, speed: 250, damageScale: .7 },
-  { count: 1, spread: .14, interval: 4.8, speed: 260, damageScale: .72 },
-  { count: 2, spread: .24, interval: 4.4, speed: 275, damageScale: .75 },
-  { count: 2, spread: .32, interval: 4.0, speed: 290, damageScale: .78 },
-  { count: 3, spread: .42, interval: 3.7, speed: 305, damageScale: .8 },
-  { count: 3, spread: .52, interval: 3.4, speed: 320, damageScale: .82 },
-  { count: 4, spread: .65, interval: 3.1, speed: 335, damageScale: .85 },
+  { count: 1, spread: 0, interval: 6.0, speed: 230, damageScale: .85 },
+  { count: 1, spread: .1, interval: 5.6, speed: 240, damageScale: .9 },
+  { count: 1, spread: .18, interval: 5.2, speed: 250, damageScale: .95 },
+  { count: 1, spread: 0, interval: 5.2, speed: 250, damageScale: .95 },
+  { count: 1, spread: .14, interval: 4.8, speed: 260, damageScale: .98 },
+  { count: 2, spread: .24, interval: 4.4, speed: 275, damageScale: 1.0 },
+  { count: 2, spread: .32, interval: 4.0, speed: 290, damageScale: 1.04 },
+  { count: 3, spread: .42, interval: 3.7, speed: 305, damageScale: 1.06 },
+  { count: 3, spread: .52, interval: 3.4, speed: 320, damageScale: 1.08 },
+  { count: 4, spread: .65, interval: 3.1, speed: 335, damageScale: 1.12 },
 ]
 // 第 7 关起 Boss 拥有贯穿类和主题专属技能，二者交替使用。
-const BOSS_SPECIAL_COOLDOWNS = [0, 0, 0, 0, 0, 0, 8.2, 7.6, 7.0, 6.4]
+const BOSS_SPECIAL_COOLDOWNS = [0, 0, 0, 0, 0, 0, 6.4, 5.9, 5.4, 4.9]
 const BOSS_SPECIAL_NAMES: Array<{ pierce: string; exclusive: string } | null> = [
   null,
   null,
@@ -448,7 +448,7 @@ const STAGE_BACKGROUNDS: BackgroundTheme[] = [
   { skyTop: '#2b2a1e', skyMid: '#5f5a3c', skyLow: '#b4a06a', far: '#433d2b', near: '#5d563a', ground: '#2f2c21', line: '#c9b273', orb: '#fff1b0', accent: '#ffe28a' },
   { skyTop: '#0f1020', skyMid: '#24274a', skyLow: '#4a4f80', far: '#1b1d38', near: '#292d56', ground: '#171a2a', line: '#6f76b8', orb: '#dcd2ff', accent: '#b8a4f4' },
 ]
-function bossDashConfig(stage: number) { return { cooldown: Math.max(2.7, 4.7 - stage * .18), speed: 300 + stage * 18 } }
+function bossDashConfig(stage: number) { return { cooldown: Math.max(2.1, (4.7 - stage * .18) * .72), speed: 300 + stage * 18 } }
 const app = document.querySelector<HTMLDivElement>('#app')!
 const world = { width: 960, height: 480, floor: 390 }
 let game: Save | null = null
@@ -744,6 +744,14 @@ function normalizeSave(data: Save): Save {
   data.fashionId ??= null
   data.mailClaimed = Boolean(data.mailClaimed)
   data.redeemedCodes = Array.isArray(data.redeemedCodes) ? data.redeemedCodes.filter((code): code is string => typeof code === 'string') : []
+  const cd = data.combatData ?? { attacks: 0, skills: 0, defends: 0, skillUses: [0, 0, 0, 0], stages: [] }
+  data.combatData = {
+    attacks: Math.max(0, Math.floor(Number(cd.attacks) || 0)),
+    skills: Math.max(0, Math.floor(Number(cd.skills) || 0)),
+    defends: Math.max(0, Math.floor(Number(cd.defends) || 0)),
+    skillUses: Array.from({ length: 4 }, (_, i) => Math.max(0, Math.floor(Number(cd.skillUses?.[i]) || 0))),
+    stages: Array.isArray(cd.stages) ? [...new Set(cd.stages.map((n) => Math.floor(Number(n))).filter((n) => n >= 1 && n <= 10))] : [],
+  }
   // 限时时装到期后直接从背包移除，装备引用会在下方自动清空。
   data.gear = data.gear.filter((gear) => !isGearExpired(gear))
   if (data.weapon2Id && (data.weapon2Id === data.weaponId || !data.gear.some((gear) => gear.id === data.weapon2Id && gear.type === 'weapon'))) data.weapon2Id = null
@@ -995,6 +1003,17 @@ function triggerDemoHiddenUltimate() {
   playSfx('victory')
   shieldLocked = false
   syncHud()
+}
+function recordCombatAction(kind: 'attack' | 'defend' | 'skill', skillIndex = -1) {
+  if (!game) return
+  const data = game.combatData
+  if (!data) return
+  if (kind === 'attack') data.attacks += 1
+  else if (kind === 'defend') data.defends += 1
+  if (kind === 'skill') {
+    data.skills += 1
+    if (skillIndex >= 0 && skillIndex < 4) data.skillUses[skillIndex] = (data.skillUses[skillIndex] ?? 0) + 1
+  }
 }
 function hiddenUltimateColor(kind: SkillSetKey | null) {
   if (kind === 'bow') return '#c8f0a0'
@@ -1438,7 +1457,7 @@ function beginTutorial() {
 }
 function spawnMirror(): Foe {
   const mirrorRole = game ? OTHER_ROLE[game.role] : 'mage'
-  return { id: nextFoeId++, x: Math.min(BASE_MAP_WIDTH - 120, heroX + 320), hp: HIDDEN_CONFIG.bossHp, maxHp: HIDDEN_CONFIG.bossHp, boss: true, mirror: true, mirrorRole, mp: HIDDEN_CONFIG.mp, timer: 1.3, skillTimer: 999, rangedTimer: 999, flash: 0, attackAnim: 0, stunTimer: 0, mirrorSkillTimer: 2.8, mirrorSkill: -1, mirrorSwapTimer: 9 }
+  return { id: nextFoeId++, x: Math.min(BASE_MAP_WIDTH - 120, heroX + 320), hp: HIDDEN_CONFIG.bossHp, maxHp: HIDDEN_CONFIG.bossHp, boss: true, mirror: true, mirrorRole, mp: HIDDEN_CONFIG.mp, timer: 1.3, skillTimer: 999, rangedTimer: 999, flash: 0, attackAnim: 0, stunTimer: 0, mirrorSkillTimer: 2.8, mirrorSkill: -1, mirrorSwapTimer: 30, mirrorGuardCd: 8 + Math.random() * 3, mirrorBoltTimer: 1.2 }
 }
 function beginHiddenBattle() {
   if (!game) return
@@ -1515,6 +1534,28 @@ function executeMirrorSkill(foe: Foe, skill: number) {
     }
   }
 }
+function rivalGuardInterval() {
+  const data = game?.combatData
+  const defends = data?.defends ?? 0
+  const total = (data?.attacks ?? 0) + (data?.skills ?? 0) + defends
+  const ratio = total > 0 ? defends / total : .1
+  return Math.max(6.5, 12 - ratio * 18)
+}
+function rivalSkillInterval() {
+  const data = game?.combatData
+  const attacks = data?.attacks ?? 0
+  const skills = data?.skills ?? 0
+  const ratio = skills / Math.max(1, attacks + skills)
+  return Math.max(2.4, 4.2 - ratio * 1.6) + Math.random() * .8
+}
+function pickRivalSkill(foe: Foe) {
+  const uses = game?.combatData?.skillUses ?? [0, 0, 0, 0]
+  const total = uses.reduce((sum, count) => sum + count, 0)
+  if (total < 4) return ((foe.mirrorSkill ?? -1) + 1) % 4
+  let roll = Math.random() * total
+  for (let index = 0; index < 4; index += 1) { roll -= uses[index]; if (roll <= 0) return index }
+  return 3
+}
 function updateMirrorFoe(foe: Foe, dt: number, distance: number, direction: number) {
   if (!game) return
   foe.mp = Math.min(HIDDEN_CONFIG.mp, (foe.mp ?? 0) + dt * 4)
@@ -1542,18 +1583,20 @@ function updateMirrorFoe(foe: Foe, dt: number, distance: number, direction: numb
       foe.mirrorSkillTimer = 1.4
       foe.mirrorWindup = undefined
       foe.mp = HIDDEN_CONFIG.mp
+      foe.mirrorBoltTimer = .8
+      foe.mirrorGuardCd = Math.max(foe.mirrorGuardCd ?? 0, 6)
       foe.flash = .2; foe.attackAnim = .3
       const weapon = foe.mirrorRole === 'warrior' ? '长剑' : '法杖'
       setLog(`宿敌换上了${weapon}，技能组随之更换！`)
       effects.push({ kind: 'mirror-charge', x: foe.x, y: world.floor - 88, direction, life: .5, duration: .5, color: '#ffe08a', text: `换装 · ${weapon}` })
-      addSparks(foe.x, world.floor - 70, 22, ['#ffe08a', '#fff4c4', '#ffffff'], 190)
+      addSparks(foe.x, world.floor - 70, 14, ['#ffe08a', '#fff4c4', '#ffffff'], 170)
       playSfx('boss')
     }
     return
   }
-  foe.mirrorSwapTimer = Math.max(0, (foe.mirrorSwapTimer ?? 9) - dt)
+  foe.mirrorSwapTimer = Math.max(0, (foe.mirrorSwapTimer ?? 30) - dt)
   if (foe.mirrorSwapTimer <= 0) {
-    foe.mirrorSwapTimer = 13 + Math.random() * 4
+    foe.mirrorSwapTimer = 30 + Math.random() * 10
     foe.mirrorSwitch = 2.5
     foe.mirrorNextRole = foe.mirrorRole === 'warrior' ? 'mage' : 'warrior'
     foe.mirrorWindup = undefined
@@ -1561,6 +1604,21 @@ function updateMirrorFoe(foe: Foe, dt: number, distance: number, direction: numb
     effects.push({ kind: 'mirror-charge', x: foe.x, y: world.floor - 88, direction, life: .8, duration: .8, color: '#ffe08a', text: '更换武器' })
     addSparks(foe.x, world.floor - 74, 10, ['#ffe08a', '#fff4c4'], 90)
     playSfx('boss')
+    return
+  }
+  // 宿敌防御：举盾约 1.1 秒，期间停止行动并大幅减伤。
+  foe.mirrorGuardCd = Math.max(0, (foe.mirrorGuardCd ?? 8) - dt)
+  if ((foe.mirrorGuard ?? 0) > 0) {
+    foe.mirrorGuard = Math.max(0, (foe.mirrorGuard ?? 0) - dt)
+    foe.attackAnim = 0
+    return
+  }
+  if (foe.mirrorGuardCd <= 0 && foe.mirrorWindup === undefined) {
+    foe.mirrorGuard = 1.1
+    foe.mirrorGuardCd = rivalGuardInterval() + Math.random() * 2
+    addSparks(foe.x, world.floor - 66, 12, ['#c9d8ff', '#ffffff'], 140)
+    setLog('宿敌举盾防御。')
+    playSfx('ui')
     return
   }
   if (foe.mirrorWindup !== undefined) {
@@ -1576,29 +1634,37 @@ function updateMirrorFoe(foe: Foe, dt: number, distance: number, direction: numb
   const speed = foe.mirrorRole === 'mage' ? 95 : 120
   if (Math.abs(distance) > (foe.mirrorRole === 'mage' ? 210 : 120)) foe.x = clampFoeX(foe.x + direction * speed * dt)
   else if (foe.mirrorRole === 'mage' && Math.abs(distance) < 105) foe.x = clampFoeX(foe.x - direction * 80 * dt)
+  // 法师宿敌的普通攻击：远程奥术弹。
+  foe.mirrorBoltTimer = Math.max(0, (foe.mirrorBoltTimer ?? 1) - dt)
+  if (foe.mirrorRole === 'mage' && foe.mirrorBoltTimer <= 0 && Math.abs(distance) > 110 && Math.abs(distance) < 560) {
+    fireShotFan(foe.x, world.floor - 78, heroX, 1, 0, 330, HIDDEN_CONFIG.bossAtk * .5, '#c9a7e8', 6)
+    foe.mirrorBoltTimer = .85 + Math.random() * .3
+    foe.attackAnim = .22
+    playSfx('magic')
+  }
   foe.timer -= dt
-  if (foe.timer <= 0 && Math.abs(heroX - foe.x) < 125) {
+  if (foe.timer <= 0 && Math.abs(heroX - foe.x) < 132) {
     hurtPlayer(HIDDEN_CONFIG.bossAtk * .35, 4)
-    foe.timer = 1.15
+    foe.timer = .9
     foe.attackAnim = .3
     addFx('enemy-swipe', heroX, world.floor - 52 + heroY, -direction, .35)
   }
   foe.mirrorSkillTimer = Math.max(0, (foe.mirrorSkillTimer ?? 0) - dt)
   if (foe.mirrorSkillTimer <= 0 && Math.abs(distance) < 560) {
     const role = foe.mirrorRole ?? 'mage'
-    let skill = ((foe.mirrorSkill ?? -1) + 1) % 4
+    let skill = pickRivalSkill(foe)
     const mirrorSet = role === 'warrior' ? 'sword' : 'staff'
     let cost = SKILL_COSTS[mirrorSet][skill]
     if ((foe.mp ?? 0) < cost) { skill = 0; cost = SKILL_COSTS[mirrorSet][0] }
     if ((foe.mp ?? 0) >= cost) {
       foe.mp = Math.max(0, (foe.mp ?? 0) - cost)
       foe.mirrorSkill = skill
-      foe.mirrorWindup = .5
-      foe.mirrorSkillTimer = 3.6 + Math.random() * 1.2
+      foe.mirrorWindup = .45
+      foe.mirrorSkillTimer = rivalSkillInterval()
       foe.flash = .18; foe.attackAnim = .4
       const color = '#c9a7e8'
       effects.push({ kind: 'mirror-charge', x: foe.x, y: world.floor - 86, direction, life: .5, duration: .5, color, text: SKILL_LABELS[role === 'warrior' ? 'sword' : 'staff'][skill] })
-      addSparks(foe.x, world.floor - 80, 8, [color, '#ffffff'], 100)
+      addSparks(foe.x, world.floor - 80, 5, [color, '#ffffff'], 90)
       setLog(`宿敌正在蓄力「${SKILL_LABELS[role === 'warrior' ? 'sword' : 'staff'][skill]}」...`)
       playSfx('boss')
     } else {
@@ -1660,7 +1726,7 @@ function start(role: Role, previous?: Save) {
 }
 function freshSave(role: Role): Save {
   const base = ROLE_BASE[role]
-  return { role, stage: 1, unlockedStage: 1, kills: 0, hp: base.hp, mp: base.mp, gear: [], equipped: null, weaponId: null, weapon2Id: null, armorId: null, armor2Id: null, fashionId: null, extraSlot: 'weapon', level: 1, exp: 0, drops: [], bossDefeated: false, attributePoints: 0, attributeAllocation: { hp: 0, attack: 0, mp: 0, defense: 0 }, soul: 0, normalTalent: 0, normalTalentLevels: [0, 0, 0, 0], advancedTalent: 0, advancedTalentLevel: 0, talentFragments: 0, talentCoins: 0, lotteryChances: 0, shopFashionBought: false, reviveCoins: 0, reviveUsed: false, fragmentBuyDay: '', reviveBuyAt: 0, freeReviveDay: '', materials: {}, stones: [0, 0, 0, 0, 0], enhance: { weapon: 0, armor: 0, armor2: 0, weapon2: 0, failWeapon: 0, failArmor: 0, failArmor2: 0, failWeapon2: 0 }, nightmareCleared: [], nightmareDay: '', nightmareAttempts: 0, stamps: 0, tutorialDone: false, hiddenCleared: false, rivalTrust: false, stage8Choice: null, rescuedRock: false, rescuedXiaoman: false, rescuedZhou: false, seenStories: [], forgeIntroSeen: false, shopIntroSeen: false, lotteryIntroSeen: false, townIntroSeen: false, mainQuestsClaimed: [], sideQuest: null, sideQuestDay: '', skillLevels: {}, gems: [], punchStones: 0, punchBuyAt: 0, horns: 0, hornBuyAt: 0, hornBuff: null, hornBuffUntil: 0, mailClaimed: false, redeemedCodes: [], town: true, completed: false, dead: false }
+  return { role, stage: 1, unlockedStage: 1, kills: 0, hp: base.hp, mp: base.mp, gear: [], equipped: null, weaponId: null, weapon2Id: null, armorId: null, armor2Id: null, fashionId: null, extraSlot: 'weapon', level: 1, exp: 0, drops: [], bossDefeated: false, attributePoints: 0, attributeAllocation: { hp: 0, attack: 0, mp: 0, defense: 0 }, soul: 0, normalTalent: 0, normalTalentLevels: [0, 0, 0, 0], advancedTalent: 0, advancedTalentLevel: 0, talentFragments: 0, talentCoins: 0, lotteryChances: 0, shopFashionBought: false, reviveCoins: 0, reviveUsed: false, fragmentBuyDay: '', reviveBuyAt: 0, freeReviveDay: '', materials: {}, stones: [0, 0, 0, 0, 0], enhance: { weapon: 0, armor: 0, armor2: 0, weapon2: 0, failWeapon: 0, failArmor: 0, failArmor2: 0, failWeapon2: 0 }, nightmareCleared: [], nightmareDay: '', nightmareAttempts: 0, stamps: 0, tutorialDone: false, hiddenCleared: false, rivalTrust: false, stage8Choice: null, rescuedRock: false, rescuedXiaoman: false, rescuedZhou: false, seenStories: [], forgeIntroSeen: false, shopIntroSeen: false, lotteryIntroSeen: false, townIntroSeen: false, mainQuestsClaimed: [], sideQuest: null, sideQuestDay: '', skillLevels: {}, gems: [], punchStones: 0, punchBuyAt: 0, horns: 0, hornBuyAt: 0, hornBuff: null, hornBuffUntil: 0, mailClaimed: false, redeemedCodes: [], combatData: { attacks: 0, skills: 0, defends: 0, skillUses: [0, 0, 0, 0], stages: [] }, town: true, completed: false, dead: false }
 }
 function awardExperience(amount: number) {
   if (!game) return
@@ -4369,7 +4435,9 @@ function strike(target: Foe, damage: number, label: string, fromClone = false) {
   // 宿敌换武器前摇期间金光护体，但受到伤害增加 10%；Boss 霸体期间减伤 10%。
   const switchExposed = Boolean(target.mirror && (target.mirrorSwitch ?? 0) > 0)
   const superArmorMitigation = (target.superArmor ?? 0) > 0 ? .9 : 1
-  const dealt = Math.max(1, Math.round(damage * (switchExposed ? 1.1 : 1) * superArmorMitigation))
+  // 宿敌举盾时只承受 35% 伤害。
+  const guardMitigation = (target.mirror && (target.mirrorGuard ?? 0) > 0) ? .35 : 1
+  const dealt = Math.max(1, Math.round(damage * (switchExposed ? 1.1 : 1) * superArmorMitigation * guardMitigation))
   target.hp -= dealt; target.flash = .18
   applyStagger(target)
   addComboHit()
@@ -4487,6 +4555,7 @@ function attack() {
   lastAttackPress = performance.now()
   // 按住防御时不能普通攻击（隐藏必杀仍会读取这次按键时间）。
   if (shieldActive || keys.has('l')) return
+  recordCombatAction('attack')
   const mode = activeSkillSet()
   attackWait = .42; attackSwing = .32
   const nearest = [...foes].sort((a, b) => Math.abs(a.x - heroX) - Math.abs(b.x - heroX))[0]
@@ -4718,6 +4787,7 @@ function cast(index: number) {
   if (skillSet === 'bow' && index === 0) {
     if (bowCharging) return
     if (!spend(skillCostFor(0, 'bow'))) return
+    recordCombatAction('skill', 0)
     startBowCharge('skill1')
     syncHud(); save(); return
   }
@@ -4725,6 +4795,7 @@ function cast(index: number) {
   if (skillWait[index] > 0) { toast('技能还在冷却中。'); return }
   const cost = skillCostFor(index, skillSet) * (cloneTimer > 0 ? 1.5 : 1)
   if (!spend(Math.ceil(cost))) return
+  recordCombatAction('skill', index)
   skillWait[index] = SKILL_COOLDOWNS[index]
   attackSwing = .32
   playSkillSfx(game.role, index)
@@ -4998,6 +5069,8 @@ function defeatFoe(target: Foe) {
     const clearedProgress = game.stageProgress[String(clearedStage)]
     const wasFirstClear = !clearedProgress?.bossDefeated
     game.stageProgress[String(clearedStage)] = { kills: game.kills, bossDefeated: true, pointsClaimed: clearedProgress?.pointsClaimed ?? 0 }
+    // 记录已战斗过的遗迹，宿敌会据此调整战斗方式。
+    if (game.combatData && !game.combatData.stages.includes(clearedStage)) game.combatData.stages.push(clearedStage)
     // 支线任务：通关所选关卡时累计次数。
     if (game.sideQuest && game.sideQuest.stage === clearedStage) {
       game.sideQuest.clears = Math.min(2, game.sideQuest.clears + 1)
@@ -5844,6 +5917,7 @@ app.addEventListener('pointerdown', (event) => {
   if (shieldButton && !shieldButton.disabled) {
     event.preventDefault()
     keys.add('l')
+    if (game && scene === 'battle' && game.mp < 10 && !shieldActive) toast('法力不足，开启护盾需要 10 点法力。')
     touchPointers.set(event.pointerId, 'l')
   }
   // 手机端攻击、跳跃、技能与 S：在按下瞬间执行，支持一边移动一边攻击/跳跃。
@@ -6012,6 +6086,7 @@ window.addEventListener('keydown', (event) => {
     return
   }
   keys.add(key)
+  if (key === 'l' && !event.repeat && scene === 'battle' && game && game.mp < 10 && !shieldActive) toast('法力不足，开启护盾需要 10 点法力。')
   if (!event.repeat) {
     if (key === keyBinds.left || key === 'arrowleft') noteMoveTap(-1)
     else if (key === keyBinds.right || key === 'arrowright') noteMoveTap(1)
@@ -6240,7 +6315,17 @@ function update(dt: number) {
       if (bossChest.opening <= 0) { openBossChest(); return }
     }
     updateSkillObjects(dt)
-    const holdingShield = keys.has('l') && !shieldLocked && !bossVictory && game.mp > 0
+    // 护盾：按下时消耗 10 点法力，持续期间每秒再消耗 3 点。
+    const wantsShield = keys.has('l') && !shieldLocked && !bossVictory
+    let holdingShield = false
+    if (wantsShield && (shieldActive || game.mp >= 10)) {
+      if (!shieldActive) {
+        game.mp -= 10
+        recordCombatAction('defend')
+        addSparks(heroX + facing * 42, world.floor - 50 + heroY, 10, [weaponFxColor(), '#ffffff'], 160)
+      }
+      holdingShield = true
+    }
     shieldActive = holdingShield
     if (holdingShield) {
       game.mp = Math.max(0, game.mp - dt * 3)
@@ -6604,6 +6689,8 @@ function update(dt: number) {
     fx.vy = (fx.vy ?? 0) + 420 * dt
   }
   effects = effects.filter((fx) => (fx.life -= dt) > 0)
+  // 限制同时存在的特效数量，避免长时间战斗或隐藏关卡掉帧。
+  if (effects.length > 160) effects.splice(0, effects.length - 160)
   noticeTime = Math.max(0, noticeTime - dt)
 }
 function sceneBackground() {
@@ -7157,7 +7244,7 @@ function drawSwordDrawArc(c: CanvasRenderingContext2D, tint: { light: string; da
   c.beginPath(); c.arc(-16, -22, 26 + progress * 16, 2.1, -.15); c.stroke()
   c.restore()
 }
-function drawWarriorHero(c: CanvasRenderingContext2D, now: number, walk: number) {
+function drawWarriorHero(c: CanvasRenderingContext2D, now: number, walk: number, plain = false) {
   const capeWave = Math.sin(now / 260) * 3
   const weaponLevel = equippedLevel('weapon')
   const armorLevel = equippedLevel('armor')
@@ -7165,8 +7252,8 @@ function drawWarriorHero(c: CanvasRenderingContext2D, now: number, walk: number)
   const bladeTint = weaponPalette(weaponLevel)
   const plate = armorPalette(armorLevel)
   const fashion = fashionPalette(fashionTier)
-  // 时装的柔光轮廓
-  if (fashion) {
+  // 时装的柔光轮廓（宿敌使用简化模型，跳过时装粒子）
+  if (fashion && !plain) {
     c.save(); c.globalAlpha = .2; c.fillStyle = fashion.trim
     c.beginPath(); c.ellipse(0, -42, 30, 48, 0, 0, Math.PI * 2); c.fill(); c.restore()
     drawFashionBack(c, fashionTier, fashion, now)
@@ -7183,12 +7270,12 @@ function drawWarriorHero(c: CanvasRenderingContext2D, now: number, walk: number)
   c.fillStyle = 'rgba(255, 232, 176, .14)'; c.beginPath(); c.moveTo(-10, -58); c.quadraticCurveTo(-24, -34, -21 + capeWave, -12); c.lineTo(-13, -16); c.closePath(); c.fill()
   if (fashion) { c.strokeStyle = fashion.trim; c.globalAlpha = .7; c.lineWidth = 1; c.stroke(); c.globalAlpha = 1 }
   // 三阶起披风分叉；四阶起叠加飘带。
-  if (fashion && fashionTier >= 3) {
+  if (fashion && fashionTier >= 3 && !plain) {
     c.save(); c.globalAlpha = .55; c.fillStyle = fashion.bottom
     c.beginPath(); c.moveTo(6, -60); c.quadraticCurveTo(30, -42, 24 + capeWave * .6, -8); c.lineTo(10, -14); c.closePath(); c.fill()
     c.strokeStyle = fashion.trim; c.lineWidth = 1.1; c.stroke(); c.restore()
   }
-  if (fashion && fashionTier >= 4) {
+  if (fashion && fashionTier >= 4 && !plain) {
     c.save(); c.strokeStyle = fashion.trim; c.lineWidth = 1.2; c.globalAlpha = .5
     for (let ribbon = 0; ribbon < 3; ribbon += 1) {
       const offset = ribbon * 8
@@ -7197,7 +7284,7 @@ function drawWarriorHero(c: CanvasRenderingContext2D, now: number, walk: number)
     c.restore()
   }
   // 双持专精：背后的副武器
-  if (dualWieldUnlocked() && game?.weapon2Id) {
+  if (!plain && dualWieldUnlocked() && game?.weapon2Id) {
     c.save(); c.translate(-16, -44); c.rotate(.75)
     c.fillStyle = '#c6a967'; c.fillRect(-2, -2, 4, 11)
     c.fillStyle = bladeTint.dark; c.beginPath(); c.moveTo(0, -4); c.lineTo(4, -48); c.lineTo(8, -4); c.closePath(); c.fill()
@@ -7247,7 +7334,7 @@ function drawWarriorHero(c: CanvasRenderingContext2D, now: number, walk: number)
   c.fillStyle = '#7e2f2a'; c.beginPath(); c.moveTo(-8, -93); c.quadraticCurveTo(-10, -103, -2, -100); c.quadraticCurveTo(-4, -97, -8, -93); c.fill()
   c.fillStyle = '#d4543f'; c.beginPath(); c.moveTo(4, -96); c.quadraticCurveTo(10, -105, 12, -97); c.quadraticCurveTo(8, -99, 4, -96); c.fill()
   c.fillStyle = '#e3c985'; c.fillRect(-13, -88, 26, 2)
-  if (fashion) drawFashionFront(c, fashionTier, fashion, now)
+  if (fashion && !plain) drawFashionFront(c, fashionTier, fashion, now)
   // 剑类平时收在剑鞘里，攻击或施放技能时才会拔出。
   const swordStyle = weaponStyle()
   const usesScabbard = swordStyle === 'sword' || swordStyle === 'blade'
@@ -7286,7 +7373,7 @@ function drawWarriorHero(c: CanvasRenderingContext2D, now: number, walk: number)
   for (const x of [13, 21, 29, 37]) c.fillRect(x, -1, 4, 1)
   c.restore()
 }
-function drawMageHero(c: CanvasRenderingContext2D, now: number, walk: number) {
+function drawMageHero(c: CanvasRenderingContext2D, now: number, walk: number, plain = false) {
   const pulse = .7 + Math.sin(now / 260) * .3
   const wave = Math.sin(now / 220) * 2
   const weaponLevel = equippedLevel('weapon')
@@ -7296,7 +7383,7 @@ function drawMageHero(c: CanvasRenderingContext2D, now: number, walk: number) {
   const robeTint = robePalette(armorLevel)
   const gem = orbColor(weaponLevel)
   const trim = fashion?.trim ?? '#c9b273'
-  if (fashion) {
+  if (fashion && !plain) {
     c.save(); c.globalAlpha = .2; c.fillStyle = fashion.trim
     c.beginPath(); c.ellipse(0, -44, 28, 46, 0, 0, Math.PI * 2); c.fill(); c.restore()
     drawFashionBack(c, fashionTier, fashion, now)
@@ -7308,12 +7395,12 @@ function drawMageHero(c: CanvasRenderingContext2D, now: number, walk: number) {
   c.strokeStyle = 'rgba(8, 20, 18, .62)'; c.lineWidth = 1.3; c.stroke()
   c.fillStyle = 'rgba(197, 255, 232, .12)'; c.beginPath(); c.moveTo(-10, -58); c.quadraticCurveTo(-21, -32, -19 + wave, -12); c.lineTo(-11, -16); c.closePath(); c.fill()
   if (fashion) { c.strokeStyle = fashion.trim; c.globalAlpha = .7; c.lineWidth = 1; c.stroke(); c.globalAlpha = 1 }
-  if (fashion && fashionTier >= 3) {
+  if (fashion && fashionTier >= 3 && !plain) {
     c.save(); c.globalAlpha = .55; c.fillStyle = fashion.bottom
     c.beginPath(); c.moveTo(6, -60); c.quadraticCurveTo(28, -40, 22 + wave * .6, -8); c.lineTo(9, -14); c.closePath(); c.fill()
     c.strokeStyle = fashion.trim; c.lineWidth = 1.1; c.stroke(); c.restore()
   }
-  if (fashion && fashionTier >= 4) {
+  if (fashion && fashionTier >= 4 && !plain) {
     c.save(); c.strokeStyle = fashion.trim; c.lineWidth = 1.2; c.globalAlpha = .5
     for (let ribbon = 0; ribbon < 3; ribbon += 1) {
       const offset = ribbon * 8
@@ -7361,7 +7448,7 @@ function drawMageHero(c: CanvasRenderingContext2D, now: number, walk: number) {
   c.strokeStyle = `${gem}cc`; c.lineWidth = 1.2; c.beginPath(); c.arc(0, 0, 8, 0, Math.PI * 2); c.stroke()
   c.fillStyle = gem; c.beginPath(); c.moveTo(0, -9); c.lineTo(2.4, 0); c.lineTo(0, 9); c.lineTo(-2.4, 0); c.closePath(); c.fill()
   c.restore()
-  if (fashion) drawFashionFront(c, fashionTier, fashion, now)
+  if (fashion && !plain) drawFashionFront(c, fashionTier, fashion, now)
   // 魔法书
   if (weaponStyle() === 'book') {
     c.save(); c.translate(18, -38 + Math.sin(now / 420) * 2); c.rotate(-.12)
@@ -7449,6 +7536,16 @@ function drawFoe(c: CanvasRenderingContext2D, foe: Foe) {
     aura.addColorStop(0, 'rgba(255, 255, 255, 0)'); aura.addColorStop(.7, `${theme.glow}22`); aura.addColorStop(1, 'rgba(255, 255, 255, 0)')
     c.save(); c.fillStyle = aura; c.beginPath(); c.arc(foe.x, world.floor - 52, 92, 0, Math.PI * 2); c.fill(); c.restore()
   }
+  // 宿敌举盾防御：淡蓝色护罩。
+  if (foe.mirror && (foe.mirrorGuard ?? 0) > 0) {
+    c.save()
+    c.strokeStyle = 'rgba(190, 214, 255, .9)'; c.lineWidth = 3; c.shadowColor = '#9fc4ff'; c.shadowBlur = 18
+    c.globalAlpha = .9
+    c.beginPath(); c.ellipse(foe.x, world.floor - 62, 44, 68, 0, 0, Math.PI * 2); c.stroke()
+    c.globalAlpha = .22; c.fillStyle = '#bcd4ff'
+    c.beginPath(); c.ellipse(foe.x, world.floor - 62, 42, 66, 0, 0, Math.PI * 2); c.fill()
+    c.restore()
+  }
   // 宿敌更换武器前摇：全身散发金光，并显示即将换上的武器。
   if (foe.mirror && (foe.mirrorSwitch ?? 0) > 0) {
     const gold = c.createRadialGradient(foe.x, world.floor - 60, 6, foe.x, world.floor - 60, 92)
@@ -7469,8 +7566,8 @@ function drawFoe(c: CanvasRenderingContext2D, foe: Foe) {
     c.shadowColor = (foe.mirrorSwitch ?? 0) > 0 ? '#ffe08a' : '#c9a7e8'
     c.shadowBlur = (foe.mirrorSwitch ?? 0) > 0 ? 30 : 16
     c.globalAlpha = .95
-    if (foe.mirrorRole === 'mage') drawMageHero(c, now, 0)
-    else drawWarriorHero(c, now, 0)
+    if (foe.mirrorRole === 'mage') drawMageHero(c, now, 0, true)
+    else drawWarriorHero(c, now, 0, true)
     c.restore()
   } else if (foe.boss) drawBossModel(c, index, theme)
   else drawMobModel(c, index, theme)
