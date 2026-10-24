@@ -33,7 +33,7 @@ type BattlePlatform = { x: number; w: number; height: number; kind: 'tree' | 'ro
 const SAVE_KEY = 'elemental-expedition-save-v2'
 const DEMO_MODE = import.meta.env.MODE === 'demo'
 const DEMO_SAVE_KEY = `${SAVE_KEY}:demo`
-const GAME_VERSION = '1.89'
+const GAME_VERSION = '1.90'
 const stageNames = ['苔痕边境', '沉钟矿道', '赤岩峡谷', '风蚀高原', '幽蓝沼泽', '断星回廊', '灰烬王庭', '深渊裂谷', '苍白圣所', '终焉之门']
 const roleLabels: Record<Role, string> = { warrior: '战士', mage: '法师' }
 const SKILL_LABELS: Record<SkillSetKey, string[]> = {
@@ -1539,14 +1539,14 @@ function rivalGuardInterval() {
   const defends = data?.defends ?? 0
   const total = (data?.attacks ?? 0) + (data?.skills ?? 0) + defends
   const ratio = total > 0 ? defends / total : .1
-  return Math.max(6.5, 12 - ratio * 18)
+  return Math.max(8, 15 - ratio * 15)
 }
 function rivalSkillInterval() {
   const data = game?.combatData
   const attacks = data?.attacks ?? 0
   const skills = data?.skills ?? 0
   const ratio = skills / Math.max(1, attacks + skills)
-  return Math.max(2.4, 4.2 - ratio * 1.6) + Math.random() * .8
+  return Math.max(1.8, 3.2 - ratio * 1.2) + Math.random() * .6
 }
 function pickRivalSkill(foe: Foe) {
   const uses = game?.combatData?.skillUses ?? [0, 0, 0, 0]
@@ -1614,7 +1614,7 @@ function updateMirrorFoe(foe: Foe, dt: number, distance: number, direction: numb
     return
   }
   if (foe.mirrorGuardCd <= 0 && foe.mirrorWindup === undefined) {
-    foe.mirrorGuard = 1.1
+    foe.mirrorGuard = .9
     foe.mirrorGuardCd = rivalGuardInterval() + Math.random() * 2
     addSparks(foe.x, world.floor - 66, 12, ['#c9d8ff', '#ffffff'], 140)
     setLog('宿敌举盾防御。')
@@ -1627,25 +1627,27 @@ function updateMirrorFoe(foe: Foe, dt: number, distance: number, direction: numb
       const skill = foe.mirrorSkill ?? 0
       foe.mirrorWindup = undefined
       executeMirrorSkill(foe, skill)
+      if (foe.mirrorRole === 'mage') foe.mirrorBoltTimer = Math.min(foe.mirrorBoltTimer ?? 1, .35)
+      else foe.timer = Math.min(foe.timer, .4)
       foe.attackAnim = .35
     }
     return
   }
-  const speed = foe.mirrorRole === 'mage' ? 95 : 120
+  const speed = foe.mirrorRole === 'mage' ? 120 : 155
   if (Math.abs(distance) > (foe.mirrorRole === 'mage' ? 210 : 120)) foe.x = clampFoeX(foe.x + direction * speed * dt)
   else if (foe.mirrorRole === 'mage' && Math.abs(distance) < 105) foe.x = clampFoeX(foe.x - direction * 80 * dt)
   // 法师宿敌的普通攻击：远程奥术弹。
   foe.mirrorBoltTimer = Math.max(0, (foe.mirrorBoltTimer ?? 1) - dt)
   if (foe.mirrorRole === 'mage' && foe.mirrorBoltTimer <= 0 && Math.abs(distance) > 110 && Math.abs(distance) < 560) {
     fireShotFan(foe.x, world.floor - 78, heroX, 1, 0, 330, HIDDEN_CONFIG.bossAtk * .5, '#c9a7e8', 6)
-    foe.mirrorBoltTimer = .85 + Math.random() * .3
+    foe.mirrorBoltTimer = .55 + Math.random() * .25
     foe.attackAnim = .22
     playSfx('magic')
   }
   foe.timer -= dt
-  if (foe.timer <= 0 && Math.abs(heroX - foe.x) < 132) {
+  if (foe.timer <= 0 && Math.abs(heroX - foe.x) < 140) {
     hurtPlayer(HIDDEN_CONFIG.bossAtk * .35, 4)
-    foe.timer = .9
+    foe.timer = .65
     foe.attackAnim = .3
     addFx('enemy-swipe', heroX, world.floor - 52 + heroY, -direction, .35)
   }
@@ -1659,7 +1661,7 @@ function updateMirrorFoe(foe: Foe, dt: number, distance: number, direction: numb
     if ((foe.mp ?? 0) >= cost) {
       foe.mp = Math.max(0, (foe.mp ?? 0) - cost)
       foe.mirrorSkill = skill
-      foe.mirrorWindup = .45
+      foe.mirrorWindup = .35
       foe.mirrorSkillTimer = rivalSkillInterval()
       foe.flash = .18; foe.attackAnim = .4
       const color = '#c9a7e8'
@@ -7514,6 +7516,50 @@ function drawMirrorSwitchHint(c: CanvasRenderingContext2D, foe: Foe, now: number
   c.fillText('更换武器', 0, 34)
   c.restore()
 }
+// 宿敌使用轻量模型绘制，避免与玩家一样的全身装备/时装开销。
+function drawMirrorCombatant(c: CanvasRenderingContext2D, foe: Foe, now: number) {
+  const role = foe.mirrorRole ?? 'mage'
+  const bob = Math.sin(now / 320 + foe.id * 1.7) * 1.4
+  c.save(); c.translate(0, bob)
+  // 披风
+  const cloak = role === 'warrior' ? '#4a3040' : '#3a2d58'
+  c.fillStyle = cloak
+  c.beginPath(); c.moveTo(-10, -64); c.quadraticCurveTo(-31, -40, -25 + Math.sin(now / 260) * 2, -6); c.lineTo(10, -10); c.lineTo(12, -62); c.closePath(); c.fill()
+  // 身体与腰带
+  c.fillStyle = role === 'warrior' ? '#332634' : '#2b2340'
+  c.beginPath(); c.moveTo(-13, -58); c.lineTo(13, -58); c.lineTo(17, -8); c.lineTo(-17, -8); c.closePath(); c.fill()
+  c.fillStyle = '#c9a967'; c.fillRect(-14, -33, 28, 3)
+  // 肩甲
+  c.fillStyle = role === 'warrior' ? '#4d3a4d' : '#3d3358'
+  c.beginPath(); c.ellipse(-14, -56, 7, 5, -.25, 0, Math.PI * 2); c.fill()
+  c.beginPath(); c.ellipse(14, -56, 7, 5, .25, 0, Math.PI * 2); c.fill()
+  // 兜帽与发光眼睛
+  c.fillStyle = '#241c31'
+  c.beginPath(); c.moveTo(-13, -60); c.quadraticCurveTo(-14, -86, 0, -90); c.quadraticCurveTo(14, -86, 13, -60); c.closePath(); c.fill()
+  c.fillStyle = '#0e0b14'; c.beginPath(); c.ellipse(0, -70, 8, 9.5, 0, 0, Math.PI * 2); c.fill()
+  c.fillStyle = '#c9a7e8'; c.fillRect(-5.5, -72, 3.2, 2.2); c.fillRect(2.3, -72, 3.2, 2.2)
+  // 手臂
+  c.fillStyle = role === 'warrior' ? '#3b2b3c' : '#33294c'
+  c.fillRect(-21, -54, 7, 22); c.fillRect(14, -54, 7, 20)
+  // 武器
+  if (role === 'warrior') {
+    c.save(); c.translate(16, -52); c.rotate(-.22)
+    c.fillStyle = '#d1b06a'; c.fillRect(-2, -4, 5, 13)
+    c.fillStyle = '#c6a967'; c.fillRect(-7, -6, 14, 4)
+    const blade = c.createLinearGradient(0, -7, 46, -7)
+    blade.addColorStop(0, '#f1e6c8'); blade.addColorStop(.55, '#c9b273'); blade.addColorStop(1, '#fff4c4')
+    c.fillStyle = blade
+    c.beginPath(); c.moveTo(2, -5); c.lineTo(42, -2); c.lineTo(47, 0); c.lineTo(42, 3); c.lineTo(2, 4); c.closePath(); c.fill()
+    c.restore()
+  } else {
+    c.save(); c.translate(17, -54); c.rotate(.1)
+    c.strokeStyle = '#8a6a42'; c.lineWidth = 3; c.beginPath(); c.moveTo(0, 22); c.lineTo(3, -34); c.stroke()
+    c.fillStyle = '#c9a7e8'; c.beginPath(); c.arc(3, -39, 5, 0, Math.PI * 2); c.fill()
+    c.globalAlpha = .45; c.beginPath(); c.arc(3, -39, 9, 0, Math.PI * 2); c.fill()
+    c.restore()
+  }
+  c.restore()
+}
 function drawFoe(c: CanvasRenderingContext2D, foe: Foe) {
   const theme = currentStageTheme()
   const index = Math.max(0, Math.min(9, (game?.stage ?? 1) - 1))
@@ -7531,7 +7577,7 @@ function drawFoe(c: CanvasRenderingContext2D, foe: Foe) {
     for (let i = 0; i < 2; i++) { c.beginPath(); c.ellipse(foe.x - 10 + i * 20, world.floor - flyHeight + 18, 10, 3, 0, 0, Math.PI * 2); c.stroke() }
     c.restore()
   }
-  if (foe.boss) {
+  if (foe.boss && !foe.mirror) {
     const aura = c.createRadialGradient(foe.x, world.floor - 52, 10, foe.x, world.floor - 52, 92)
     aura.addColorStop(0, 'rgba(255, 255, 255, 0)'); aura.addColorStop(.7, `${theme.glow}22`); aura.addColorStop(1, 'rgba(255, 255, 255, 0)')
     c.save(); c.fillStyle = aura; c.beginPath(); c.arc(foe.x, world.floor - 52, 92, 0, Math.PI * 2); c.fill(); c.restore()
@@ -7564,16 +7610,15 @@ function drawFoe(c: CanvasRenderingContext2D, foe: Foe) {
   else if (foe.mirror) {
     c.save()
     c.shadowColor = (foe.mirrorSwitch ?? 0) > 0 ? '#ffe08a' : '#c9a7e8'
-    c.shadowBlur = (foe.mirrorSwitch ?? 0) > 0 ? 30 : 16
+    c.shadowBlur = (foe.mirrorSwitch ?? 0) > 0 ? 26 : 12
     c.globalAlpha = .95
-    if (foe.mirrorRole === 'mage') drawMageHero(c, now, 0, true)
-    else drawWarriorHero(c, now, 0, true)
+    drawMirrorCombatant(c, foe, now)
     c.restore()
   } else if (foe.boss) drawBossModel(c, index, theme)
   else drawMobModel(c, index, theme)
   c.restore()
   // Boss 周身浮动的能量碎晶，强化压迫感。
-  if (foe.boss && !foe.tutorial) {
+  if (foe.boss && !foe.tutorial && !foe.mirror) {
     c.save(); c.fillStyle = theme.glow; c.shadowColor = theme.glow; c.shadowBlur = 8
     for (let i = 0; i < 5; i++) {
       const angle = now / 1000 + (i * Math.PI * 2) / 5
