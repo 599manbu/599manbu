@@ -1389,3 +1389,58 @@ body { background: #0d1717; }
   .redeem-choices { grid-template-columns: 1fr; }
 }
 .hud-buttons .hud-mail { border-color: rgba(201, 178, 115, .58); color: #eedca6; }
+
+/* ── 1.93 双人选择 / 神圣与黑暗封面 ─────────────────── */
+.mode-picks { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 410px; margin: 0 0 12px; }
+.mode-card { display: flex; align-items: center; gap: 10px; min-height: 62px; padding: 10px 12px; border: 1px solid rgba(198, 202, 175, .19); border-radius: 3px; background: rgba(31, 49, 48, .76); color: #e1e6d6; text-align: left; cursor: pointer; transition: border-color .2s, background .2s, transform .2s; }
+.mode-card:hover:not(:disabled) { transform: translateY(-2px); border-color: #b7b78e; background: #263b37; }
+.mode-card.active { border-color: #e2c57e; background: linear-gradient(135deg, rgba(86, 71, 34, .68), rgba(31, 49, 48, .92)); box-shadow: 0 0 22px rgba(226, 197, 126, .12); }
+.mode-card b { width: 34px; height: 34px; flex: 0 0 auto; display: grid; place-items: center; border: 1px solid rgba(201, 178, 115, .4); border-radius: 50%; color: #e8d7a0; font-size: 17px; }
+.mode-card span { display: grid; gap: 2px; min-width: 0; }
+.mode-card strong { color: #eee9d7; font-size: 13px; font-weight: 600; }
+.mode-card small { color: #96a49c; font-size: 10px; }
+.mode-card:disabled { opacity: .42; cursor: not-allowed; }
+.p2-picks { display: flex; align-items: center; gap: 7px; max-width: 410px; margin: 0 0 12px; color: #aab6a8; font-size: 11px; }
+.p2-picks span { margin-right: 3px; }
+.p2-picks button { min-width: 64px; padding: 7px 12px; border: 1px solid rgba(191, 202, 169, .28); background: rgba(20, 35, 35, .7); color: #d9d5bb; font-size: 11px; cursor: pointer; }
+.p2-picks button.active { border-color: #e2c57e; background: rgba(66, 56, 30, .65); color: #f0d39a; }
+.bag-player-switch { display: inline-flex; gap: 4px; margin-top: 6px; }
+.bag-player-switch button { padding: 3px 11px; border: 1px solid rgba(201, 178, 115, .35); background: transparent; color: #aab6a8; font-size: 10px; cursor: pointer; }
+.bag-player-switch button.active { border-color: #e2c57e; background: rgba(66, 56, 30, .65); color: #f0d39a; }
+/* 封面：左侧神圣金光，右侧黑暗荆棘 */
+.title-art { background: linear-gradient(103deg, #2b3d37 0%, #4d6350 40%, #3b3348 52%, #150e20 72%, #07050c 100%); }
+.sacred-veil, .dark-veil, .sacred-halo, .dark-thorns { position: absolute; pointer-events: none; }
+.sacred-veil { inset: 0 50% 0 0; background: radial-gradient(circle at 24% 32%, rgba(255, 238, 180, .32), transparent 62%); mix-blend-mode: screen; }
+.dark-veil { inset: 0 0 0 50%; background: radial-gradient(circle at 76% 58%, rgba(96, 38, 118, .4), rgba(4, 3, 10, .7) 70%); }
+.sacred-halo { left: 10%; top: 12%; width: min(34vw, 420px); aspect-ratio: 1; border-radius: 50%; border: 2px solid rgba(255, 232, 160, .32); box-shadow: 0 0 90px rgba(255, 220, 140, .18), inset 0 0 70px rgba(255, 220, 140, .1); }
+.sacred-halo::before, .sacred-halo::after { content: ''; position: absolute; border-radius: 50%; border: 1px solid rgba(255, 232, 160, .18); }
+.sacred-halo::before { inset: 12%; }
+.sacred-halo::after { inset: 26%; }
+.dark-thorns { right: -6%; bottom: -10%; width: 54vw; height: 72vh; opacity: .58; background: radial-gradient(ellipse at 70% 70%, rgba(130, 40, 140, .28), transparent 62%); clip-path: polygon(0% 100%, 8% 72%, 16% 88%, 24% 56%, 32% 84%, 42% 40%, 52% 78%, 63% 30%, 72% 72%, 82% 44%, 90% 80%, 100% 52%, 100% 100%); }
+@media (max-width: 760px) {
+  .mode-picks { grid-template-columns: 1fr; }
+  .sacred-halo { left: -12%; width: 54vw; opacity: .6; }
+  .dark-thorns { width: 70vw; opacity: .4; }
+}
+
+
+/* ── 双人战斗 HUD ─────────────────────────────────── */
+.hud-player-p2 { left: auto; right: 12px; flex-direction: row-reverse; }
+.hud-player-p2 .hud-player-info { text-align: right; }
+.hud-player-p2 .hud-name { flex-direction: row-reverse; }
+.hud-portrait-p2 { border-color: rgba(159, 216, 255, .6); box-shadow: 0 0 18px rgba(159, 216, 255, .18); }
+.hud-tools.coop-tools { top: auto; right: 16px; bottom: 16px; }
+@media (max-width: 1200px) {
+  .hud-player-p2 .hud-player-info { width: 170px; }
+  .hud-player-p2 .hud-portrait { width: 56px; height: 56px; }
+}
+@media (max-width: 760px) and (pointer: coarse) {
+  .hud-player-p2 { display: none; }
+}
+
+
+/* ── 角色命名 ─────────────────────────────────────── */
+.name-field { display: flex; align-items: center; gap: 8px; max-width: 410px; margin: 0 0 10px; color: #aab6a8; font-size: 11px; }
+.name-field input { flex: 1; min-width: 0; height: 34px; padding: 0 10px; border: 1px solid rgba(201, 178, 115, .35); border-radius: 2px; background: rgba(20, 35, 35, .72); color: #eee9d7; font: inherit; font-size: 12px; outline: none; }
+.name-field input:focus { border-color: #c9b273; }
+.hud-player-p2 .hud-name span { display: inline; }

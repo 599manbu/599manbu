@@ -15,7 +15,7 @@ type WorldDrop = { id: string; type: 'hp-potion' | 'mp-potion' | 'material'; x: 
 type AttributeStat = 'hp' | 'attack' | 'mp' | 'defense'
 type AttributeAllocation = Record<AttributeStat, number>
 type StageProgress = { kills: number; bossDefeated: boolean; pointsClaimed?: number }
-type Save = { role: Role; stage: number; unlockedStage: number; kills: number; stageProgress?: Record<string, StageProgress>; hp: number; mp: number; gear: Gear[]; equipped: string | null; weaponId?: string | null; weapon2Id?: string | null; armorId?: string | null; armor2Id?: string | null; fashionId?: string | null; extraSlot?: 'weapon' | 'armor'; level?: number; exp?: number; drops?: WorldDrop[]; bossDefeated?: boolean; attributePoints?: number; attributeAllocation?: AttributeAllocation; soul?: number; normalTalent?: number; normalTalentLevels?: number[]; advancedTalent?: number; advancedTalentLevel?: number; talentFragments?: number; talentCoins?: number; lotteryChances?: number; shopFashionBought?: boolean; reviveCoins?: number; reviveUsed?: boolean; fragmentBuyDay?: string; reviveBuyAt?: number; materials?: Record<string, number>; stones?: number[]; enhance?: { weapon: number; armor: number; armor2: number; weapon2: number; failWeapon: number; failArmor: number; failArmor2: number; failWeapon2: number }; nightmareCleared?: number[]; nightmareDay?: string; nightmareAttempts?: number; stamps?: number; freeReviveDay?: string; tutorialDone?: boolean; hiddenCleared?: boolean; rivalTrust?: boolean; stage8Choice?: 'save' | 'chase' | 'together' | null; rescuedRock?: boolean; rescuedXiaoman?: boolean; rescuedZhou?: boolean; seenStories?: string[]; forgeIntroSeen?: boolean; shopIntroSeen?: boolean; lotteryIntroSeen?: boolean; townIntroSeen?: boolean; mainQuestsClaimed?: number[]; sideQuest?: { stage: number; clears: number } | null; sideQuestDay?: string; skillLevels?: Record<string, number>; gems?: Gem[]; punchStones?: number; punchBuyAt?: number; horns?: number; hornBuyAt?: number; hornBuff?: 'material' | 'attack' | 'gear' | null; hornBuffUntil?: number; mailClaimed?: boolean; redeemedCodes?: string[]; combatData?: { attacks: number; skills: number; defends: number; skillUses: number[]; stages: number[] }; town: boolean; completed: boolean; dead: boolean }
+type Save = { role: Role; stage: number; unlockedStage: number; kills: number; stageProgress?: Record<string, StageProgress>; hp: number; mp: number; gear: Gear[]; equipped: string | null; weaponId?: string | null; weapon2Id?: string | null; armorId?: string | null; armor2Id?: string | null; fashionId?: string | null; extraSlot?: 'weapon' | 'armor'; level?: number; exp?: number; drops?: WorldDrop[]; bossDefeated?: boolean; attributePoints?: number; attributeAllocation?: AttributeAllocation; soul?: number; normalTalent?: number; normalTalentLevels?: number[]; advancedTalent?: number; advancedTalentLevel?: number; talentFragments?: number; talentCoins?: number; lotteryChances?: number; shopFashionBought?: boolean; reviveCoins?: number; reviveUsed?: boolean; fragmentBuyDay?: string; reviveBuyAt?: number; materials?: Record<string, number>; stones?: number[]; enhance?: { weapon: number; armor: number; armor2: number; weapon2: number; failWeapon: number; failArmor: number; failArmor2: number; failWeapon2: number }; nightmareCleared?: number[]; nightmareDay?: string; nightmareAttempts?: number; stamps?: number; freeReviveDay?: string; tutorialDone?: boolean; hiddenCleared?: boolean; rivalTrust?: boolean; stage8Choice?: 'save' | 'chase' | 'together' | null; rescuedRock?: boolean; rescuedXiaoman?: boolean; rescuedZhou?: boolean; seenStories?: string[]; forgeIntroSeen?: boolean; shopIntroSeen?: boolean; lotteryIntroSeen?: boolean; townIntroSeen?: boolean; mainQuestsClaimed?: number[]; sideQuest?: { stage: number; clears: number } | null; sideQuestDay?: string; skillLevels?: Record<string, number>; gems?: Gem[]; punchStones?: number; punchBuyAt?: number; horns?: number; hornBuyAt?: number; hornBuff?: 'material' | 'attack' | 'gear' | null; hornBuffUntil?: number; name?: string; p2Name?: string; coop?: boolean; p2Role?: Role; p2WeaponId?: string | null; p2ArmorId?: string | null; p2FashionId?: string | null; mailClaimed?: boolean; redeemedCodes?: string[]; redeemedCodes2?: string[]; combatData?: { attacks: number; skills: number; defends: number; skillUses: number[]; stages: number[] }; town: boolean; completed: boolean; dead: boolean }
 type SaveSlot = { id: string; label: string; data: Save; updatedAt: number }
 type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; flyPhase?: number; flyAmplitude?: number; flySpeed?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number; specialTimer?: number; specialWindup?: number; specialKind?: 'pierce' | 'exclusive'; specialNext?: 'pierce' | 'exclusive'; mobSkillTimer?: number; skillWindup?: number; skillKind?: 'lunge' | 'slam'; preferredAttack?: 'melee' | 'ranged'; spiralLiftTimer?: number; lift?: number; staggerTimer?: number; staggerHits?: number; staggerImmune?: number; superArmor?: number; tutorial?: boolean; mirror?: boolean; mirrorRole?: Role; mp?: number; mirrorSkillTimer?: number; mirrorWindup?: number; mirrorSkill?: number; mirrorBuffTimer?: number; mirrorBurst?: number; mirrorBurstWait?: number; mirrorSwitch?: number; mirrorSwapTimer?: number; mirrorNextRole?: Role; mirrorGuard?: number; mirrorGuardCd?: number; mirrorBoltTimer?: number; wanderTimer?: number; wanderTargetX?: number | null }
 type Fx = { x: number; y: number; life: number; kind: string; direction?: number; text?: string; damage?: number; duration?: number; vx?: number; vy?: number; color?: string; radius?: number }
@@ -33,7 +33,7 @@ type BattlePlatform = { x: number; w: number; height: number; kind: 'tree' | 'ro
 const SAVE_KEY = 'elemental-expedition-save-v2'
 const DEMO_MODE = import.meta.env.MODE === 'demo'
 const DEMO_SAVE_KEY = `${SAVE_KEY}:demo`
-const GAME_VERSION = '1.92'
+const GAME_VERSION = '1.93'
 const stageNames = ['苔痕边境', '沉钟矿道', '赤岩峡谷', '风蚀高原', '幽蓝沼泽', '断星回廊', '灰烬王庭', '深渊裂谷', '苍白圣所', '终焉之门']
 const roleLabels: Record<Role, string> = { warrior: '战士', mage: '法师' }
 const SKILL_LABELS: Record<SkillSetKey, string[]> = {
@@ -465,6 +465,19 @@ let cloudSyncTimer: number | null = null
 let offlineMode = DEMO_MODE || !cloudAvailable()
 let pendingRole: Role | null = null
 let pendingDeleteId: string | null = null
+let titleCoop = false
+let titleP2Role: Role = 'mage'
+let coopRuntime = false
+let createStep: 'p1' | 'p2' = 'p1'
+let pendingP1Role: Role | null = null
+let pendingP1Name = ''
+let pendingP2Name = ''
+let bagPlayer: 1 | 2 = 1
+let redeemTarget: 1 | 2 = 1
+function isMobileLayout() {
+  // 触屏设备（手机/平板）只允许单人；桌面窄窗口仍可选择双人。
+  return typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
+}
 let scene: Scene = 'title'
 let paused = false
 let foes: Foe[] = []
@@ -591,6 +604,15 @@ let tutorialMode = false
 let tutorialStep = 0
 let hiddenBattle = false
 let heroSupportTop = world.floor
+type PartnerState = { active: boolean; x: number; y: number; velocityY: number; grounded: boolean; supportTop: number; facing: number; jumpCount: number; attackWait: number; skillWait: number[]; shieldActive: boolean; shieldLocked: boolean; hp: number; mp: number; actionAnim: number }
+let partner: PartnerState = { active: false, x: 400, y: 0, velocityY: 0, grounded: true, supportTop: world.floor, facing: 1, jumpCount: 0, attackWait: 0, skillWait: [0, 0, 0, 0], shieldActive: false, shieldLocked: false, hp: 1, mp: 0, actionAnim: 0 }
+let partnerAttackHeld = false
+let partnerRunActive = false
+let partnerLastTapDir: -1 | 0 | 1 = 0
+let partnerLastTapTime = 0
+let partnerShieldHeld = false
+let actingAsPartner = false
+let suppressSave = false
 // 当前战斗用时（秒），进入战场或开始新战斗时重置。
 let battleTime = 0
 // 战斗连击：命中累计，5 秒不命中或被击中 2 次后清零。
@@ -613,6 +635,10 @@ let hiddenUltKind: SkillSetKey | null = null
 let hiddenUltSide = 1
 let hiddenUltCenter = 0
 let hiddenUltHit = false
+let hiddenUltX = 0
+let hiddenUltY = 0
+let hiddenUltPower = 0
+let hiddenUltOwner: 'p1' | 'p2' = 'p1'
 let lastAttackPress = 0
 let lastSkill4Press = 0
 let joystickPointerId: number | null = null
@@ -620,7 +646,7 @@ let joystickPointerId: number | null = null
 function readSaves(key = currentSaveKey): SaveSlot[] {
   try {
     const parsed = JSON.parse(localStorage.getItem(key) ?? 'null') as unknown
-    if (Array.isArray(parsed)) return parsed.filter((slot): slot is SaveSlot => Boolean(slot && typeof slot.id === 'string' && slot.data && ['warrior', 'mage'].includes(slot.data.role) && Array.isArray(slot.data.gear))).slice(0, 3).map((slot) => ({ ...slot, data: normalizeSave(slot.data) }))
+    if (Array.isArray(parsed)) return parsed.filter((slot): slot is SaveSlot => Boolean(slot && typeof slot.id === 'string' && slot.data && ['warrior', 'mage'].includes(slot.data.role) && Array.isArray(slot.data.gear))).slice(0, 4).map((slot) => ({ ...slot, data: normalizeSave(slot.data) }))
     if (parsed && typeof parsed === 'object' && ['warrior', 'mage'].includes((parsed as Save).role) && Array.isArray((parsed as Save).gear)) {
       const data = normalizeSave(parsed as Save)
       data.unlockedStage ??= data.stage
@@ -743,8 +769,19 @@ function normalizeSave(data: Save): Save {
   data.townIntroSeen ??= false
   data.weapon2Id ??= null
   data.fashionId ??= null
+  data.name = typeof data.name === 'string' && data.name.trim() ? data.name.trim().slice(0, 12) : roleLabels[data.role]
+  data.p2Name = typeof data.p2Name === 'string' && data.p2Name.trim() ? data.p2Name.trim().slice(0, 12) : roleLabels[data.p2Role ?? (data.role === 'warrior' ? 'mage' : 'warrior')]
+  data.coop = Boolean(data.coop)
+  data.p2Role = data.p2Role === 'mage' ? 'mage' : data.p2Role === 'warrior' ? 'warrior' : (data.role === 'warrior' ? 'mage' : 'warrior')
+  data.p2WeaponId ??= null
+  data.p2ArmorId ??= null
+  data.p2FashionId ??= null
+  if (data.p2WeaponId && !data.gear.some((gear) => gear.id === data.p2WeaponId && gear.type === 'weapon')) data.p2WeaponId = null
+  if (data.p2ArmorId && !data.gear.some((gear) => gear.id === data.p2ArmorId && gear.type === 'armor')) data.p2ArmorId = null
+  if (data.p2FashionId && !data.gear.some((gear) => gear.id === data.p2FashionId && gear.type === 'fashion')) data.p2FashionId = null
   data.mailClaimed = Boolean(data.mailClaimed)
   data.redeemedCodes = Array.isArray(data.redeemedCodes) ? data.redeemedCodes.filter((code): code is string => typeof code === 'string') : []
+  data.redeemedCodes2 = Array.isArray(data.redeemedCodes2) ? data.redeemedCodes2.filter((code): code is string => typeof code === 'string') : []
   const cd = data.combatData ?? { attacks: 0, skills: 0, defends: 0, skillUses: [0, 0, 0, 0], stages: [] }
   data.combatData = {
     attacks: Math.max(0, Math.floor(Number(cd.attacks) || 0)),
@@ -927,7 +964,7 @@ function roleGearMultiplier(role: Role) { return role === 'mage' ? MAGE_GROWTH_R
 function foeDamage(foe: Foe, dash = false) {
   if (!game) return 0
   const config = STAGE_CONFIG[Math.max(0, Math.min(9, game.stage - 1))]
-  const base = (foe.boss ? config.bossAtk * (dash ? 1.5 : 1) : config.mobAtk) * (nightmareStage !== null ? 1.5 : 1)
+  const base = (foe.boss ? config.bossAtk * (dash ? 1.5 : 1) : config.mobAtk) * (nightmareStage !== null ? 1.5 : 1) * (coopRuntime && !foe.boss ? 1.5 : 1)
   return Math.max(3, Math.round(base - effectiveDefense()))
 }
 function effectiveDefense() { return stats().defense }
@@ -951,6 +988,7 @@ function shieldedDamage(amount: number) {
 // 无任何界面提示：血量 ≤30%、连击 ≥30、站在地图一侧并朝向另一侧，
 // 按住防御键不松开，再同时按下技能 4 + 普通攻击即可触发。每场战斗限一次。
 function hiddenUltimateReady() {
+  if (actingAsPartner) return false
   if (!game || scene !== 'battle' || hiddenUltUsed || hiddenUltTimer > 0 || bossVictory || lootReveal) return false
   if (game.hp / Math.max(1, stats().hp) > .3) return false
   if (comboCount < 30) return false
@@ -971,6 +1009,7 @@ function resetHiddenUltimate() {
   hiddenUltTimer = 0
   hiddenUltKind = null
   hiddenUltHit = false
+  hiddenUltX = 0; hiddenUltY = 0; hiddenUltPower = 0; hiddenUltOwner = 'p1'
   lastAttackPress = 0
   lastSkill4Press = 0
 }
@@ -982,6 +1021,7 @@ function triggerHiddenUltimate() {
   hiddenUltSide = facing
   hiddenUltCenter = (MAP_LEFT + unlockedWidth) / 2
   hiddenUltHit = false
+  hiddenUltX = heroX; hiddenUltY = heroY; hiddenUltPower = stats().attack; hiddenUltOwner = 'p1'
   const color = hiddenUltimateColor(hiddenUltKind)
   addFlash(.5, color)
   addShake(22)
@@ -998,6 +1038,23 @@ function triggerDemoHiddenUltimate() {
   hiddenUltSide = facing
   hiddenUltCenter = (MAP_LEFT + unlockedWidth) / 2
   hiddenUltHit = false
+  hiddenUltX = heroX; hiddenUltY = heroY; hiddenUltPower = stats().attack; hiddenUltOwner = 'p1'
+  const color = hiddenUltimateColor(hiddenUltKind)
+  addFlash(.5, color)
+  addShake(22)
+  playSfx('victory')
+  shieldLocked = false
+  syncHud()
+}
+// 体验版专属：按 B 释放玩家二的隐藏必杀，无条件和次数限制。
+function triggerDemoPartnerUltimate() {
+  if (!DEMO_MODE || !game || scene !== 'battle' || !partnerReady()) return
+  hiddenUltTimer = 2.5
+  hiddenUltKind = withPartnerLoadout(() => activeSkillSet())
+  hiddenUltSide = partner.facing
+  hiddenUltCenter = (MAP_LEFT + unlockedWidth) / 2
+  hiddenUltHit = false
+  hiddenUltX = partner.x; hiddenUltY = partner.y; hiddenUltPower = partnerStats().attack; hiddenUltOwner = 'p2'
   const color = hiddenUltimateColor(hiddenUltKind)
   addFlash(.5, color)
   addShake(22)
@@ -1027,7 +1084,7 @@ function applyHiddenUltimateDamage() {
   const kind = hiddenUltKind
   const fullPct = kind === 'sword' ? 3.5 : 3.4
   const weakPct = 2
-  const attack = stats().attack
+  const attack = hiddenUltPower > 0 ? hiddenUltPower : stats().attack
   const label = kind === 'sword' ? '万剑归宗' : kind === 'bow' ? '天穹贯日' : kind === 'staff' ? '紫霄天雷' : '巨兽践踏'
   for (const foe of [...foes]) {
     if (!foes.includes(foe)) continue
@@ -1112,6 +1169,164 @@ function stats() {
   attack = Math.round(attack * comboAttackMultiplier())
   return { hp: Math.round(hp), mp: Math.round(mp), attack: Math.round(attack), defense: Math.round(defense) }
 }
+function withPartnerLoadout<T>(fn: () => T): T {
+  if (!game) return fn()
+  const saved = { role: game.role, weaponId: game.weaponId, weapon2Id: game.weapon2Id, armorId: game.armorId, armor2Id: game.armor2Id, fashionId: game.fashionId }
+  game.role = game.p2Role ?? (game.role === 'warrior' ? 'mage' : 'warrior')
+  game.weaponId = game.p2WeaponId ?? null
+  game.weapon2Id = null
+  game.armorId = game.p2ArmorId ?? null
+  game.armor2Id = null
+  game.fashionId = game.p2FashionId ?? null
+  try { return fn() } finally {
+    game.role = saved.role
+    game.weaponId = saved.weaponId
+    game.weapon2Id = saved.weapon2Id
+    game.armorId = saved.armorId
+    game.armor2Id = saved.armor2Id
+    game.fashionId = saved.fashionId
+  }
+}
+function partnerStats() {
+  if (!game) return stats()
+  return withPartnerLoadout(() => stats())
+}
+function resetPartner() {
+  if (!coopRuntime) { partner.active = false; return }
+  partner.active = true
+  const min = scene === 'town' ? TOWN_LEFT : MAP_LEFT
+  const max = scene === 'town' ? TOWN_RIGHT : Math.max(MAP_LEFT, unlockedWidth - 55)
+  partner.x = Math.max(min, Math.min(max, heroX - 90))
+  partner.y = 0; partner.velocityY = 0; partner.grounded = true; partner.supportTop = world.floor
+  partner.facing = 1; partner.jumpCount = 0; partner.attackWait = 0; partner.skillWait = [0, 0, 0, 0]; partner.actionAnim = 0
+  partner.shieldActive = false; partner.shieldLocked = false; partnerRunActive = false
+  const caps = partnerStats()
+  partner.hp = caps.hp; partner.mp = caps.mp
+}
+function notePartnerMoveTap(direction: -1 | 1) {
+  const now = performance.now()
+  if (partnerLastTapDir !== direction) partnerRunActive = false
+  if (partnerLastTapDir === direction && now - partnerLastTapTime <= 300) partnerRunActive = true
+  partnerLastTapDir = direction
+  partnerLastTapTime = now
+}
+function partnerReady() {
+  return Boolean(coopRuntime && partner.active && (scene === 'battle' || scene === 'town'))
+}
+function runAsPartner<T>(fn: () => T): T | undefined {
+  if (!game || !partnerReady()) return undefined
+  const saved = {
+    x: heroX, y: heroY, vy: velocityY, grounded, facing, jumpCount,
+    attackWait, attackSwing, skillWait: [...skillWait], shieldActive,
+    bowCharging, bowCharge, bowChargeSource, mp: game.mp,
+  }
+  heroX = partner.x; heroY = partner.y; velocityY = partner.velocityY; grounded = partner.grounded
+  facing = partner.facing; jumpCount = partner.jumpCount; heroSupportTop = partner.supportTop
+  attackWait = partner.attackWait; attackSwing = 0; skillWait = [...partner.skillWait]
+  shieldActive = false; bowCharging = false; bowCharge = 0; bowChargeSource = null
+  game.mp = partner.mp
+  const hadShieldKey = keys.delete('l')
+  actingAsPartner = true; suppressSave = true
+  try {
+    return withPartnerLoadout(() => fn())
+  } finally {
+    partner.x = heroX; partner.y = heroY; partner.velocityY = velocityY; partner.grounded = grounded
+    partner.supportTop = heroSupportTop; partner.facing = facing; partner.jumpCount = jumpCount
+    partner.attackWait = attackWait; partner.skillWait = [...skillWait]; partner.mp = game.mp
+    heroX = saved.x; heroY = saved.y; velocityY = saved.vy; grounded = saved.grounded
+    facing = saved.facing; jumpCount = saved.jumpCount
+    attackWait = saved.attackWait; attackSwing = saved.attackSwing; skillWait = saved.skillWait
+    shieldActive = saved.shieldActive; bowCharging = saved.bowCharging; bowCharge = saved.bowCharge; bowChargeSource = saved.bowChargeSource
+    game.mp = saved.mp
+    if (hadShieldKey) keys.add('l')
+    actingAsPartner = false; suppressSave = false
+  }
+}
+function partnerAttack() {
+  if (!partnerReady() || paused || bossVictory || storyState || lootReveal) return
+  if (partner.attackWait > 0 || partnerShieldHeld) return
+  runAsPartner(() => attack())
+  if (partner.attackWait > 0) partner.actionAnim = .34
+}
+function partnerCast(index: number) {
+  if (!partnerReady() || paused || bossVictory || storyState || lootReveal) return
+  if (partnerShieldHeld || partner.skillWait[index] > 0) return
+  runAsPartner(() => {
+    cast(index)
+    // 玩家二的弓箭技能 1 不进入蓄力，直接射出满蓄力箭。
+    if (activeSkillSet() === 'bow' && index === 0 && bowCharging) { bowCharge = BOW_CHARGE_MAX; releaseBowCharge() }
+  })
+  partner.actionAnim = .38
+}
+function partnerJump() {
+  if (!partnerReady() || paused || storyState) return
+  if (partner.grounded) {
+    partner.grounded = false; partner.velocityY = -570; partner.jumpCount = 1
+    addFx('dust', partner.x, world.floor - 2, 1, .3)
+    playSfx('jump')
+  } else if (partner.jumpCount < 2) {
+    partner.jumpCount = 2; partner.velocityY = -480
+    addFx('double-jump', partner.x, world.floor + partner.y, partner.facing, .36)
+    addSparks(partner.x, world.floor + partner.y, 8, ['#cfe6d8', '#9fd8ff'], 120)
+    playSfx('double-jump')
+  }
+}
+function updatePartnerShield(dt: number) {
+  if (!partnerReady() || scene !== 'battle') { partner.shieldActive = false; if (!coopRuntime) return; if (!partnerShieldHeld) partner.mp = Math.min(partnerStats().mp, partner.mp + dt * 4); return }
+  const wants = partnerShieldHeld && !partner.shieldLocked
+  if (wants && (partner.shieldActive || partner.mp >= 10)) {
+    if (!partner.shieldActive) partner.mp -= 10
+    partner.shieldActive = true
+    partner.mp = Math.max(0, partner.mp - dt * 3)
+    if (partner.mp <= 0) { partner.mp = 0; partner.shieldActive = false; partner.shieldLocked = true }
+  } else {
+    partner.shieldActive = false
+    partner.mp = Math.min(partnerStats().mp, partner.mp + dt * 4)
+  }
+}
+function updatePartner(dt: number) {
+  if (!coopRuntime || !partner.active) return
+  partner.attackWait = Math.max(0, partner.attackWait - dt)
+  partner.actionAnim = Math.max(0, partner.actionAnim - dt)
+  partner.skillWait = partner.skillWait.map((wait) => Math.max(0, wait - dt))
+  if (scene !== 'battle' && scene !== 'town') return
+  if (!paused && !storyState && !lootReveal) {
+    const left = keys.has('arrowleft')
+    const right = keys.has('arrowright')
+    if (left !== right) {
+      const dir = right ? 1 : -1
+      partner.facing = dir
+      const speed = scene === 'town' ? (partnerRunActive ? 296 : 172) : (partnerRunActive ? 322 : 190)
+      if (scene === 'town') partner.x = Math.max(TOWN_LEFT, Math.min(TOWN_RIGHT, partner.x + dir * speed * dt))
+      else partner.x = clampHeroX(partner.x + dir * speed * dt)
+      if (partner.grounded && Math.random() < dt * (partnerRunActive ? 14 : 8)) addFx('dust', partner.x - dir * 12, world.floor + partner.y - 2, 1, .2)
+    } else partnerRunActive = false
+    if (partnerAttackHeld && scene === 'battle') partnerAttack()
+    updatePartnerShield(dt)
+    if (!partner.grounded) {
+      const previousFeetY = world.floor + partner.y
+      partner.y += partner.velocityY * dt
+      partner.velocityY += 1450 * dt
+      const feetY = world.floor + partner.y
+      if (partner.velocityY > 0) {
+        const landing = platformsForStage()
+          .filter((platform) => partner.x >= platform.x && partner.x <= platform.x + platform.w && world.floor - platform.height >= previousFeetY - 1 && world.floor - platform.height <= feetY + 1)
+          .sort((a, b) => (world.floor - a.height) - (world.floor - b.height))[0]
+        if (landing) {
+          partner.supportTop = world.floor - landing.height
+          partner.y = partner.supportTop - world.floor
+          partner.velocityY = 0; partner.grounded = true; partner.jumpCount = 0
+          addFx('dust', partner.x, partner.supportTop - 2, 1, .3)
+        } else if (feetY >= world.floor) {
+          partner.supportTop = world.floor; partner.y = 0; partner.velocityY = 0; partner.grounded = true; partner.jumpCount = 0
+          addFx('dust', partner.x, world.floor - 2, 1, .2)
+        }
+      }
+    }
+  } else {
+    updatePartnerShield(dt)
+  }
+}
 function equippedGemBonus() {
   const bonus = { hp: 0, mp: 0, attack: 0, defense: 0 }
   if (!game) return bonus
@@ -1135,6 +1350,7 @@ function equippedGemBonus() {
 }
 function restoreTownVitals() { if (!game) return; game.hp = stats().hp; game.mp = stats().mp }
 function save() {
+  if (suppressSave) return
   if (!game || !activeSlotId) return
   game.stageProgress ??= {}
   const previous = game.stageProgress[String(game.stage)]
@@ -1195,7 +1411,7 @@ function foeWorldY(foe: Foe) { return world.floor - foeFlyOffset(foe) }
 function foeScreenLeft(foe: Foe) { return `${((foe.x - cameraX) / world.width) * 100}%` }
 function spawnFoe(x: number, boss = false, flying = false): Foe {
   const config = STAGE_CONFIG[stageIndexNow()]
-  const hp = boss ? config.bossHp : config.mobHp
+  const hp = Math.round((boss ? config.bossHp : config.mobHp) * (coopRuntime && !boss ? 1.5 : 1))
   const clampedX = Math.max(MAP_LEFT + 20, Math.min(unlockedWidth - 40, x))
   return { id: nextFoeId++, x: clampedX, hp, maxHp: hp, boss, timer: .7 + Math.random() * 1.2, skillTimer: 3.2, rangedTimer: 3.4 + Math.random() * 1.2, flash: 0, attackAnim: 0, flying: boss ? false : flying, flyHeight: !boss && flying ? 120 + Math.random() * 70 : 0, flyPhase: !boss && flying ? Math.random() * Math.PI * 2 : 0, flyAmplitude: !boss && flying ? 16 + Math.random() * 20 : 0, flySpeed: !boss && flying ? .8 + Math.random() * .5 : 0, stunTimer: 0, specialTimer: boss && stageIndexNow() >= 6 ? 4.5 + Math.random() * 1.5 : 0, specialNext: boss ? 'pierce' : undefined, preferredAttack: boss ? undefined : (Math.random() < .5 ? 'melee' : 'ranged'), mobSkillTimer: !boss ? 4 + Math.random() * 3 : 0 }
 }
@@ -1259,7 +1475,7 @@ function fireMobVolley(foe: Foe, config: BossRangedConfig, stageIndex: number) {
   const stageValues = STAGE_CONFIG[stageIndex]
   const theme = STAGE_THEMES[stageIndex]
   const originY = foe.flying ? foeWorldY(foe) - 10 : world.floor - 36
-  fireShotFan(foe.x, originY, heroX, config.count, config.spread, config.speed, stageValues.mobAtk * config.damageScale, theme.glow, 8)
+  fireShotFan(foe.x, originY, heroX, config.count, config.spread, config.speed, stageValues.mobAtk * config.damageScale * (coopRuntime ? 1.5 : 1), theme.glow, 8)
   addFx('mob-ranged-fire', foe.x, originY, Math.sign(heroX - foe.x) || 1, .36, theme.glow)
   addSparks(foe.x, originY, 8, [theme.light, theme.glow], 130)
   addShake(2)
@@ -1276,13 +1492,13 @@ function executeMobSkill(foe: Foe, stageIndex: number) {
     foe.attackAnim = .3
     addFx('mob-skill-lunge-execute', (startX + foe.x) / 2, foeWorldY(foe) - 18, direction, .42, theme.glow)
     addSparks(foe.x, foeWorldY(foe) - 16, 8, [theme.accent, theme.glow], 150)
-    if (Math.abs(heroX - foe.x) < 95 && (heroY > -36)) hurtPlayer(config.mobAtk * 1.6, 5)
+    if (Math.abs(heroX - foe.x) < 95 && (heroY > -36)) hurtPlayer(config.mobAtk * 1.6 * (coopRuntime ? 1.5 : 1), 5)
     setLog('遗迹守卫冲撞！')
   } else {
     addFx('mob-skill-slam-execute', foe.x, world.floor - 4, 1, .65, theme.glow)
     addSparks(foe.x, world.floor - 8, 16, [theme.accent, theme.glow], 220)
     addShake(7)
-    if (Math.abs(heroX - foe.x) < 155 && (heroY > -40)) hurtPlayer(config.mobAtk * 1.5, 6)
+    if (Math.abs(heroX - foe.x) < 155 && (heroY > -40)) hurtPlayer(config.mobAtk * 1.5 * (coopRuntime ? 1.5 : 1), 6)
     setLog('遗迹守卫震地！')
   }
 }
@@ -1399,6 +1615,7 @@ function enterBattlefield() {
     spawnCurrentWave()
   }
   updateCamera()
+  resetPartner()
 }
 function getStageProgress(stage: number): StageProgress {
   return game?.stageProgress?.[String(stage)] ?? (stage === game?.stage ? { kills: game.kills, bossDefeated: game.bossDefeated ?? false, pointsClaimed: 0 } : { kills: 0, bossDefeated: false, pointsClaimed: 0 })
@@ -1444,6 +1661,7 @@ function beginTutorial() {
   game.town = false; game.dead = false; game.completed = false
   paused = false
   heroX = 480; heroY = 0; velocityY = 0; grounded = true; jumpCount = 0; facing = 1; heroSupportTop = world.floor
+  resetPartner()
   unlockedWidth = BASE_MAP_WIDTH
   cameraX = 0
   buffTime = 0; burst = 0; burstTargetId = null; shake = 0
@@ -1458,7 +1676,8 @@ function beginTutorial() {
 }
 function spawnMirror(): Foe {
   const mirrorRole = game ? OTHER_ROLE[game.role] : 'mage'
-  return { id: nextFoeId++, x: Math.min(BASE_MAP_WIDTH - 120, heroX + 320), hp: HIDDEN_CONFIG.bossHp, maxHp: HIDDEN_CONFIG.bossHp, boss: true, mirror: true, mirrorRole, mp: HIDDEN_CONFIG.mp, timer: 1.3, skillTimer: 999, rangedTimer: 999, flash: 0, attackAnim: 0, stunTimer: 0, mirrorSkillTimer: 2.8, mirrorSkill: -1, mirrorSwapTimer: 30, mirrorGuardCd: 8 + Math.random() * 3, mirrorBoltTimer: 1.2 }
+  const mirrorHp = HIDDEN_CONFIG.bossHp * (coopRuntime ? 2 : 1)
+  return { id: nextFoeId++, x: Math.min(BASE_MAP_WIDTH - 120, heroX + 320), hp: mirrorHp, maxHp: mirrorHp, boss: true, mirror: true, mirrorRole, mp: HIDDEN_CONFIG.mp, timer: 1.3, skillTimer: 999, rangedTimer: 999, flash: 0, attackAnim: 0, stunTimer: 0, mirrorSkillTimer: 2.8, mirrorSkill: -1, mirrorSwapTimer: 30, mirrorGuardCd: 8 + Math.random() * 3, mirrorBoltTimer: 1.2 }
 }
 function beginHiddenBattle() {
   if (!game) return
@@ -1474,6 +1693,7 @@ function beginHiddenBattle() {
   game.town = true; game.dead = false
   paused = false
   heroX = 480; heroY = 0; velocityY = 0; grounded = true; heroSupportTop = world.floor; jumpCount = 0; facing = 1
+  resetPartner()
   unlockedWidth = BASE_MAP_WIDTH; cameraX = 0
   buffTime = 0; burst = 0; burstTargetId = null; shake = 0
   projectiles = []; foeShots = []; effects = []
@@ -1489,7 +1709,7 @@ function executeMirrorSkill(foe: Foe, skill: number) {
   if (!game) return
   const role = foe.mirrorRole ?? 'mage'
   const direction = Math.sign(heroX - foe.x) || 1
-  const attack = HIDDEN_CONFIG.bossAtk * ((foe.mirrorBuffTimer ?? 0) > 0 ? 1.1 : 1)
+  const attack = HIDDEN_CONFIG.bossAtk * (coopRuntime ? 1.5 : 1) * ((foe.mirrorBuffTimer ?? 0) > 0 ? 1.1 : 1)
   const color = '#c9a7e8'
   if (role === 'warrior') {
     if (skill === 0) {
@@ -1567,7 +1787,7 @@ function updateMirrorFoe(foe: Foe, dt: number, distance: number, direction: numb
       foe.mirrorBurstWait = .1
       foe.mirrorBurst = (foe.mirrorBurst ?? 0) - 1
       if (Math.abs(heroX - foe.x) < 320) {
-        hurtPlayer(HIDDEN_CONFIG.bossAtk * .35, 2)
+        hurtPlayer(HIDDEN_CONFIG.bossAtk * (coopRuntime ? 1.5 : 1) * .35, 2)
         addFx('arcane-bolt-hit', heroX, world.floor - 70 + heroY, Math.sign(foe.x - heroX) || 1, .35, '#c9a7e8')
       }
     }
@@ -1647,7 +1867,7 @@ function updateMirrorFoe(foe: Foe, dt: number, distance: number, direction: numb
   }
   foe.timer -= dt
   if (foe.timer <= 0 && Math.abs(heroX - foe.x) < 140) {
-    hurtPlayer(HIDDEN_CONFIG.bossAtk * .35, 4)
+    hurtPlayer(HIDDEN_CONFIG.bossAtk * (coopRuntime ? 1.5 : 1) * .35, 4)
     foe.timer = .65
     foe.attackAnim = .3
     addFx('enemy-swipe', heroX, world.floor - 52 + heroY, -direction, .35)
@@ -1708,6 +1928,8 @@ function start(role: Role, previous?: Save) {
   game = previous ? structuredClone(previous) : freshSave(role)
   bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; cloneAttackPulse = 0; cloneCastPulse = 0; cloneStealthTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null; bombClones = []; arcaneOrb = null
   applyDemoUnlock(game)
+  coopRuntime = Boolean(game.coop) && !isMobileLayout()
+  if (!coopRuntime) { bagPlayer = 1; redeemTarget = 1 }
   if (!game.tutorialDone) { beginTutorial(); return }
   game.unlockedStage = Math.min(10, Math.max(game.unlockedStage ?? 1, game.stage))
   // 从角色选择继续游戏时统一回到小镇，而不是直接恢复上次未结束的战斗。
@@ -1721,15 +1943,19 @@ function start(role: Role, previous?: Save) {
   game.hp = Math.min(Math.max(1, game.hp), caps.hp)
   game.mp = Math.min(Math.max(0, game.mp), caps.mp)
   game.hp = caps.hp; game.mp = caps.mp
+  coopRuntime = Boolean(game.coop) && !isMobileLayout()
+  if (!coopRuntime) { bagPlayer = 1; redeemTarget = 1 }
+  resetPartner()
   if (!game.townIntroSeen) {
     startStory(townIntroStoryData(), () => { if (!game) return; game.townIntroSeen = true; save(); renderGame() })
     return
   }
   save(); render()
 }
-function freshSave(role: Role): Save {
+function freshSave(role: Role, coop = false, p2Role?: Role, p1Name?: string, p2Name?: string): Save {
   const base = ROLE_BASE[role]
-  return { role, stage: 1, unlockedStage: 1, kills: 0, hp: base.hp, mp: base.mp, gear: [], equipped: null, weaponId: null, weapon2Id: null, armorId: null, armor2Id: null, fashionId: null, extraSlot: 'weapon', level: 1, exp: 0, drops: [], bossDefeated: false, attributePoints: 0, attributeAllocation: { hp: 0, attack: 0, mp: 0, defense: 0 }, soul: 0, normalTalent: 0, normalTalentLevels: [0, 0, 0, 0], advancedTalent: 0, advancedTalentLevel: 0, talentFragments: 0, talentCoins: 0, lotteryChances: 0, shopFashionBought: false, reviveCoins: 0, reviveUsed: false, fragmentBuyDay: '', reviveBuyAt: 0, freeReviveDay: '', materials: {}, stones: [0, 0, 0, 0, 0], enhance: { weapon: 0, armor: 0, armor2: 0, weapon2: 0, failWeapon: 0, failArmor: 0, failArmor2: 0, failWeapon2: 0 }, nightmareCleared: [], nightmareDay: '', nightmareAttempts: 0, stamps: 0, tutorialDone: false, hiddenCleared: false, rivalTrust: false, stage8Choice: null, rescuedRock: false, rescuedXiaoman: false, rescuedZhou: false, seenStories: [], forgeIntroSeen: false, shopIntroSeen: false, lotteryIntroSeen: false, townIntroSeen: false, mainQuestsClaimed: [], sideQuest: null, sideQuestDay: '', skillLevels: {}, gems: [], punchStones: 0, punchBuyAt: 0, horns: 0, hornBuyAt: 0, hornBuff: null, hornBuffUntil: 0, mailClaimed: false, redeemedCodes: [], combatData: { attacks: 0, skills: 0, defends: 0, skillUses: [0, 0, 0, 0], stages: [] }, town: true, completed: false, dead: false }
+  const secondRole = p2Role ?? (role === 'warrior' ? 'mage' : 'warrior')
+  return { role, name: (p1Name ?? '').trim().slice(0, 12) || roleLabels[role], p2Name: (p2Name ?? '').trim().slice(0, 12) || roleLabels[secondRole], coop, p2Role: p2Role ?? (role === 'warrior' ? 'mage' : 'warrior'), p2WeaponId: null, p2ArmorId: null, p2FashionId: null, stage: 1, unlockedStage: 1, kills: 0, hp: base.hp, mp: base.mp, gear: [], equipped: null, weaponId: null, weapon2Id: null, armorId: null, armor2Id: null, fashionId: null, extraSlot: 'weapon', level: 1, exp: 0, drops: [], bossDefeated: false, attributePoints: 0, attributeAllocation: { hp: 0, attack: 0, mp: 0, defense: 0 }, soul: 0, normalTalent: 0, normalTalentLevels: [0, 0, 0, 0], advancedTalent: 0, advancedTalentLevel: 0, talentFragments: 0, talentCoins: 0, lotteryChances: 0, shopFashionBought: false, reviveCoins: 0, reviveUsed: false, fragmentBuyDay: '', reviveBuyAt: 0, freeReviveDay: '', materials: {}, stones: [0, 0, 0, 0, 0], enhance: { weapon: 0, armor: 0, armor2: 0, weapon2: 0, failWeapon: 0, failArmor: 0, failArmor2: 0, failWeapon2: 0 }, nightmareCleared: [], nightmareDay: '', nightmareAttempts: 0, stamps: 0, tutorialDone: false, hiddenCleared: false, rivalTrust: false, stage8Choice: null, rescuedRock: false, rescuedXiaoman: false, rescuedZhou: false, seenStories: [], forgeIntroSeen: false, shopIntroSeen: false, lotteryIntroSeen: false, townIntroSeen: false, mainQuestsClaimed: [], sideQuest: null, sideQuestDay: '', skillLevels: {}, gems: [], punchStones: 0, punchBuyAt: 0, horns: 0, hornBuyAt: 0, hornBuff: null, hornBuffUntil: 0, mailClaimed: false, redeemedCodes: [], redeemedCodes2: [], combatData: { attacks: 0, skills: 0, defends: 0, skillUses: [0, 0, 0, 0], stages: [] }, town: true, completed: false, dead: false }
 }
 function awardExperience(amount: number) {
   if (!game) return
@@ -1786,14 +2012,15 @@ function confirmDeleteSave() {
 function createRole(role: Role, overwriteId?: string) {
   let slot = overwriteId ? saveSlots.find((entry) => entry.id === overwriteId) : undefined
   if (overwriteId && !slot) return
+  const coop = titleCoop && !isMobileLayout()
   if (slot) {
     const confirmed = window.confirm(`即将覆盖「${slot.label}」（${roleLabels[slot.data.role]}，第 ${slot.data.stage} 关）。此操作无法撤销，确定继续吗？`)
     if (!confirmed) { pendingRole = null; renderTitle(); return }
-    slot.data = freshSave(role)
+    slot.data = freshSave(role, coop, titleP2Role, pendingP1Name, pendingP2Name)
     slot.updatedAt = Date.now()
   } else {
-    if (saveSlots.length >= 3) { pendingRole = role; renderTitle(); return }
-    slot = { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, label: `远征档案 ${saveSlots.length + 1}`, data: freshSave(role), updatedAt: Date.now() }
+    if (saveSlots.length >= 4) { pendingRole = role; renderTitle(); return }
+    slot = { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, label: `远征档案 ${saveSlots.length + 1}`, data: freshSave(role, coop, titleP2Role, pendingP1Name, pendingP2Name), updatedAt: Date.now() }
     saveSlots.push(slot)
   }
   activeSlotId = slot.id
@@ -1816,7 +2043,7 @@ function parseCloudSlots(raw: string): SaveSlot[] {
     if (!Array.isArray(parsed)) return []
     return parsed
       .filter((slot): slot is SaveSlot => Boolean(slot && typeof slot.id === 'string' && slot.data && ['warrior', 'mage'].includes(slot.data.role) && Array.isArray(slot.data.gear)))
-      .slice(0, 3)
+      .slice(0, 4)
       .map((slot) => ({ ...slot, data: normalizeSave(slot.data) }))
   } catch { return [] }
 }
@@ -2063,24 +2290,40 @@ async function boot() {
   }
 }
 function renderTitle() {
+  if (isMobileLayout()) titleCoop = false
+  if (!titleCoop) { createStep = 'p1'; pendingP1Role = null }
   setMusicMode('title')
+  const creationStep = titleCoop && createStep === 'p2' ? 'p2' : 'p1'
+  const p1Label = pendingP1Role ? roleLabels[pendingP1Role] : '未选择'
+  const stepHint = titleCoop
+    ? `<div class="role-step"><span>${creationStep === 'p2' ? '角色二 · 选择职业' : '角色一 · 选择职业'}</span><small>${creationStep === 'p2' ? `角色一：${p1Label}` : '双人模式 · 下一步选择角色二'}</small>${creationStep === 'p2' ? '<button data-action="title-step-back" type="button">返回角色一</button>' : ''}</div>`
+    : ''
+  const cardTitle = (role: Role) => creationStep === 'p2' ? `角色二 · ${roleLabels[role]}` : (titleCoop ? `角色一 · ${roleLabels[role]}` : `新建${roleLabels[role]}`)
+  const cardHint = (role: Role) => creationStep === 'p2' ? '双人同行 · 玩家二职业' : (titleCoop ? '双人同行 · 玩家一职业' : role === 'warrior' ? '剑刃近战 · 创建独立存档' : '法杖远程 · 创建独立存档')
+  const nameField = `<label class="name-field"><span>${creationStep === 'p2' ? '角色二名字' : '角色一名字'}</span><input id="${creationStep === 'p2' ? 'p2-name' : 'p1-name'}" maxlength="12" value="${escapeHtml(creationStep === 'p2' ? pendingP2Name : pendingP1Name)}" placeholder="输入名字（可选）" autocomplete="off" spellcheck="false"></label>`
+  const classPicks = `${stepHint}${nameField}<div class="class-picks"><button class="class-card" data-action="title-role" data-role="warrior"><b class="role-mark">刃</b><span><strong>${cardTitle('warrior')}</strong><small>${cardHint('warrior')}</small></span><i>↗</i></button><button class="class-card" data-action="title-role" data-role="mage"><b class="role-mark mage-mark">✦</b><span><strong>${cardTitle('mage')}</strong><small>${cardHint('mage')}</small></span><i>↗</i></button></div>`
   const audioButton = `<button class="audio-button" data-action="toggle-audio" title="音效与音乐开关" type="button">${audioEnabled() ? '♪' : '×'}</button>`
   const accountBar = DEMO_MODE
     ? `<div class="account-bar offline demo-account"><span><i></i>体验版 · 全部关卡已解锁 · 独立体验存档</span><span class="account-actions">${audioButton}</span></div>`
     : cloudUser
       ? `<div class="account-bar${offlineMode ? ' offline' : ''}"><span><i></i>${offlineMode ? '离线模式 · 已载入本机账号存档' : `云端账号 · ${escapeHtml(cloudUser.username)}`}</span><span class="account-actions">${audioButton}<button data-action="logout" type="button">退出登录</button></span></div>`
       : `<div class="account-bar offline"><span><i></i>离线模式 · 进度仅保存在本机</span><span class="account-actions">${audioButton}${cloudAvailable() ? '<button data-action="login" type="button">登录 / 注册</button>' : ''}</span></div>`
-  const slots = saveSlots.map((slot) => `<article class="save-slot"><span class="save-slot-info"><b>${slot.label}</b><small>${roleLabels[slot.data.role]} · ${slot.data.level ?? 1} 级 · ${slot.data.town ? '小镇' : `第 ${slot.data.stage} 关`} · 击败 ${slot.data.kills}</small></span><button class="save-resume" data-action="resume" data-slot="${slot.id}">继续　↗</button><button class="save-delete" data-action="delete-slot" data-slot="${slot.id}" aria-label="删除${slot.label}" title="删除存档">×</button></article>`).join('')
-  const overwriteDialog = pendingRole ? `<div class="slot-scrim"><section class="slot-dialog"><small>存档槽已满 · 3 / 3</small><h2>新建${roleLabels[pendingRole]}存档</h2><p>请选择一个存档槽。覆盖前会再次确认，取消不会改动任何存档。</p>${saveSlots.map((slot) => `<button data-action="overwrite-slot" data-slot="${slot.id}"><span><b>${slot.label}</b><small>${roleLabels[slot.data.role]} · ${slot.data.town ? '小镇' : `第 ${slot.data.stage} 关`}</small></span><i>选择覆盖</i></button>`).join('')}<button class="slot-cancel" data-action="cancel-new">取消</button></section></div>` : ''
-  app.innerHTML = `<main class="title-screen"><section class="title-copy"><div class="eyebrow"><i></i> 单机动作 RPG · 十章远征</div><h1>成王之路<span>：元素远征</span></h1><p class="intro">古老遗迹再度苏醒。选择你的职业，穿越十片失落之地，直面守关者。</p>${accountBar}${saveSlots.length ? `<section class="saved-slots"><div class="slots-heading"><span>远征存档</span><small>${saveSlots.length} / 3</small></div>${slots}</section>` : ''}<div class="rule"></div><div class="class-picks"><button class="class-card" data-action="role" data-role="warrior"><b class="role-mark">刃</b><span><strong>新建战士</strong><small>剑刃近战 · 创建独立存档</small></span><i>↗</i></button><button class="class-card" data-action="role" data-role="mage"><b class="role-mark mage-mark">✦</b><span><strong>新建法师</strong><small>法杖远程 · 创建独立存档</small></span><i>↗</i></button></div><footer><span>存档最多 3 个 · 覆盖前确认</span><span class="game-version">版本 ${GAME_VERSION}</span><span>01 — 10</span></footer></section><div class="title-art" aria-hidden="true"><div class="sun"></div><div class="mountains"></div><div class="ruins"><i></i><i></i><i></i></div><div class="silhouette"><b></b><i></i><span></span></div><small>THE LOST FRONTIER <span>遗迹之外，仍有远方</span></small></div></main>${overwriteDialog}`
+  const slots = saveSlots.map((slot) => `<article class="save-slot"><span class="save-slot-info"><b>${slot.label}</b><small>${roleLabels[slot.data.role]}${slot.data.coop ? ` + ${roleLabels[slot.data.p2Role ?? (slot.data.role === 'warrior' ? 'mage' : 'warrior')]}` : ''} · ${slot.data.level ?? 1} 级 · ${slot.data.town ? '小镇' : `第 ${slot.data.stage} 关`} · 击败 ${slot.data.kills}</small></span><button class="save-resume" data-action="resume" data-slot="${slot.id}">继续　↗</button><button class="save-delete" data-action="delete-slot" data-slot="${slot.id}" aria-label="删除${slot.label}" title="删除存档">×</button></article>`).join('')
+  const overwriteDialog = pendingRole ? `<div class="slot-scrim"><section class="slot-dialog"><small>存档槽已满 · 4 / 4</small><h2>新建${roleLabels[pendingRole]}存档</h2><p>请选择一个存档槽。覆盖前会再次确认，取消不会改动任何存档。</p>${saveSlots.map((slot) => `<button data-action="overwrite-slot" data-slot="${slot.id}"><span><b>${slot.label}</b><small>${roleLabels[slot.data.role]} · ${slot.data.town ? '小镇' : `第 ${slot.data.stage} 关`}</small></span><i>选择覆盖</i></button>`).join('')}<button class="slot-cancel" data-action="cancel-new">取消</button></section></div>` : ''
+  app.innerHTML = `<main class="title-screen"><section class="title-copy"><div class="eyebrow"><i></i> 单机动作 RPG · 十章远征</div><h1>成王之路<span>：元素远征</span></h1><p class="intro">古老遗迹再度苏醒。选择你的职业，穿越十片失落之地，直面守关者。</p>${accountBar}${saveSlots.length ? `<section class="saved-slots"><div class="slots-heading"><span>远征存档</span><small>${saveSlots.length} / 4</small></div>${slots}</section>` : ''}<div class="rule"></div><div class="mode-picks"><button class="mode-card ${titleCoop ? '' : 'active'}" data-action="title-mode" data-mode="single" type="button"><b>◐</b><span><strong>单人远征</strong><small>一名玩家 · 键盘或触屏</small></span></button><button class="mode-card ${titleCoop ? 'active' : ''}" data-action="title-mode" data-mode="coop" type="button" ${isMobileLayout() ? 'disabled' : ''}><b>◑</b><span><strong>双人同行</strong><small>桌面端 · 同屏双人</small></span></button></div>${classPicks}<footer><span>存档最多 4 个 · 覆盖前确认</span><span class="game-version">版本 ${GAME_VERSION}</span><span>01 — 10</span></footer></section><div class="title-art" aria-hidden="true"><div class="sacred-veil"></div><div class="dark-veil"></div><div class="sacred-halo"></div><div class="dark-thorns"></div><div class="sun"></div><div class="mountains"></div><div class="ruins"><i></i><i></i><i></i></div><div class="silhouette"><b></b><i></i><span></span></div><small>THE LOST FRONTIER <span>遗迹之外，仍有远方</span></small></div></main>${overwriteDialog}`
 }
 function gearMarkup(canEquip: boolean, filter: 'all' | 'weapon' | 'armor' | 'fashion' = 'all') {
   if (!game) return ''
   const list = filter === 'all' ? game.gear : game.gear.filter((gear) => gear.type === filter)
   if (!list.length) return `<div class="empty-gear">${filter === 'all' ? '背包里还没有装备' : `背包里还没有${filter === 'weapon' ? '武器' : filter === 'armor' ? '护甲' : '时装'}`}<small>击败遗迹守卫，寻找装备</small></div>`
-  const worn = new Set([game.weaponId, game.armorId, game.fashionId])
-  if (dualWieldUnlocked() && game.weapon2Id) worn.add(game.weapon2Id)
-  const multiplier = roleGearMultiplier(game.role)
+  const p2 = bagPlayer === 2 && coopRuntime
+  const activeRole = p2 ? (game.p2Role ?? (game.role === 'warrior' ? 'mage' : 'warrior')) : game.role
+  const worn = p2
+    ? new Set([game.p2WeaponId, game.p2ArmorId, game.p2FashionId])
+    : new Set([game.weaponId, game.armorId, game.fashionId])
+  if (!p2 && dualWieldUnlocked() && game.weapon2Id) worn.add(game.weapon2Id)
+  const anyWorn = new Set([game.weaponId, game.armorId, game.fashionId, game.weapon2Id, game.armor2Id, game.p2WeaponId, game.p2ArmorId, game.p2FashionId])
+  const multiplier = roleGearMultiplier(activeRole)
   const scaled = (value: number | undefined) => Math.round((value ?? 0) * multiplier)
   return list.map((gear) => {
     const equipped = worn.has(gear.id) || (!gear.type && game!.equipped === gear.id)
@@ -2094,9 +2337,12 @@ function gearMarkup(canEquip: boolean, filter: 'all' | 'weapon' | 'armor' | 'fas
           ? `生命 +${scaled(gear.hp)} · 防御 +${scaled(gear.defense)}`
           : `生命 +${scaled(gear.hp)} · 攻击 +${scaled(gear.attack)} · 防御 +${scaled(gear.defense)}`
     const socketInfo = gear.type === 'weapon' || gear.type === 'armor' ? ` · 孔位 ${gear.sockets ?? 0}/2${(gear.socketGems ?? []).filter((gem): gem is Gem => Boolean(gem)).length ? ` · 宝石 ${(gear.socketGems ?? []).filter((gem): gem is Gem => Boolean(gem)).map(gemSummary).join('、')}` : ''}` : ''
-    const compatible = gear.type !== 'weapon' || canUseWeapon(gear)
+    const compatible = gear.type !== 'weapon' || canUseWeaponForRole(gear, activeRole)
     let actions = ''
     if (!compatible) actions = '<i class="equipped">职业不符</i>'
+    else if (p2) {
+      actions = equipped ? '<i class="equipped">玩家二装备中</i>' : `<button data-action="equip" data-id="${gear.id}" ${canEquip ? '' : 'disabled'}>玩家二穿戴</button>`
+    }
     else if (gear.type === 'armor' && extraArmorUnlocked()) {
       const isMain = gear.id === game!.armorId
       const isOff = gear.id === game!.armor2Id
@@ -2109,7 +2355,7 @@ function gearMarkup(canEquip: boolean, filter: 'all' | 'weapon' | 'armor' | 'fas
     else {
       actions = `<button data-action="equip" data-id="${gear.id}" ${canEquip && compatible ? '' : 'disabled'}>${!compatible ? '职业不符' : canEquip ? '穿戴' : '小镇可穿'}</button>`
     }
-    if (!equipped) actions += `<button class="gear-sell" data-action="sell-gear" data-id="${gear.id}" title="出售后获得硬币">出售 +${displayCurrency(gearSellPrice(gear.level))}</button>`
+    if (!anyWorn.has(gear.id)) actions += `<button class="gear-sell" data-action="sell-gear" data-id="${gear.id}" title="出售后获得硬币">出售 +${displayCurrency(gearSellPrice(gear.level))}</button>`
     return `<article class="gear-row ${equipped ? 'active-gear' : ''}" draggable="true" data-drag-id="${gear.id}" data-action="equip-gear" data-id="${gear.id}" title="点击装备 / 拖到左侧装备框"><span class="gear-glyph ${gear.type ?? 'legacy'}">${icon}</span><span class="gear-copy"><b>${gear.name}</b><small>${type} · ${gear.level} 级 · ${details}${socketInfo}</small></span><span class="gear-actions">${actions}</span></article>`
   }).join('')
 }
@@ -2480,6 +2726,7 @@ function beginNightmare(stage: number) {
   const s = stats(); game.hp = s.hp; game.mp = s.mp
   scene = 'battle'; paused = false
   heroX = 480; heroY = 0; velocityY = 0; grounded = true; heroSupportTop = world.floor; jumpCount = 0; facing = 1
+  resetPartner()
   unlockedWidth = BASE_MAP_WIDTH; cameraX = 0
   projectiles = []; foeShots = []; effects = []; burst = 0; burstTargetId = null; shake = 0
   const boss = spawnFoe(heroX + 320, true, false)
@@ -2606,8 +2853,8 @@ const ITEM_ICON_PATHS: Record<string, string> = {
   book: '<path d="M4 3h6.5c1.9 0 3.5 1.5 3.5 3.4V21c-.8-.9-2-1.4-3.2-1.4H4V3Zm12.5 0H18c1.7 0 3 1.3 3 3v15c-.8-.9-2-1.4-3.2-1.4h-1.3V3ZM6 5v12.4h4.2c.7 0 1.3.1 1.8.3V5.4c0-.8-.6-1.4-1.4-1.4H6Z"/>',
   armor: '<path d="M12 2 4 5.5V11c0 5 3.4 9.2 8 11 4.6-1.8 8-6 8-11V5.5L12 2Zm0 3.2 5 2.2V11c0 3.5-2.1 6.6-5 8-2.9-1.4-5-4.5-5-8V7.4l5-2.2Z"/>',
   fashion: '<path d="M9 2h6l-1.2 4.2L18 10l-2 12H8L6 10l4.2-3.8L9 2Zm1.5 2-.6 3.1L6.5 10 8 20h8l1.5-10-3.4-2.9L13.5 4h-3Z"/>',
-  // 硬币使用金币图标（原先的灵魂图标已替换）。
-  soul: '<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16Zm0 2.5 1.6 3.3 3.6.5-2.6 2.5.6 3.6-3.2-1.7-3.2 1.7.6-3.6-2.6-2.5 3.6-.5L12 6.5Z"/>',
+  // 硬币：简洁的双环硬币图标。
+  soul: '<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16Zm0 3.2a4.8 4.8 0 1 0 0 9.6 4.8 4.8 0 0 0 0-9.6Z"/>',
   fragment: '<path d="m12 2 5.5 7.5L12 22 6.5 9.5 12 2Zm0 3.4L8.7 9.8l3.3 8 3.3-8L12 5.4Z"/>',
   coin: '<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16Zm0 2.5 1.6 3.3 3.6.5-2.6 2.5.6 3.6-3.2-1.7-3.2 1.7.6-3.6-2.6-2.5 3.6-.5L12 6.5Z"/>',
   ticket: '<path d="M3 5h18v4.2a2.8 2.8 0 0 0 0 5.6V19H3v-4.2a2.8 2.8 0 0 0 0-5.6V5Zm2 2v1.3a4.8 4.8 0 0 1 0 7.4V17h14v-1.3a4.8 4.8 0 0 1 0-7.4V7H5Z"/>',
@@ -2877,12 +3124,16 @@ function bagEquipSlot(slot: 'weapon' | 'armor' | 'fashion' | 'extra', gear: Gear
 }
 function bagMarkup() {
   if (!game) return ''
-  const s = stats()
-  const main = game.gear.find((gear) => gear.id === game?.weaponId)
-  const off = dualWieldUnlocked() ? game.gear.find((gear) => gear.id === game?.weapon2Id) : undefined
-  const armor = game.gear.find((gear) => gear.id === game?.armorId)
-  const armor2 = extraArmorUnlocked() ? game.gear.find((gear) => gear.id === game?.armor2Id) : undefined
-  const fashion = game.gear.find((gear) => gear.id === game?.fashionId)
+  const p2Active = bagPlayer === 2 && coopRuntime
+  const ids = p2Active
+    ? { weaponId: game.p2WeaponId, armorId: game.p2ArmorId, fashionId: game.p2FashionId }
+    : { weaponId: game.weaponId, armorId: game.armorId, fashionId: game.fashionId }
+  const s = p2Active ? partnerStats() : stats()
+  const main = game.gear.find((gear) => gear.id === ids.weaponId)
+  const off = !p2Active && dualWieldUnlocked() ? game.gear.find((gear) => gear.id === game?.weapon2Id) : undefined
+  const armor = game.gear.find((gear) => gear.id === ids.armorId)
+  const armor2 = !p2Active && extraArmorUnlocked() ? game.gear.find((gear) => gear.id === game?.armor2Id) : undefined
+  const fashion = game.gear.find((gear) => gear.id === ids.fashionId)
   const chips = [
     `${gearIcon(main)} ${main?.name ?? '无武器'}`,
     off ? `${gearIcon(off)} ${off.name}（副手）` : '',
@@ -2899,11 +3150,16 @@ function bagMarkup() {
   const content = bagTab === 'gear'
     ? `${filterMarkup}<div class="bag-list">${gearMarkup(scene === 'town', bagGearFilter)}</div>`
     : bagTab === 'gems' ? gemBagMarkup() : bagTab === 'talent' ? talentBagMarkup() : otherBagMarkup()
-  // 高级天赋（双持专精）额外开放第 4 个装备框；该框只提供属性，不改变武器技能与时装外观。
-  const extraUnlocked = game.advancedTalent === 3 && advancedTalentLevel() >= 1
+  // 高级天赋（双持专精）额外开放第 4 个装备框；玩家二没有额外槽位。
+  const extraUnlocked = !p2Active && game.advancedTalent === 3 && advancedTalentLevel() >= 1
   const extraGear = game.extraSlot === 'armor' ? armor2 : (game.extraSlot === 'weapon' && dualWieldUnlocked() ? off : undefined)
   const extraLabel = game.extraSlot === 'armor' ? '额外护甲' : '额外武器'
-  return `<div class="bag-scrim"><section class="bag-dialog bag-dialog-wide"><header><div><small>INVENTORY · ${game.gear.length} 件物品</small><h2>远征背包</h2></div><button data-action="close-bag" aria-label="关闭背包">×</button></header><div class="bag-body"><section class="bag-figure"><div class="bag-preview"><canvas id="bag-portrait" width="300" height="420" aria-label="角色全身预览"></canvas></div><div class="equip-slots">${bagEquipSlot('weapon', main, '主武器', '拖入武器')}${bagEquipSlot('armor', armor, '护甲', '拖入护甲')}${bagEquipSlot('fashion', fashion, '时装', '拖入时装')}${extraUnlocked ? bagEquipSlot('extra', extraGear, extraLabel, '拖入装备（仅属性）') : ''}</div></section><section class="bag-side"><div class="bag-stats"><span>♥ 生命 ${displayNumber(game.hp)} / ${displayNumber(s.hp)}</span><span>✦ 法力 ${displayNumber(game.mp)} / ${displayNumber(s.mp)}</span><span>⚔ 攻击 ${displayNumber(s.attack)}</span><span>▰ 防御 ${displayNumber(s.defense)}</span><span>★ 等级 ${game.level ?? 1}</span></div><div class="bag-equipped">${chips}</div><div class="bag-tabs">${tabButtons}</div><div class="bag-content">${content}</div></section></div></section></div>`
+  const playerSwitch = coopRuntime
+    ? `<div class="bag-player-switch"><button class="${bagPlayer === 1 ? 'active' : ''}" data-action="bag-player" data-player="1" type="button">玩家一</button><button class="${bagPlayer === 2 ? 'active' : ''}" data-action="bag-player" data-player="2" type="button">玩家二</button></div>`
+    : ''
+  const hpNow = p2Active ? partner.hp : game.hp
+  const mpNow = p2Active ? partner.mp : game.mp
+  return `<div class="bag-scrim"><section class="bag-dialog bag-dialog-wide"><header><div><small>INVENTORY · ${game.gear.length} 件物品${p2Active ? ' · 玩家二' : ''}</small><h2>${p2Active ? '玩家二背包' : '远征背包'}</h2>${playerSwitch}</div><button data-action="close-bag" aria-label="关闭背包">×</button></header><div class="bag-body"><section class="bag-figure"><div class="bag-preview"><canvas id="bag-portrait" width="300" height="420" aria-label="角色全身预览"></canvas></div><div class="equip-slots">${bagEquipSlot('weapon', main, '主武器', '拖入武器')}${bagEquipSlot('armor', armor, '护甲', '拖入护甲')}${bagEquipSlot('fashion', fashion, '时装', '拖入时装')}${extraUnlocked ? bagEquipSlot('extra', extraGear, extraLabel, '拖入装备（仅属性）') : ''}</div></section><section class="bag-side"><div class="bag-stats"><span>♥ 生命 ${displayNumber(hpNow)} / ${displayNumber(s.hp)}</span><span>✦ 法力 ${displayNumber(mpNow)} / ${displayNumber(s.mp)}</span><span>⚔ 攻击 ${displayNumber(s.attack)}</span><span>▰ 防御 ${displayNumber(s.defense)}</span><span>★ 等级 ${game.level ?? 1}</span></div><div class="bag-equipped">${chips}</div><div class="bag-tabs">${tabButtons}</div><div class="bag-content">${content}</div></section></div></section></div>`
 }
 // 将右侧装备拖入左侧装备框：武器 / 护甲 / 时装 / 高级天赋的额外属性框。
 function dropGearToSlot(id: string | undefined, slot: string | undefined) {
@@ -2911,6 +3167,13 @@ function dropGearToSlot(id: string | undefined, slot: string | undefined) {
   if (scene !== 'town') { toast('请回到小镇后更换装备。'); return }
   const gear = game.gear.find((entry) => entry.id === id)
   if (!gear) return
+  if (bagPlayer === 2 && coopRuntime) {
+    if (slot === 'extra') { toast('玩家二没有额外槽位。'); return }
+    if (slot === 'weapon' && gear.type !== 'weapon') { toast('武器框只能放入武器。'); return }
+    if (slot === 'armor' && gear.type !== 'armor') { toast('护甲框只能放入护甲。'); return }
+    if (slot === 'fashion' && gear.type !== 'fashion') { toast('时装框只能放入时装。'); return }
+    partnerEquipGear(gear); return
+  }
   if (slot === 'weapon') {
     if (gear.type !== 'weapon') { toast('武器框只能放入武器。'); return }
     if (!canUseWeapon(gear)) { toast(`当前职业无法使用${gear.name}。`); return }
@@ -3751,6 +4014,9 @@ function hudMarkup() {
   const boss = foes.find((foe) => foe.boss)
   const enemyName = isTown ? '' : bossVictory ? '守关者已击败' : tutorialMode ? '训练傀儡' : hiddenBattle ? '宿敌' : boss ? foeLabel(boss) : `${foes.length} 名敌人`
   const hornBuff = !isTown && game.hornBuff && hornBuffRemaining() > 0 ? game.hornBuff : null
+  const coopHud = coopRuntime && !isTown && partner.active
+  const p2Caps = coopHud ? partnerStats() : null
+  const p2Set = coopHud ? withPartnerLoadout(() => activeSkillSet()) : 'sword'
   return `<div class="hud">
     <section class="hud-player">
       <div class="hud-portrait-col">
@@ -3765,6 +4031,7 @@ function hudMarkup() {
         ${isTown ? '' : `<div class="hud-skills" aria-label="技能图标">${[0, 1, 2, 3].map((index) => `<span class="hud-skill-icon">${itemIcon(activeSkillSet())}<b>${index + 1}</b></span>`).join('')}</div>`}
       </div>
     </section>
+    ${coopHud && p2Caps ? `<section class="hud-player hud-player-p2"><div class="hud-portrait-col"><div class="hud-portrait hud-portrait-p2"><canvas id="hud-p2-portrait" width="192" height="192" aria-label="玩家二头像"></canvas></div></div><div class="hud-player-info"><div class="hud-name"><b id="hud-p2-level">Lv.${level}</b><span>${escapeHtml(game.p2Name ?? '玩家二')} · ${roleLabels[game.p2Role ?? (game.role === 'warrior' ? 'mage' : 'warrior')]} · ${maxed ? 'MAX' : `${displayNumber(exp)} / ${displayNumber(needed)} EXP`}</span></div><div class="hud-bar hp"><i id="hud-p2-hp-fill" style="width:${Math.max(0, Math.min(100, partner.hp / p2Caps.hp * 100))}%"></i><span id="hud-p2-hp-text">${displayNumber(partner.hp)} / ${displayNumber(p2Caps.hp)}</span></div><div class="hud-bar mp"><i id="hud-p2-mp-fill" style="width:${Math.max(0, Math.min(100, partner.mp / p2Caps.mp * 100))}%"></i><span id="hud-p2-mp-text">${displayNumber(partner.mp)} / ${displayNumber(p2Caps.mp)}</span></div><div class="hud-bar xp"><i id="hud-p2-xp-fill" style="width:${maxed ? 100 : Math.min(100, exp / needed * 100)}%"></i><span id="hud-p2-xp-label">${maxed ? '经验 MAX' : `共享经验 ${displayNumber(exp)} / ${displayNumber(needed)}`}</span></div><div class="hud-skills" aria-label="玩家二技能图标">${[0, 1, 2, 3].map((index) => `<span class="hud-skill-icon">${itemIcon(p2Set)}<b>${index + 4}</b></span>`).join('')}</div></div></section>` : ''}
     <section class="hud-center">
       ${isTown ? '' : `<div class="hud-battle-time"><span>战斗用时</span><b id="hud-battle-time">${formatBattleTime(battleTime)}</b></div>`}
       <small>${sub}</small>
@@ -3776,7 +4043,7 @@ function hudMarkup() {
       </div>
     </section>
     ${isTown ? '' : '<div class="combo-display" id="combo-display" style="display:none"><small>连击</small><b id="combo-count">0</b><span id="combo-buff"></span></div>'}
-    <section class="hud-tools">
+    <section class="hud-tools${coopHud ? ' coop-tools' : ''}">
       <div class="hud-currency"><span>${itemIcon('soul')} <b id="hud-soul">${displayCurrency(game.soul ?? 0)}</b></span></div>
       <div class="hud-buttons">
         ${scene === 'battle' && !bossVictory ? `<button data-action="pause" title="暂停或继续">${paused ? '▶' : 'Ⅱ'}</button>` : ''}
@@ -3859,9 +4126,11 @@ function storyLogMarkup() {
 function settingsMarkup() {
   if (!game || !settingsOpen) return ''
   const rows = BIND_ACTIONS.map((action) => `<button class="bind-row ${listeningBind === action ? 'listening' : ''}" data-action="bind-key" data-bind="${action}" type="button"><span>${BIND_LABELS[action]}</span><b>${listeningBind === action ? '按下新按键…' : keyLabel(keyBinds[action])}</b><i>改键</i></button>`).join('')
-  const codeRedeemed = Boolean(game.redeemedCodes?.includes('cwzl666'))
-  const redeemNote = redeemMessage || (codeRedeemed ? '本存档已领取过 cwzl666。' : '')
-  const weaponChoices: Array<[WeaponStyle, string]> = game.role === 'mage'
+  const redeemPlayer = activeRedeemTarget()
+  const redeemRole = coopRuntime && redeemPlayer === 2 ? (game.p2Role ?? (game.role === 'warrior' ? 'mage' : 'warrior')) : game.role
+  const codeRedeemed = Boolean(redeemList(redeemPlayer).includes('cwzl666'))
+  const redeemNote = redeemMessage || (codeRedeemed ? `玩家${redeemPlayer === 1 ? '一' : '二'}已领取过 cwzl666。` : '')
+  const weaponChoices: Array<[WeaponStyle, string]> = redeemRole === 'mage'
     ? [['book', '一阶魔法书'], ['staff', '一阶法杖']]
     : [['sword', '一阶长剑'], ['bow', '一阶长弓']]
   const redeemChoices = [
@@ -3876,7 +4145,8 @@ function settingsMarkup() {
       <button data-action="settings-audio"><b>${audioEnabled() ? '♪' : '×'}</b><span><strong>音效与音乐</strong><small>当前：${audioEnabled() ? '开启' : '关闭'}</small></span></button>
       <button data-action="open-credits"><b>✎</b><span><strong>制作人</strong><small>查看游戏制作人员</small></span></button>
     </div></section>
-    <section class="settings-block"><h3>兑换码 <small>每个存档每种兑换码限领一次</small></h3>
+    <section class="settings-block"><h3>兑换码 <small>${coopRuntime ? '玩家一、玩家二各限领一次' : '每个存档每种兑换码限领一次'}</small></h3>
+      ${coopRuntime ? `<div class="bag-player-switch redeem-player-switch"><button class="${redeemPlayer === 1 ? 'active' : ''}" data-action="redeem-target" data-player="1" type="button">玩家一领取</button><button class="${redeemPlayer === 2 ? 'active' : ''}" data-action="redeem-target" data-player="2" type="button">玩家二领取</button></div>` : ''}
       <div class="redeem-box"><input id="redeem-code" maxlength="32" placeholder="输入兑换码，例如 cwzl666" value="${escapeHtml(redeemCodeDraft)}" autocomplete="off" spellcheck="false"><button data-action="redeem-submit" type="button">兑换</button></div>
       ${redeemNote ? `<p class="redeem-message">${escapeHtml(redeemNote)}</p>` : ''}
       ${redeemChoiceOpen ? `<div class="redeem-choices">${redeemChoices}</div>` : ''}
@@ -3891,6 +4161,13 @@ function closeCredits() {
   renderGame()
 }
 function mailUnread() { return Boolean(game && !game.mailClaimed) }
+function activeRedeemTarget(): 1 | 2 {
+  return coopRuntime ? redeemTarget : 1
+}
+function redeemList(player: 1 | 2) {
+  if (!game) return []
+  return player === 2 ? (game.redeemedCodes2 ?? []) : (game.redeemedCodes ?? [])
+}
 function mailMarkup() {
   if (!game || !mailOpen) return ''
   const claimed = Boolean(game.mailClaimed)
@@ -3908,7 +4185,7 @@ function mailMarkup() {
           <article class="mail-attach"><span class="mail-attach-icon">${itemIcon('soul')}</span><b>硬币 ×3000</b><small>领取后直接到账</small></article>
           <article class="mail-attach"><span class="mail-attach-icon">${itemIcon('revive')}</span><b>复活币 ×3</b><small>领取后直接到账</small></article>
         </div>
-        <p class="mail-note">附件领取后放入当前存档的背包与货币栏；每个存档限领一次。</p>
+        <p class="mail-note">附件领取后放入共享背包与货币栏，玩家一与玩家二都可使用；每个存档限领一次。</p>
         <button class="primary mail-claim" data-action="claim-mail" ${claimed ? 'disabled' : ''}>${claimed ? '已领取' : '一键领取附件'}</button>
       </section>
     </div>
@@ -3928,7 +4205,7 @@ function claimMail() {
   game.soul = (game.soul ?? 0) + 3000
   game.reviveCoins = (game.reviveCoins ?? 0) + 3
   save()
-  toast('已领取邮箱附件：一阶时装（7 天）、3000 硬币、3 个复活币。')
+  toast('已领取邮箱附件：一阶时装（7 天）、3000 硬币、3 个复活币；两位角色都可使用。')
   renderGame()
 }
 function gearIsEquipped(id: string) {
@@ -3940,6 +4217,9 @@ function gearIsEquipped(id: string) {
     || gear.id === game.armorId
     || (extraArmorUnlocked() && gear.id === game.armor2Id)
     || gear.id === game.fashionId
+    || gear.id === game.p2WeaponId
+    || gear.id === game.p2ArmorId
+    || gear.id === game.p2FashionId
     || (!gear.type && gear.id === game.equipped)
 }
 function requestSellGear(id: string) {
@@ -3971,26 +4251,30 @@ function submitRedeemCode() {
   redeemCodeDraft = code
   if (!code) { redeemChoiceOpen = false; redeemMessage = '请输入兑换码。'; renderGame(); return }
   if (code !== 'cwzl666') { redeemChoiceOpen = false; redeemMessage = '兑换码无效。'; renderGame(); return }
-  if (game.redeemedCodes?.includes(code)) { redeemChoiceOpen = false; redeemMessage = '本存档已经领取过该兑换码。'; renderGame(); return }
+  const target = activeRedeemTarget()
+  if (redeemList(target).includes(code)) { redeemChoiceOpen = false; redeemMessage = `玩家${target === 1 ? '一' : '二'}已经领取过该兑换码。`; renderGame(); return }
   redeemChoiceOpen = true
-  redeemMessage = '兑换码有效，请选择一件一阶装备。'
+  redeemMessage = `兑换码有效，请为玩家${target === 1 ? '一' : '二'}选择一件一阶装备。`
   renderGame()
 }
 function pickRedeemGear(target: HTMLElement) {
   if (!game || !redeemChoiceOpen) return
-  if (game.redeemedCodes?.includes('cwzl666')) { redeemChoiceOpen = false; redeemMessage = '本存档已经领取过该兑换码。'; renderGame(); return }
+  const targetPlayer = activeRedeemTarget()
+  if (redeemList(targetPlayer).includes('cwzl666')) { redeemChoiceOpen = false; redeemMessage = `玩家${targetPlayer === 1 ? '一' : '二'}已经领取过该兑换码。`; renderGame(); return }
   const kind = target.dataset.kind
   let gear: Gear | null = null
   if (kind === 'armor') gear = makeGear('armor', 1)
   else if (kind === 'weapon') {
     const style = target.dataset.style as WeaponStyle
-    const allowed: WeaponStyle[] = game.role === 'mage' ? ['book', 'staff'] : ['sword', 'bow']
+    const redeemRole = coopRuntime && targetPlayer === 2 ? (game.p2Role ?? (game.role === 'warrior' ? 'mage' : 'warrior')) : game.role
+    const allowed: WeaponStyle[] = redeemRole === 'mage' ? ['book', 'staff'] : ['sword', 'bow']
     if (!allowed.includes(style)) return
     gear = makeGear('weapon', 1, style)
   }
   if (!gear) return
   game.gear.unshift(gear)
-  game.redeemedCodes = [...(game.redeemedCodes ?? []), 'cwzl666']
+  if (targetPlayer === 2) game.redeemedCodes2 = [...(game.redeemedCodes2 ?? []), 'cwzl666']
+  else game.redeemedCodes = [...(game.redeemedCodes ?? []), 'cwzl666']
   redeemChoiceOpen = false
   redeemCodeDraft = ''
   redeemMessage = `兑换成功：获得「${gear.name}」。`
@@ -4038,6 +4322,33 @@ function upgradeSkill(index: number) {
   save(); skillPanelOpen = true; renderGame()
   toast(`技能 ${index + 1} 升级到 Lv.${level + 1}，伤害/效果提升，蓝耗 +10。`)
 }
+function paintPartnerHudPortrait() {
+  const canvas = document.querySelector<HTMLCanvasElement>('#hud-p2-portrait')
+  if (!canvas || !game) return
+  const context = canvas.getContext('2d')
+  if (!context) return
+  const width = canvas.width
+  const height = canvas.height
+  const role = game.p2Role ?? (game.role === 'warrior' ? 'mage' : 'warrior')
+  context.clearRect(0, 0, width, height)
+  context.save()
+  context.beginPath(); context.arc(width / 2, height / 2, width / 2 - 2, 0, Math.PI * 2); context.clip()
+  const bg = context.createLinearGradient(0, 0, 0, height)
+  bg.addColorStop(0, role === 'warrior' ? '#2d4540' : '#26314a'); bg.addColorStop(1, '#0d1717')
+  context.fillStyle = bg; context.fillRect(0, 0, width, height)
+  context.translate(width / 2, height * 2.2)
+  context.scale(width / 48, width / 48)
+  withPartnerLoadout(() => {
+    if (role === 'warrior') drawWarriorHero(context, performance.now(), 0, true)
+    else drawMageHero(context, performance.now(), 0, true)
+  })
+  context.restore()
+  context.save()
+  context.strokeStyle = role === 'warrior' ? '#d9b96f' : '#9fe8ff'
+  context.lineWidth = 6
+  context.beginPath(); context.arc(width / 2, height / 2, width / 2 - 3, 0, Math.PI * 2); context.stroke()
+  context.restore()
+}
 function paintHudPortrait() {
   const canvas = document.querySelector<HTMLCanvasElement>('#hud-portrait')
   if (!canvas || !game) return
@@ -4069,9 +4380,11 @@ function paintBagPreview() {
   if (!context) return
   const width = canvas.width
   const height = canvas.height
+  const p2 = bagPlayer === 2 && coopRuntime
+  const role = p2 ? (game.p2Role ?? (game.role === 'warrior' ? 'mage' : 'warrior')) : game.role
   context.clearRect(0, 0, width, height)
   const bg = context.createLinearGradient(0, 0, 0, height)
-  bg.addColorStop(0, game.role === 'warrior' ? '#1d3230' : '#1a2438')
+  bg.addColorStop(0, role === 'warrior' ? '#1d3230' : '#1a2438')
   bg.addColorStop(1, '#0a1313')
   context.fillStyle = bg; context.fillRect(0, 0, width, height)
   context.strokeStyle = 'rgba(201, 178, 115, .18)'; context.lineWidth = 2
@@ -4081,10 +4394,14 @@ function paintBagPreview() {
   context.save()
   context.translate(width / 2, height * 0.93)
   context.scale(3, 3)
-  if (game.role === 'warrior') drawWarriorHero(context, performance.now(), 0)
-  else drawMageHero(context, performance.now(), 0)
+  const paintModel = () => {
+    if (role === 'warrior') drawWarriorHero(context, performance.now(), 0, p2)
+    else drawMageHero(context, performance.now(), 0, p2)
+  }
+  if (p2) withPartnerLoadout(paintModel)
+  else paintModel()
   context.restore()
-  context.strokeStyle = game.role === 'warrior' ? 'rgba(255, 210, 122, .38)' : 'rgba(159, 232, 255, .38)'
+  context.strokeStyle = role === 'warrior' ? 'rgba(255, 210, 122, .38)' : 'rgba(159, 232, 255, .38)'
   context.lineWidth = 2
   context.beginPath(); context.ellipse(width / 2, height * 0.93, 104, 17, 0, 0, Math.PI * 2); context.stroke()
 }
@@ -4147,6 +4464,7 @@ function renderGame() {
   if (controls) controls.textContent = 'WASD / ← → 移动　·　J 攻击　·　K 跳跃 / 二段跳　·　1–4 技能　·　L 按住护盾（防御 ×10，耗蓝 3/秒）　·　S 拾取药水　·　P 暂停'
   setupCanvas()
   paintHudPortrait()
+  if (coopRuntime && scene === 'battle' && partner.active) paintPartnerHudPortrait()
   if (bagOpen) paintBagPreview()
   syncHud()
 }
@@ -4281,6 +4599,15 @@ function syncHud() {
   const hudSoul = document.querySelector<HTMLElement>('#hud-soul'); if (hudSoul) hudSoul.textContent = displayCurrency(game.soul ?? 0)
   const hudBagCount = document.querySelector<HTMLElement>('#hud-bag-count'); if (hudBagCount) hudBagCount.textContent = String(game.gear.length)
   // 号角增益：战斗中实时刷新剩余时间，到期后隐藏图标。
+  if (coopRuntime && scene === 'battle' && partner.active) {
+    const p2Caps = partnerStats()
+    setWidth('#hud-p2-hp-fill', partner.hp / p2Caps.hp * 100)
+    setWidth('#hud-p2-mp-fill', partner.mp / p2Caps.mp * 100)
+    setWidth('#hud-p2-xp-fill', maxed ? 100 : exp / needed * 100)
+    const p2Hp = document.querySelector<HTMLElement>('#hud-p2-hp-text'); if (p2Hp) p2Hp.textContent = `${displayNumber(partner.hp)} / ${displayNumber(p2Caps.hp)}`
+    const p2Mp = document.querySelector<HTMLElement>('#hud-p2-mp-text'); if (p2Mp) p2Mp.textContent = `${displayNumber(partner.mp)} / ${displayNumber(p2Caps.mp)}`
+    const p2Xp = document.querySelector<HTMLElement>('#hud-p2-xp-label'); if (p2Xp) p2Xp.textContent = maxed ? '经验 MAX' : `共享经验 ${displayNumber(exp)} / ${displayNumber(needed)}`
+  }
   const hudHornTime = document.querySelector<HTMLElement>('#hud-horn-time')
   if (hudHornTime) {
     const left = hornBuffRemaining()
@@ -4385,7 +4712,7 @@ function spend(cost: number) {
   return true
 }
 function targetForFacing(range: number): Foe | undefined {
-  return foes.filter((foe) => Math.abs(foe.x - heroX) <= range).sort((a, b) => {
+  return foes.filter((foe) => Math.abs(foe.x - heroX) <= range && (foe.x - heroX) * facing >= -20).sort((a, b) => {
     const distance = Math.abs(a.x - heroX) - Math.abs(b.x - heroX)
     if (Math.abs(distance) > 1) return distance
     return (b.x - heroX) * facing - (a.x - heroX) * facing
@@ -4566,8 +4893,6 @@ function attack() {
   recordCombatAction('attack')
   const mode = activeSkillSet()
   attackWait = .42; attackSwing = .32
-  const nearest = [...foes].sort((a, b) => Math.abs(a.x - heroX) - Math.abs(b.x - heroX))[0]
-  if (nearest) facing = Math.sign(nearest.x - heroX) || facing
   if (mode === 'bow') {
     // 普通攻击不再蓄力：点按立即射出一支普通箭；长按技能 1 才会蓄力。
     bowCharge = 0
@@ -4810,13 +5135,9 @@ function cast(index: number) {
   const power = skillPower(index, skillSet)
   // 技能 3：按 A + 3 向左、D + 3 向右；没按方向键时沿当前视角方向。
   if (index === 2) {
-    const left = keys.has(keyBinds.left) || keys.has('arrowleft')
-    const right = keys.has(keyBinds.right) || keys.has('arrowright')
+    const left = keys.has(keyBinds.left) || (!coopRuntime && keys.has('arrowleft'))
+    const right = keys.has(keyBinds.right) || (!coopRuntime && keys.has('arrowright'))
     if (left !== right) facing = right ? 1 : -1
-  } else if (!(skillSet === 'staff' && index === 1)) {
-    // 法师双生火柱固定在当前朝向前方，不再自动转向最近的敌人。
-    const nearest = [...foes].sort((a, b) => Math.abs(a.x - heroX) - Math.abs(b.x - heroX))[0]
-    if (nearest) facing = Math.sign(nearest.x - heroX) || facing
   }
   if (skillSet === 'bow') {
     castBowSkill(index)
@@ -5218,6 +5539,7 @@ function activeWeaponStyle(): WeaponStyle {
 }
 function activeSkillSet(): SkillSetKey { return styleSkillSet(activeWeaponStyle()) }
 function canUseWeapon(gear: Gear) { return !game || weaponStyleRole(weaponStyleOf(gear)) === game.role }
+function canUseWeaponForRole(gear: Gear, role: Role) { return weaponStyleRole(weaponStyleOf(gear)) === role }
 function makeGear(type: GearType, level: number, style?: WeaponStyle): Gear {
   const values = gearStats(level)
   const sockets = type === 'fashion' ? 0 : randomSocketCount()
@@ -5443,10 +5765,40 @@ function allocateAttribute(stat: AttributeStat, delta = 1) {
   save(); attributesOpen = true; renderGame()
   return true
 }
+function partnerEquipGear(gear: Gear) {
+  if (!game) return
+  if (gear.type === 'weapon' && !canUseWeaponForRole(gear, game.p2Role ?? (game.role === 'warrior' ? 'mage' : 'warrior'))) {
+    toast('玩家二的职业无法使用这件武器。'); return
+  }
+  if (gear.type === 'weapon') game.p2WeaponId = gear.id
+  else if (gear.type === 'armor') game.p2ArmorId = gear.id
+  else if (gear.type === 'fashion') game.p2FashionId = gear.id
+  else return
+  const caps = partnerStats()
+  partner.hp = caps.hp; partner.mp = caps.mp
+  save(); bagOpen = true; renderGame(); toast('玩家二已装备 ' + gear.name)
+}
+function partnerUnequip(slot: 'weapon' | 'armor' | 'fashion') {
+  if (!game) return
+  if (slot === 'weapon') game.p2WeaponId = null
+  else if (slot === 'armor') game.p2ArmorId = null
+  else game.p2FashionId = null
+  const caps = partnerStats()
+  partner.hp = caps.hp; partner.mp = caps.mp
+  save(); bagOpen = true; renderGame(); toast('玩家二已卸下装备。')
+}
+function partnerToggleGear(gear: Gear) {
+  if (!game) return
+  if (gear.type === 'weapon' && game.p2WeaponId === gear.id) return partnerUnequip('weapon')
+  if (gear.type === 'armor' && game.p2ArmorId === gear.id) return partnerUnequip('armor')
+  if (gear.type === 'fashion' && game.p2FashionId === gear.id) return partnerUnequip('fashion')
+  partnerEquipGear(gear)
+}
 function equip(id: string) {
   if (!game || scene !== 'town') { toast('请回到小镇后更换装备。'); return }
   const gear = game.gear.find((entry) => entry.id === id)
   if (!gear) return
+  if (bagPlayer === 2 && coopRuntime) { partnerEquipGear(gear); return }
   if (gear.type === 'weapon' && !canUseWeapon(gear)) { toast(`当前职业无法使用${gear.name}。`); return }
   const before = stats()
   game.equipped = id
@@ -5470,6 +5822,7 @@ function equipSlot(id: string, slot: 'main' | 'off') {
   if (!game || scene !== 'town') { toast('请回到小镇后更换装备。'); return }
   const gear = game.gear.find((entry) => entry.id === id)
   if (!gear || gear.type !== 'weapon') return
+  if (bagPlayer === 2 && coopRuntime) { if (slot === 'off') { toast('玩家二没有副手槽位。'); return } partnerEquipGear(gear); return }
   if (!canUseWeapon(gear)) { toast(`当前职业无法使用${gear.name}。`); return }
   if (slot === 'off' && !dualWieldUnlocked()) { toast('需要双持专精天赋才能装备副武器。'); return }
   const before = stats()
@@ -5488,6 +5841,7 @@ function equipSlot(id: string, slot: 'main' | 'off') {
 }
 function equipArmor2(id: string) {
   if (!game || scene !== 'town') { toast('请回到小镇后更换装备。'); return }
+  if (bagPlayer === 2 && coopRuntime) { toast('玩家二没有副护甲槽位。'); return }
   if (!extraArmorUnlocked()) { toast('需要双持专精的额外护甲能力。'); return }
   const gear = game.gear.find((entry) => entry.id === id)
   if (!gear || gear.type !== 'armor') return
@@ -5506,6 +5860,7 @@ function equipGearFromBag(id: string) {
   if (scene !== 'town') { toast('请回到小镇后更换装备。'); return }
   const gear = game.gear.find((entry) => entry.id === id)
   if (!gear) return
+  if (bagPlayer === 2 && coopRuntime) { partnerToggleGear(gear); return }
   if (gear.type === 'weapon') {
     if (!canUseWeapon(gear)) { toast(`当前职业无法使用${gear.name}。`); return }
     if (game.weaponId === id) unequipSlot('weapon')
@@ -5524,6 +5879,7 @@ function equipGearFromBag(id: string) {
 function unequipSlot(slot: string) {
   if (!game) return
   if (scene !== 'town') { toast('请回到小镇后更换装备。'); return }
+  if (bagPlayer === 2 && coopRuntime) { if (slot === 'weapon' || slot === 'armor' || slot === 'fashion') partnerUnequip(slot); return }
   const before = stats()
   let removedId: string | null = null
   let removedName = '装备'
@@ -5559,6 +5915,7 @@ function retreatToTown() {
   scene = 'town'; game.town = true; game.dead = false
   restoreTownVitals()
   heroX = 480; cameraX = 0; heroY = 0; velocityY = 0; grounded = true; heroSupportTop = world.floor; jumpCount = 0
+  resetPartner()
   foes = []; projectiles = []; foeShots = []; burst = 0; burstTargetId = null; resetPanels(); save(); renderGame()
 }
 function useReviveCoin() {
@@ -5649,6 +6006,17 @@ function performAction(name: string, target: HTMLElement) {
   if (name === 'login') { authState = 'auth'; authView = 'login'; authMessage = ''; renderAuth(); return }
   if (name === 'logout') { logoutAccount(); return }
   if (name === 'role') createRole(target.dataset.role as Role)
+  if (name === 'title-mode' && target.dataset.mode) { titleCoop = target.dataset.mode === 'coop' && !isMobileLayout(); createStep = 'p1'; pendingP1Role = null; pendingP1Name = ''; pendingP2Name = ''; renderTitle(); return }
+  if (name === 'title-step-back') { pendingP2Name = (document.querySelector<HTMLInputElement>('#p2-name')?.value ?? '').trim(); createStep = 'p1'; pendingP1Role = null; renderTitle(); return }
+  if (name === 'title-role' && (target.dataset.role === 'warrior' || target.dataset.role === 'mage')) {
+    const role = target.dataset.role as Role
+    if (!titleCoop) { pendingP1Name = (document.querySelector<HTMLInputElement>('#p1-name')?.value ?? '').trim(); createRole(role); return }
+    if (createStep === 'p1') { pendingP1Name = (document.querySelector<HTMLInputElement>('#p1-name')?.value ?? '').trim(); pendingP1Role = role; createStep = 'p2'; renderTitle(); return }
+    pendingP2Name = (document.querySelector<HTMLInputElement>('#p2-name')?.value ?? '').trim()
+    titleP2Role = role
+    createRole(pendingP1Role ?? role)
+    return
+  }
   if (name === 'resume' && target.dataset.slot) {
     const slot = saveSlots.find((entry) => entry.id === target.dataset.slot)
     if (slot) { activeSlotId = slot.id; start(slot.data.role, slot.data) }
@@ -5656,6 +6024,7 @@ function performAction(name: string, target: HTMLElement) {
   if (name === 'role-select' && game) {
     save()
     resetPanels()
+    createStep = 'p1'; pendingP1Role = null; pendingP1Name = ''; pendingP2Name = ''; titleCoop = false
     scene = 'title'; paused = false; pendingRole = null; foes = []; projectiles = []; foeShots = []
     saveSlots = readSaves()
     renderTitle()
@@ -5718,6 +6087,7 @@ function performAction(name: string, target: HTMLElement) {
     if (buff === 'material' || buff === 'attack' || buff === 'gear') applyHornBuff(buff)
     return
   }
+  if (name === 'bag-player' && target.dataset.player) { bagPlayer = target.dataset.player === '2' ? 2 : 1; renderGame(); return }
   if (name === 'bag-tab' && target.dataset.tab) {
     const tab = target.dataset.tab
     if (tab === 'gear' || tab === 'gems' || tab === 'talent' || tab === 'other') { bagTab = tab; bagOpen = true; renderGame() }
@@ -5756,6 +6126,7 @@ function performAction(name: string, target: HTMLElement) {
   if (name === 'open-settings') { resetPanels(); settingsOpen = true; renderGame() }
   if (name === 'close-settings') { settingsOpen = false; listeningBind = null; renderGame() }
   if (name === 'open-mail') { resetPanels(); mailOpen = true; renderGame() }
+  if (name === 'redeem-target' && target.dataset.player) { redeemTarget = target.dataset.player === '2' ? 2 : 1; redeemMessage = ''; redeemChoiceOpen = false; renderGame(); return }
   if (name === 'close-mail') { mailOpen = false; renderGame() }
   if (name === 'claim-mail') { claimMail(); return }
   if (name === 'sell-gear' && target.dataset.id) { requestSellGear(target.dataset.id); return }
@@ -6088,15 +6459,34 @@ window.addEventListener('keydown', (event) => {
   if ([' ', 'arrowleft', 'arrowright', 'arrowup'].includes(key)) event.preventDefault()
   if (key === 'p' && scene === 'battle') { paused = !paused; keys.clear(); renderGame(); return }
   if (paused) return
-  // 体验版：V 键直接释放隐藏必杀，无冷却、无次数限制。
+  // 体验版：V 键直接释放玩家一的隐藏必杀，B 键释放玩家二的隐藏必杀。
   if (DEMO_MODE && key === 'v' && scene === 'battle') {
     if (!event.repeat) triggerDemoHiddenUltimate()
+    return
+  }
+  if (DEMO_MODE && key === 'b' && scene === 'battle' && coopRuntime) {
+    if (!event.repeat) triggerDemoPartnerUltimate()
+    return
+  }
+  // 双人模式：小键盘 1 攻击、2 跳跃、3 防御、4-7 技能。
+  if (coopRuntime && (scene === 'battle' || scene === 'town') && event.code.startsWith('Numpad')) {
+    event.preventDefault()
+    if (!event.repeat) {
+      if (event.code === 'Numpad1') { partnerAttackHeld = true; partnerAttack() }
+      else if (event.code === 'Numpad2') partnerJump()
+      else if (event.code === 'Numpad3') partnerShieldHeld = true
+      else if (event.code === 'Numpad4') partnerCast(0)
+      else if (event.code === 'Numpad5') partnerCast(1)
+      else if (event.code === 'Numpad6') partnerCast(2)
+      else if (event.code === 'Numpad7') partnerCast(3)
+    }
     return
   }
   keys.add(key)
   if (key === 'l' && !event.repeat && scene === 'battle' && game && game.mp < 10 && !shieldActive) toast('法力不足，开启护盾需要 10 点法力。')
   if (!event.repeat) {
-    if (key === keyBinds.left || key === 'arrowleft') noteMoveTap(-1)
+    if (coopRuntime && (key === 'arrowleft' || key === 'arrowright')) notePartnerMoveTap(key === 'arrowleft' ? -1 : 1)
+    else if (key === keyBinds.left || key === 'arrowleft') noteMoveTap(-1)
     else if (key === keyBinds.right || key === 'arrowright') noteMoveTap(1)
   }
   if (event.repeat) return
@@ -6107,11 +6497,13 @@ window.addEventListener('keydown', (event) => {
 })
 window.addEventListener('keyup', (event) => {
   const key = event.key.toLowerCase()
+  if (event.code === 'Numpad1') partnerAttackHeld = false
+  if (event.code === 'Numpad3') { partnerShieldHeld = false; partner.shieldLocked = false }
   if (bowCharging && (key === keyBinds.attack || key === keyBinds.skill1)) releaseBowCharge()
   keys.delete(key)
   if (key === 'l') shieldLocked = false
 })
-window.addEventListener('blur', () => { keys.clear(); touchPointers.clear(); shieldActive = false; shieldLocked = false; bowCharging = false; bowCharge = 0; bowChargeSource = null })
+window.addEventListener('blur', () => { keys.clear(); touchPointers.clear(); shieldActive = false; shieldLocked = false; bowCharging = false; bowCharge = 0; bowChargeSource = null; partnerAttackHeld = false; partnerShieldHeld = false; partner.shieldLocked = false; partnerRunActive = false })
 function setupCanvas() {
   canvas = document.querySelector<HTMLCanvasElement>('#arena')
   if (!canvas) return
@@ -6279,6 +6671,7 @@ function update(dt: number) {
   if (bowCharging && bowChargeSource) bowCharge = Math.min(BOW_CHARGE_MAX, bowCharge + dt)
   if (grounded) bowAirLocked = false
   skillWait = skillWait.map((time) => Math.max(0, time - dt))
+  updatePartner(dt)
   if (scene === 'town' && game) {
     const left = keys.has(keyBinds.left) || keys.has('arrowleft')
     const right = keys.has(keyBinds.right) || keys.has('arrowright')
@@ -6364,7 +6757,7 @@ function update(dt: number) {
     } else if (!hiddenUltUsed && hiddenUltimateReady()) {
       triggerHiddenUltimate()
     }
-    const left = keys.has(keyBinds.left) || keys.has('arrowleft'); const right = keys.has(keyBinds.right) || keys.has('arrowright')
+    const left = keys.has(keyBinds.left) || (!coopRuntime && keys.has('arrowleft')); const right = keys.has(keyBinds.right) || (!coopRuntime && keys.has('arrowright'))
     if (left !== right) {
       const d = right ? 1 : -1
       heroX = clampHeroX(heroX + d * battleMoveSpeed(runActive) * dt)
@@ -6959,7 +7352,7 @@ function drawHero(c: CanvasRenderingContext2D) {
   const jumpHeight = Math.max(0, -heroY)
   const now = performance.now()
   const sway = Math.sin(now / 150) * (grounded ? 1.2 : 0)
-  const walking = grounded && (keys.has(keyBinds.left) || keys.has(keyBinds.right) || keys.has('arrowleft') || keys.has('arrowright'))
+  const walking = grounded && (keys.has(keyBinds.left) || keys.has(keyBinds.right) || (!coopRuntime && (keys.has('arrowleft') || keys.has('arrowright'))))
   const walk = walking ? Math.sin(now / 90) : 0
   c.fillStyle = 'rgba(8, 17, 17, .36)'; c.beginPath(); c.ellipse(heroX, (grounded ? heroSupportTop : world.floor) + 2, Math.max(11, 24 - jumpHeight * .036), 6, 0, 0, Math.PI * 2); c.fill()
   const auraColor = game.role === 'warrior'
@@ -6975,6 +7368,72 @@ function drawHero(c: CanvasRenderingContext2D) {
   c.restore()
   c.restore()
   drawFashionOrbit(c, jumpHeight)
+  if (scene === 'battle' && game?.name) drawPlayerName(c, heroX, world.floor - jumpHeight - 112, game.name, '#e8d7a0')
+}
+function drawPlayerName(c: CanvasRenderingContext2D, x: number, y: number, name: string, color: string) {
+  if (!name) return
+  c.save()
+  c.font = "700 10px 'Microsoft YaHei', sans-serif"
+  c.textAlign = 'center'
+  const width = Math.min(120, Math.max(44, c.measureText(name).width + 16))
+  c.fillStyle = 'rgba(12, 24, 24, .82)'
+  c.fillRect(x - width / 2, y - 13, width, 18)
+  c.strokeStyle = 'rgba(201, 178, 115, .38)'; c.lineWidth = 1
+  c.strokeRect(x - width / 2, y - 13, width, 18)
+  c.fillStyle = color
+  c.fillText(name, x, y + 1, width - 8)
+  c.restore()
+}
+function drawPartner(c: CanvasRenderingContext2D) {
+  if (!coopRuntime || !partner.active || scene === 'title') return
+  const now = performance.now()
+  const jumpHeight = Math.max(0, -partner.y)
+  const walking = partner.grounded && (keys.has('arrowleft') || keys.has('arrowright'))
+  const walk = walking ? Math.sin(now / 90) : 0
+  c.save()
+  c.fillStyle = 'rgba(8, 17, 17, .32)'
+  c.beginPath(); c.ellipse(partner.x, world.floor + 2, Math.max(11, 22 - jumpHeight * .036), 5.5, 0, 0, Math.PI * 2); c.fill()
+  c.restore()
+  c.save()
+  c.globalAlpha = .22; c.strokeStyle = '#9fd8ff'; c.lineWidth = 1.4
+  c.beginPath(); c.ellipse(partner.x, world.floor + 2, 27, 7, 0, 0, Math.PI * 2); c.stroke()
+  c.restore()
+  c.save()
+  c.translate(partner.x, world.floor - jumpHeight); c.scale(partner.facing * .78, .78)
+  c.save(); c.shadowColor = '#9fd8ff'; c.shadowBlur = 8
+  const savedSwing = attackSwing
+  const savedSwordOut = swordOutTimer
+  const savedDrawAnim = swordDrawAnim
+  attackSwing = partner.actionAnim > 0 ? .24 : 0
+  swordOutTimer = partner.actionAnim > 0 ? .5 : 0
+  swordDrawAnim = 0
+  withPartnerLoadout(() => {
+    if (game!.p2Role === 'mage') drawMageHero(c, now, walk, true)
+    else drawWarriorHero(c, now, walk, true)
+  })
+  attackSwing = savedSwing
+  swordOutTimer = savedSwordOut
+  swordDrawAnim = savedDrawAnim
+  c.restore()
+  c.restore()
+  if (partner.shieldActive) {
+    c.save(); c.translate(partner.x + partner.facing * 36, world.floor - 50 + partner.y)
+    c.strokeStyle = '#9fd8ff'; c.lineWidth = 2.5; c.shadowColor = '#9fd8ff'; c.shadowBlur = 14
+    c.globalAlpha = .9; c.beginPath(); c.ellipse(0, 0, 12, 32, 0, 0, Math.PI * 2); c.stroke()
+    c.globalAlpha = .22; c.fillStyle = '#bcd4ff'; c.beginPath(); c.ellipse(0, 0, 12, 32, 0, 0, Math.PI * 2); c.fill()
+    c.restore()
+  }
+  const caps = partnerStats()
+  const barY = world.floor - jumpHeight - 116
+  c.save(); c.textAlign = 'center'
+  c.fillStyle = 'rgba(12, 24, 24, .82)'; c.fillRect(partner.x - 34, barY, 68, 15)
+  c.fillStyle = '#9fd8ff'; c.font = "700 9px 'Microsoft YaHei', sans-serif"
+  c.fillText(game?.p2Name ?? '玩家二', partner.x, barY + 10, 64)
+  c.fillStyle = 'rgba(40, 30, 30, .9)'; c.fillRect(partner.x - 30, barY + 16, 60, 4)
+  c.fillStyle = '#d8795f'; c.fillRect(partner.x - 30, barY + 16, 60 * Math.max(0, Math.min(1, partner.hp / Math.max(1, caps.hp))), 4)
+  c.fillStyle = 'rgba(30, 40, 50, .9)'; c.fillRect(partner.x - 30, barY + 21, 60, 3)
+  c.fillStyle = '#79c9d0'; c.fillRect(partner.x - 30, barY + 21, 60 * Math.max(0, Math.min(1, partner.mp / Math.max(1, caps.mp))), 3)
+  c.restore()
 }
 function drawShield(c: CanvasRenderingContext2D) {
   if (!shieldActive || !game || scene !== 'battle') return
@@ -7325,8 +7784,10 @@ function drawWarriorHero(c: CanvasRenderingContext2D, now: number, walk: number,
   c.beginPath(); c.moveTo(-23, -60); c.lineTo(-31, -71); c.lineTo(-16, -64); c.closePath(); c.fill()
   c.beginPath(); c.moveTo(23, -60); c.lineTo(31, -71); c.lineTo(16, -64); c.closePath(); c.fill()
   c.strokeStyle = 'rgba(12, 22, 20, .5)'; c.stroke()
-  // 手臂
-  c.fillStyle = plate.mid; c.fillRect(-21, -54, 7, 22); c.fillRect(14, -54, 7, 20)
+  // 手臂：走路与攻击时摆动
+  const armSwing = Math.sin(now / 110) * (walk ? 3.2 : 1.2) + (attackSwing > 0 ? -5 : 0)
+  c.save(); c.translate(-21, -54); c.rotate(-armSwing * .045); c.fillStyle = plate.mid; c.fillRect(0, 0, 7, 22); c.restore()
+  c.save(); c.translate(14, -54); c.rotate(armSwing * .055); c.fillStyle = plate.mid; c.fillRect(0, 0, 7, 20); c.restore()
   // 头部与头盔
   c.fillStyle = '#d8b48a'; c.fillRect(-10, -82, 20, 22)
   const helm = c.createLinearGradient(0, -92, 0, -72); helm.addColorStop(0, plate.light); helm.addColorStop(1, plate.dark)
@@ -7433,6 +7894,10 @@ function drawMageHero(c: CanvasRenderingContext2D, now: number, walk: number, pl
   // 肩部披肩与下摆符文
   c.fillStyle = robeTint.top; c.beginPath(); c.moveTo(-17, -59); c.quadraticCurveTo(0, -52, 17, -59); c.lineTo(13, -48); c.quadraticCurveTo(0, -43, -13, -48); c.closePath(); c.fill()
   c.strokeStyle = trim; c.lineWidth = 1.3; c.stroke()
+  // 袖臂：走路与施法时摆动
+  const mageArmSwing = Math.sin(now / 120) * (walk ? 3 : 1) + (attackSwing > 0 ? -4 : 0)
+  c.save(); c.translate(-17, -56); c.rotate(-mageArmSwing * .05); c.fillStyle = robeTint.mid; c.fillRect(0, 0, 7, 22); c.restore()
+  c.save(); c.translate(13, -56); c.rotate(mageArmSwing * .06); c.fillStyle = robeTint.mid; c.fillRect(0, 0, 7, 20); c.restore()
   c.strokeStyle = trim; c.globalAlpha = .8; c.lineWidth = 1.4
   c.beginPath(); c.moveTo(-16, -13); c.lineTo(-10, -17); c.lineTo(-5, -12); c.lineTo(0, -17); c.lineTo(5, -12); c.lineTo(10, -17); c.lineTo(16, -13); c.stroke(); c.globalAlpha = 1
   if (armorLevel > 0) {
@@ -9152,7 +9617,7 @@ function drawHiddenUltimate(c: CanvasRenderingContext2D) {
   const elapsed = 2.5 - hiddenUltTimer
   const charge = Math.min(1, elapsed / 1.2)
   const after = Math.max(0, Math.min(1, (elapsed - 1.2) / 1.3))
-  const impactX = heroX + dir * 235
+  const impactX = (hiddenUltOwner === 'p2' ? hiddenUltX : heroX) + dir * 235
   const groundY = world.floor
   const now = performance.now()
   c.save()
@@ -9274,7 +9739,7 @@ function drawHiddenUltimate(c: CanvasRenderingContext2D) {
     }
   } else {
     // 魔典：地图般巨大的巨兽从另一半地图踏下
-    const monsterX = heroX - dir * 260
+    const monsterX = (hiddenUltOwner === 'p2' ? hiddenUltX : heroX) - dir * 260
     const stomp = Math.min(1, elapsed / 1.2)
     c.save()
     c.globalAlpha = .5 + charge * .3
@@ -9310,7 +9775,7 @@ function drawHiddenUltimate(c: CanvasRenderingContext2D) {
   // 必杀期间角色周身的神圣护盾
   if (hiddenUltTimer > 0) {
     const pulse = .85 + Math.sin(now / 90) * .15
-    c.save(); c.translate(heroX, world.floor - 58 + heroY)
+    c.save(); c.translate(hiddenUltOwner === 'p2' ? hiddenUltX : heroX, world.floor - 58 + (hiddenUltOwner === 'p2' ? hiddenUltY : heroY))
     c.shadowColor = color; c.shadowBlur = 34
     c.globalAlpha = .28; c.fillStyle = color
     c.beginPath(); c.ellipse(0, 0, 52 * pulse, 82 * pulse, 0, 0, Math.PI * 2); c.fill()
@@ -9348,6 +9813,7 @@ function draw() {
   if (scene === 'town') { drawTownWaypoint(ctx); drawTownNpc(ctx); drawTownCompanions(ctx); drawSecondNpc(ctx); drawHiddenNpc(ctx) }
   ctx.save(); if (invisibleTimer > 0) ctx.globalAlpha = .16
   drawHero(ctx)
+  drawPartner(ctx)
   ctx.restore()
   drawStealthAura(ctx)
   drawArcaneBuff(ctx)
@@ -9446,7 +9912,7 @@ function draw() {
 }
 function frame(now: number) { if (gameClosed) return; const dt = Math.min((now - lastTime) / 1000, .045); lastTime = now; update(dt); draw(); requestAnimationFrame(frame) }
 document.querySelector('#rotate-lock')?.addEventListener('click', () => { void enterLandscape() })
-window.addEventListener('resize', () => { if (canvas && scene !== 'title') { setupCanvas(); paintHudPortrait() } })
+window.addEventListener('resize', () => { if (canvas && scene !== 'title') { setupCanvas(); paintHudPortrait(); if (coopRuntime && scene === 'battle' && partner.active) paintPartnerHudPortrait() } })
 window.addEventListener('pointerdown', () => document.querySelector('#rotate-hint')?.classList.add('dismissed'), { once: true })
 document.querySelector('#rotate-dismiss')?.addEventListener('click', () => document.querySelector('#rotate-hint')?.classList.add('dismissed'))
 void boot(); requestAnimationFrame(frame)

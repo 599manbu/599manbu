@@ -82,6 +82,9 @@ type MusicCfg = {
   // 可选的琶音层，增加流动感。
   arpSteps?: number[]
   arpWave?: OscillatorType
+  // 对位旋律与稀疏节奏，进一步减少单调感。
+  counterLine?: number[]
+  counterSteps?: number[]
 }
 // 16 步一小节：主旋律、低音、铺底和弦与鼓点分层，战斗与 Boss 曲更密集、更有推进感。
 const TITLE_MUSIC: MusicCfg = {
@@ -97,6 +100,41 @@ const TOWN_MUSIC: MusicCfg = {
   leadLine: [0, 4, 7, 4, 9, 7, 4, 2, 5, 7, 9, 7, 4, 2, 0, -1],
   arpSteps: [2, 6, 10, 14], arpWave: 'triangle',
 }
+// 生成至少 192 步（约 32~39 秒）不重复的战斗旋律，避免短循环带来的单调。
+const MELODY_MOTIFS: number[][] = [
+  [0, 1, 2, 1, 3, 2, 1, 0, 2, 3, 4, 3, 2, 1, 0, 1],
+  [0, 2, 1, 3, 2, 4, 3, 2, 1, 2, 0, 1, 3, 2, 1, 0],
+  [0, 3, 2, 4, 3, 5, 4, 3, 2, 1, 2, 3, 4, 3, 2, 1],
+  [0, 1, 3, 2, 4, 5, 4, 3, 2, 3, 1, 2, 0, 1, 2, 0],
+  [0, 4, 3, 2, 1, 3, 2, 1, 0, 2, 4, 3, 2, 1, 0, 2],
+]
+function buildLongLeadLine(seed: number, scale: number[]): number[] {
+  const line: number[] = []
+  const phraseCount = 12
+  const transposes = [0, 2, 4, 1, 5, 3, 6, 4, 2, 7, 5, 3, 1, 6, 4, 2]
+  for (let phrase = 0; phrase < phraseCount; phrase += 1) {
+    const motif = MELODY_MOTIFS[(seed + phrase * 2) % MELODY_MOTIFS.length]
+    const transpose = transposes[(seed + phrase) % transposes.length]
+    for (let i = 0; i < 16; i += 1) {
+      const index = ((motif[i] + transpose) % scale.length + scale.length) % scale.length
+      line.push(scale[index])
+    }
+  }
+  return line
+}
+const BATTLE_TEMPOS = [220, 212, 204, 228, 238, 200, 208, 196, 224, 192]
+const LONG_PROGRESSIONS: number[][] = [
+  [0, 3, 5, 4, 0, 5, 3, 4, 2, 4],
+  [0, 5, 3, 4, 2, 5, 3, 0, 4, 5],
+  [0, 1, 4, 5, 3, 1, 4, 2, 5, 0],
+  [0, 3, 5, 2, 4, 3, 5, 0, 2, 4],
+  [0, 5, 2, 4, 3, 5, 2, 0, 4, 3],
+  [0, 2, 5, 4, 3, 2, 5, 4, 0, 3],
+  [0, 5, 3, 4, 2, 3, 5, 0, 4, 2],
+  [0, 1, 5, 4, 2, 1, 5, 3, 4, 0],
+  [0, 3, 5, 4, 2, 5, 3, 0, 4, 2],
+  [0, 5, 3, 4, 2, 0, 5, 3, 4, 2],
+]
 // 十个关卡各自的主旋律：不同调式、速度、和弦走向与节奏型。
 const STAGE_MUSIC: MusicCfg[] = [
   {
@@ -154,10 +192,21 @@ const STAGE_MUSIC: MusicCfg[] = [
     leadLine: [0, 3, 5, 8, 10, 8, 5, 3, 0, 3, 7, 10, 12, 10, 7, 3],
   },
 ]
+// 战斗曲统一放慢并换成 192 步长旋律；Boss 曲稍快但仍保证 30 秒内旋律不重复。
+STAGE_MUSIC.forEach((cfg, index) => {
+  cfg.stepMs = BATTLE_TEMPOS[index] ?? 210
+  cfg.leadLine = buildLongLeadLine(index + 1, cfg.scale)
+  cfg.counterLine = buildLongLeadLine(index + 21, cfg.scale)
+  cfg.counterSteps = [4, 12]
+  cfg.leadSteps = [0, 2, 3, 5, 6, 8, 10, 11, 12, 14]
+  cfg.progression = LONG_PROGRESSIONS[index % LONG_PROGRESSIONS.length]
+  cfg.padSteps = [0, 8]
+  cfg.drums = true
+})
 // Boss 战沿用各关主旋律，但速度更快、音色更硬、鼓点更密。
 const BOSS_MUSIC: MusicCfg[] = STAGE_MUSIC.map((cfg) => ({
   ...cfg,
-  stepMs: Math.max(88, cfg.stepMs - 28),
+  stepMs: Math.max(168, cfg.stepMs - 24),
   wave: 'sawtooth',
   volume: Math.min(.2, cfg.volume + .015),
   drums: true,
@@ -187,6 +236,10 @@ function startMusic() {
         ? cfg.leadLine[step % cfg.leadLine.length]
         : chord + [0, 3, 7, 10, 12, 7, 3][(Math.floor(pos / 2) + bar) % 7]
       note(cfg.root * cfg.leadOctave * 2 ** (degree / 12), beat * .82, cfg.wave, cfg.volume)
+    }
+    if (cfg.counterSteps?.includes(pos) && cfg.counterLine?.length) {
+      const degree = cfg.counterLine[step % cfg.counterLine.length]
+      note(cfg.root * cfg.leadOctave * 3 * 2 ** (degree / 12), beat * .7, 'sine', cfg.volume * .18)
     }
     if (cfg.arpSteps?.includes(pos)) {
       const arp = [0, 3, 7, 12][(step + bar) % 4]
