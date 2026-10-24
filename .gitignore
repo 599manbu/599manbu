@@ -11,6 +11,7 @@ node_modules
 dist
 dist-demo
 dist-4399
+dist-4399*.zip
 dist-ssr
 *.local
 

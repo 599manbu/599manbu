@@ -284,10 +284,10 @@ button, .mobile-pad, .mobile-skill, [data-move], [data-shield] {
 .item-icon { display: inline-grid; place-items: center; width: 1.2em; height: 1.2em; flex: 0 0 auto; color: #d4bb79; vertical-align: -.18em; }
 .item-icon svg { display: block; width: 100%; height: 100%; fill: currentColor; }
 .gear-glyph .item-icon { width: 18px; height: 18px; }
-.soul-badge { display: inline-flex; align-items: center; gap: 4px; margin-left: 12px; color: #a9d2e4; font-family: var(--mono); font-size: 10px; white-space: nowrap; }
+.soul-badge { display: inline-flex; align-items: center; gap: 4px; margin-left: 12px; color: #e6d3a2; font-family: var(--mono); font-size: 10px; white-space: nowrap; }
 .demo-badge { display: inline-flex; align-items: center; margin-left: 10px; padding: 2px 7px; border: 1px solid rgba(231, 199, 124, .45); background: rgba(201, 178, 115, .12); color: #efd9a1; font-family: var(--mono); font-size: 8px; white-space: nowrap; }
 .demo-account { border-color: rgba(231, 199, 124, .35); }
-.soul-badge .item-icon { color: #88c4e0; }
+.soul-badge .item-icon { color: #e3c57e; }
 .bag-tabs { display: flex; gap: 6px; margin: 10px 0 8px; }
 .bag-tabs button { flex: 1; min-height: 31px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; border: 1px solid var(--line); background: rgba(31, 49, 48, .5); color: #9ba79d; font-size: 9px; cursor: pointer; }
 .bag-tabs button.active { border-color: rgba(201, 178, 115, .5); background: rgba(201, 178, 115, .13); color: #e4d6a8; }
@@ -324,7 +324,7 @@ button, .mobile-pad, .mobile-skill, [data-move], [data-shield] {
 .shop-list { max-height: min(420px, 52vh); }
 .shop-row { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto auto; align-items: center; gap: 8px; min-height: 56px; padding: 8px; border: 1px solid rgba(198, 202, 175, .16); background: rgba(43, 60, 54, .44); }
 .shop-price { display: inline-flex; align-items: center; gap: 4px; color: #d4b876; font-family: var(--mono); font-size: 9px; white-space: nowrap; }
-.shop-price .item-icon { width: 12px; height: 12px; color: #88c4e0; }
+.shop-price .item-icon { width: 12px; height: 12px; color: #e3c57e; }
 .shop-row button { min-width: 52px; min-height: 30px; border: 1px solid rgba(206, 182, 117, .42); background: rgba(119, 102, 59, .2); color: #e1d3a8; font-size: 9px; cursor: pointer; }
 .shop-row button:disabled { border-color: var(--line); background: transparent; color: #78847b; cursor: not-allowed; }
 .talent-block { margin: 10px 0; }

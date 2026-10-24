@@ -33,7 +33,7 @@ type BattlePlatform = { x: number; w: number; height: number; kind: 'tree' | 'ro
 const SAVE_KEY = 'elemental-expedition-save-v2'
 const DEMO_MODE = import.meta.env.MODE === 'demo'
 const DEMO_SAVE_KEY = `${SAVE_KEY}:demo`
-const GAME_VERSION = '1.90'
+const GAME_VERSION = '1.91'
 const stageNames = ['苔痕边境', '沉钟矿道', '赤岩峡谷', '风蚀高原', '幽蓝沼泽', '断星回廊', '灰烬王庭', '深渊裂谷', '苍白圣所', '终焉之门']
 const roleLabels: Record<Role, string> = { warrior: '战士', mage: '法师' }
 const SKILL_LABELS: Record<SkillSetKey, string[]> = {
@@ -303,11 +303,11 @@ const SHOP_ITEMS: ShopItem[] = [
   { id: 'weapon1', name: '一阶武器 ×1', cost: 1000, desc: '随机一件 1 级武器', category: 'equipment', icon: 'weapon', demoOnly: true, grant: { kind: 'gear', gearType: 'weapon', level: 1 } },
   { id: 'fragments1', name: '天赋币碎片 ×1', cost: 2000, desc: '每日限购一次', category: 'other', icon: 'fragment', grant: { kind: 'fragments', amount: 1 } },
   { id: 'revive1', name: '复活币 ×1', cost: 2000, desc: '每 3 天限购一次；战斗中死亡可满状态复活', category: 'other', icon: 'revive', grant: { kind: 'revive', amount: 1 } },
-  { id: 'punch1', name: '打孔石 ×1', cost: 2000, desc: '每周限购一次；在合成台为装备打孔', category: 'material', icon: 'punch', grant: { kind: 'punch', amount: 1 } },
+  { id: 'punch1', name: '打孔石 ×1', cost: 2000, desc: '每周限购一次；在炉子为装备打孔', category: 'material', icon: 'punch', grant: { kind: 'punch', amount: 1 } },
   { id: 'fashion1', name: '一阶时装 ×1', cost: 10000, desc: '限购一份；小怪与 Boss 不会掉落', category: 'fashion', icon: 'fashion', unique: true, grant: { kind: 'fashion', tier: 1 } },
   { id: 'horn1', name: '号角 ×1', cost: 10000, desc: '每月限购一次；使用后选择一种增益，持续 30 分钟', category: 'other', icon: 'horn', grant: { kind: 'horn', amount: 1 } },
 ]
-// 体验版商城：所有道具 1 灵魂，覆盖时装、装备、宝石、材料与消耗品。
+// 体验版商城：所有道具 1 硬币，覆盖时装、装备、宝石、材料与消耗品。
 function demoShopItems(): ShopItem[] {
   const items: ShopItem[] = []
   for (let tier = 2; tier <= 4; tier += 1) {
@@ -333,8 +333,8 @@ function demoShopItems(): ShopItem[] {
   })
   items.push(
     { id: 'demo-talent-coin', name: '天赋币 ×1', cost: 1, desc: '体验版商城道具', category: 'other', icon: 'coin', demoOnly: true, grant: { kind: 'talentCoin', amount: 1 } },
-    { id: 'demo-soul-1000', name: '灵魂 ×1000', cost: 1, desc: '体验版商城道具', category: 'other', icon: 'soul', demoOnly: true, grant: { kind: 'soul', amount: 1000 } },
-    { id: 'demo-soul-10000', name: '灵魂 ×10000', cost: 1, desc: '体验版商城道具', category: 'other', icon: 'soul', demoOnly: true, grant: { kind: 'soul', amount: 10000 } },
+    { id: 'demo-soul-1000', name: '硬币 ×1000', cost: 1, desc: '体验版商城道具', category: 'other', icon: 'soul', demoOnly: true, grant: { kind: 'soul', amount: 1000 } },
+    { id: 'demo-soul-10000', name: '硬币 ×10000', cost: 1, desc: '体验版商城道具', category: 'other', icon: 'soul', demoOnly: true, grant: { kind: 'soul', amount: 10000 } },
     { id: 'demo-lottery-1', name: '抽奖机会 ×1', cost: 1, desc: '体验版商城道具', category: 'other', icon: 'ticket', demoOnly: true, grant: { kind: 'lottery', amount: 1 } },
   )
   return items
@@ -347,7 +347,7 @@ const LOTTERY_PRIZES = [
   { id: 'attr', label: '属性点 +10', weight: 20 },
   { id: 'gear2', label: '当前品阶装备 ×2', weight: 10 },
   { id: 'coin', label: '天赋币 ×1', weight: 10 },
-  { id: 'soul', label: '灵魂 ×2000', weight: 40 },
+  { id: 'soul', label: '硬币 ×2000', weight: 40 },
   { id: 'fashion', label: '一阶时装 ×1', weight: 5 },
   { id: 'empty', label: '空奖', weight: 5 },
   { id: 'gearHigh', label: '高一级装备 ×1', weight: 10 },
@@ -2108,7 +2108,7 @@ function gearMarkup(canEquip: boolean, filter: 'all' | 'weapon' | 'armor' | 'fas
     else {
       actions = `<button data-action="equip" data-id="${gear.id}" ${canEquip && compatible ? '' : 'disabled'}>${!compatible ? '职业不符' : canEquip ? '穿戴' : '小镇可穿'}</button>`
     }
-    if (!equipped) actions += `<button class="gear-sell" data-action="sell-gear" data-id="${gear.id}" title="出售后获得灵魂">出售 +${displayCurrency(gearSellPrice(gear.level))}</button>`
+    if (!equipped) actions += `<button class="gear-sell" data-action="sell-gear" data-id="${gear.id}" title="出售后获得硬币">出售 +${displayCurrency(gearSellPrice(gear.level))}</button>`
     return `<article class="gear-row ${equipped ? 'active-gear' : ''}" draggable="true" data-drag-id="${gear.id}" data-action="equip-gear" data-id="${gear.id}" title="点击装备 / 拖到左侧装备框"><span class="gear-glyph ${gear.type ?? 'legacy'}">${icon}</span><span class="gear-copy"><b>${gear.name}</b><small>${type} · ${gear.level} 级 · ${details}${socketInfo}</small></span><span class="gear-actions">${actions}</span></article>`
   }).join('')
 }
@@ -2183,7 +2183,7 @@ function forgeCombine() {
   if (!game || scene !== 'town') return
   const recipe = forgeRecipe()
   if (!recipe.valid || recipe.level === undefined) return
-  if ((game.soul ?? 0) < 1000) { toast('合成装备需要 1000 灵魂。'); return }
+  if ((game.soul ?? 0) < 1000) { toast('合成装备需要 1000 硬币。'); return }
   game.soul = (game.soul ?? 0) - 1000
   const consumed = new Set(forgeSlots)
   // 被合成消耗的装备如果镶有宝石，先把宝石取回背包。
@@ -2234,7 +2234,7 @@ function forgeGearMarkup() {
     const levelLabel = gear.type === 'fashion' ? fashionTierName(gear.level) : `${gear.level} 级`
     return `<article class="forge-item ${inSlot ? 'in-slot' : ''}"><span class="gear-glyph">${gearIcon(gear)}</span><span class="gear-copy"><b>${gear.name}</b><small>${typeLabel} · ${levelLabel}</small></span>${inSlot ? '<i class="forge-placed">已放入</i>' : `<button data-action="forge-add" data-id="${gear.id}" ${compatible && forgeSlots.length < slotLimit ? '' : 'disabled'}>放入</button>`}</article>`
   }).join('') : '<div class="empty-gear">没有可用的未穿戴装备<small>击败守卫与 Boss 会掉落装备</small></div>'
-  return `<div class="forge-layout"><section class="forge-workbench"><h3>合成孔位</h3><div class="forge-slots" style="--slots:${slotLimit}">${slotMarkup}</div><div class="forge-arrow">▼</div><div class="forge-result ${recipe.valid ? 'ready' : ''}"><b>${recipe.resultName}</b><small>${recipe.reason}</small></div><div class="forge-meta"><span>材料 ${forgeSlots.length} / ${recipe.required}</span><span>消耗 ${cost} 灵魂 · 成功率 <b>100%</b></span></div><button class="forge-combine" data-action="forge-combine" ${canForge ? '' : 'disabled'}>合 成</button></section><aside class="forge-bag"><header><h3>背包装备</h3><small>点击“放入”加入左侧孔位</small></header><div class="forge-bag-list">${bagRows}</div></aside></div>`
+  return `<div class="forge-layout"><section class="forge-workbench"><h3>合成孔位</h3><div class="forge-slots" style="--slots:${slotLimit}">${slotMarkup}</div><div class="forge-arrow">▼</div><div class="forge-result ${recipe.valid ? 'ready' : ''}"><b>${recipe.resultName}</b><small>${recipe.reason}</small></div><div class="forge-meta"><span>材料 ${forgeSlots.length} / ${recipe.required}</span><span>消耗 ${cost} 硬币 · 成功率 <b>100%</b></span></div><button class="forge-combine" data-action="forge-combine" ${canForge ? '' : 'disabled'}>合 成</button></section><aside class="forge-bag"><header><h3>背包装备</h3><small>点击“放入”加入左侧孔位</small></header><div class="forge-bag-list">${bagRows}</div></aside></div>`
 }
 function specialSlotsMax() { return 3 }
 function specialAvailable(key: string) {
@@ -2262,7 +2262,7 @@ function specialRecipe() {
     cost,
     tiers: [stage],
     resultText: `第 ${stage} 关装备 ×1（武器 / 护甲随机）`,
-    reason: canPay ? `第 ${stage} 关专属合成 · 消耗 ${cost} 灵魂` : `还需要 ${cost - (game?.soul ?? 0)} 灵魂`,
+    reason: canPay ? `第 ${stage} 关专属合成 · 消耗 ${cost} 硬币` : `还需要 ${cost - (game?.soul ?? 0)} 硬币`,
   }
 }
 function specialAdd(key: string) {
@@ -2286,7 +2286,7 @@ function specialCombine() {
   if (!game) return
   const recipe = specialRecipe()
   if (!recipe.valid || specialSlots.length !== 3) return
-  if ((game.soul ?? 0) < recipe.cost) { toast('灵魂不足。'); return }
+  if ((game.soul ?? 0) < recipe.cost) { toast('硬币不足。'); return }
   const keys = [...specialSlots]
   game.soul = (game.soul ?? 0) - recipe.cost
   for (const key of keys) addMaterial(key, -1)
@@ -2326,7 +2326,7 @@ function forgeSpecialMarkup() {
       rows.push(`<article class="forge-item ${canAdd ? '' : 'in-slot'}"><span class="gear-glyph">${itemIcon('fragment')}</span><span class="gear-copy"><b>${name}</b><small>${hint}</small></span><button data-action="special-add" data-key="${key}" ${canAdd ? '' : 'disabled'}>放入</button></article>`)
     })
   })
-  return `<div class="forge-layout"><section class="forge-workbench"><h3>专属合成孔位</h3><p class="forge-note">需要同一关卡的 3 种不同专属掉落物，合成该关卡等级的装备。</p><div class="forge-slots" style="--slots:3">${slotMarkup}</div><div class="forge-arrow">▼</div><div class="forge-result ${recipe.valid ? 'ready' : ''}"><b>${recipe.resultText}</b><small>${recipe.reason}</small></div><div class="forge-meta"><span>材料 ${specialSlots.length} / 3</span><span>消耗 ${recipe.cost || 0} 灵魂 · 成功率 <b>100%</b></span></div><button class="forge-combine" data-action="special-combine" ${recipe.valid && specialSlots.length === 3 ? '' : 'disabled'}>合 成</button></section><aside class="forge-bag"><header><h3>专属材料</h3><small>小怪专属掉落 · 靠近按 S 拾取</small></header><div class="forge-bag-list">${rows.join('') || '<div class="empty-gear">还没有专属材料<small>击败各关小怪有概率掉落</small></div>'}</div></aside></div>`
+  return `<div class="forge-layout"><section class="forge-workbench"><h3>专属合成孔位</h3><p class="forge-note">需要同一关卡的 3 种不同专属掉落物，合成该关卡等级的装备。</p><div class="forge-slots" style="--slots:3">${slotMarkup}</div><div class="forge-arrow">▼</div><div class="forge-result ${recipe.valid ? 'ready' : ''}"><b>${recipe.resultText}</b><small>${recipe.reason}</small></div><div class="forge-meta"><span>材料 ${specialSlots.length} / 3</span><span>消耗 ${recipe.cost || 0} 硬币 · 成功率 <b>100%</b></span></div><button class="forge-combine" data-action="special-combine" ${recipe.valid && specialSlots.length === 3 ? '' : 'disabled'}>合 成</button></section><aside class="forge-bag"><header><h3>专属材料</h3><small>小怪专属掉落 · 靠近按 S 拾取</small></header><div class="forge-bag-list">${rows.join('') || '<div class="empty-gear">还没有专属材料<small>击败各关小怪有概率掉落</small></div>'}</div></aside></div>`
 }
 function stoneCombine(tier: number) {
   if (!game || tier < 1 || tier >= 5) return
@@ -2372,12 +2372,12 @@ function forgePunchMarkup() {
     const dots = Array.from({ length: 2 }, (_, index) => index < sockets ? '●' : '○').join('')
     return `<article class="forge-item"><span class="gear-glyph">${gearIcon(gear)}</span><span class="gear-copy"><b>${gear.name}${equipped ? ' · 已装备' : ''}</b><small>孔位 ${dots}（${sockets} / 2） · ${sockets >= 2 ? '已满孔' : `开下一孔需要 ${cost} 个打孔石`}</small></span><button data-action="punch-open" data-id="${gear.id}" ${sockets < 2 && (game!.punchStones ?? 0) >= cost ? '' : 'disabled'}>${sockets >= 2 ? '已满孔' : '打孔'}</button></article>`
   }).join('')
-  return `<div class="forge-layout"><section class="forge-workbench"><h3>装备打孔</h3><p class="forge-note">所有武器与护甲在获得时随机拥有 0 / 1 / 2 个孔位（30% / 50% / 20%）。0 孔开第一孔消耗 1 个打孔石，1 孔开第二孔消耗 2 个打孔石。</p><div class="forge-result ready"><b>${itemIcon('punch')} 打孔石 ×${game.punchStones ?? 0}</b><small>打孔石可在灵魂商店每周购买 1 个（2000 灵魂）。</small></div></section><aside class="forge-bag"><header><h3>武器与护甲</h3><small>选择装备进行打孔</small></header><div class="forge-bag-list">${rows || '<div class="empty-gear">背包里还没有武器或护甲</div>'}</div></aside></div>`
+  return `<div class="forge-layout"><section class="forge-workbench"><h3>装备打孔</h3><p class="forge-note">所有武器与护甲在获得时随机拥有 0 / 1 / 2 个孔位（30% / 50% / 20%）。0 孔开第一孔消耗 1 个打孔石，1 孔开第二孔消耗 2 个打孔石。</p><div class="forge-result ready"><b>${itemIcon('punch')} 打孔石 ×${game.punchStones ?? 0}</b><small>打孔石可在硬币商店每周购买 1 个（2000 硬币）。</small></div></section><aside class="forge-bag"><header><h3>武器与护甲</h3><small>选择装备进行打孔</small></header><div class="forge-bag-list">${rows || '<div class="empty-gear">背包里还没有武器或护甲</div>'}</div></aside></div>`
 }
 function craftingMarkup() {
   if (!game) return ''
   const body = forgeTab === 'special' ? forgeSpecialMarkup() : forgeTab === 'stone' ? forgeStoneMarkup() : forgeTab === 'punch' ? forgePunchMarkup() : forgeGearMarkup()
-  return `<div class="bag-scrim craft-scrim"><section class="bag-dialog craft-dialog"><header><div><small>FORGE · 冒险者小镇</small><h2>合成台</h2></div><button data-action="close-crafting" aria-label="关闭合成台">×</button></header>${forgeTabsMarkup()}${body}</section></div>`
+  return `<div class="bag-scrim craft-scrim"><section class="bag-dialog craft-dialog"><header><div><small>FORGE · 冒险者小镇</small><h2>炉子</h2></div><button data-action="close-crafting" aria-label="关闭炉子">×</button></header>${forgeTabsMarkup()}${body}</section></div>`
 }
 function openSecondNpcMenu() {
   if (!game || scene !== 'town' || !secondNpcUnlocked()) return
@@ -2579,12 +2579,12 @@ function townPanelMarkup() {
   const current = game
   const options = Array.from({ length: current.unlockedStage }, (_, i) => `<option value="${i + 1}" ${current.stage === i + 1 ? 'selected' : ''}>第 ${String(i + 1).padStart(2, '0')} 关 · ${stageNames[i]}</option>`).join('')
   const forgeButton = forgeUnlocked()
-    ? '<button class="secondary" data-action="open-crafting">⚒ 合成台</button>'
-    : '<button class="secondary" disabled title="通关第一关后解锁">⚒ 合成台 · 第1关解锁</button>'
+    ? '<button class="secondary" data-action="open-crafting">⚒ 炉子</button>'
+    : '<button class="secondary" disabled title="通关第一关后解锁">⚒ 炉子 · 第1关解锁</button>'
   const npcButton = npcUnlocked()
     ? `<button class="secondary town-npc" data-action="open-npc">${itemIcon('npc')} ${TOWN_NPC_NAME} · 天赋/抽奖 · S</button>`
     : '<button class="secondary" disabled title="通关第一关后解锁">阿岩 · 第1关解锁</button>'
-  return `<section class="panel town-panel"><header><span>冒险者小镇</span><small>SAFE HAVEN</small></header><p>在镇内自由走动整备；可以跳跃、攻击和练习技能，不消耗法力。走到镇中央的远征法阵按 S 可以直接选择关卡。</p><div class="town-shortcuts">${forgeButton}<button class="secondary" data-action="open-attributes">✦ 属性分配 · ${current.attributePoints ?? 0} 点</button><button class="secondary town-lottery" data-action="open-lottery" ${(current.lotteryChances ?? 0) > 0 ? '' : 'disabled'}>🎟 抽奖 · ${current.lotteryChances ?? 0} 次</button>${npcButton}</div><div class="town-currency"><span>${itemIcon('soul')} 灵魂 ${displayCurrency(current.soul ?? 0)}</span><span>${itemIcon('fragment')} 碎片 ${displayCurrency(current.talentFragments ?? 0)}</span><span>${itemIcon('coin')} 天赋币 ${displayCurrency(current.talentCoins ?? 0)}</span><span>${itemIcon('stamp')} 印章 ${displayCurrency(current.stamps ?? 0)} / ${STAMP_UNLOCK}</span></div>${npcUnlocked() ? `<p class="npc-hint">${TOWN_NPC_NAME}已经回到镇上：走到他面前按 S 对话。</p>` : '<p class="npc-hint">通关第一关后，阿岩会出现在镇上。</p>'}${current.completed ? `<p class="stage-progress-copy">十片遗迹皆已沉寂</p><button class="primary" data-action="role-select">返回角色选择</button>` : `<label class="stage-picker"><span>选择关卡</span><select id="stage-select">${options}</select></label><button class="primary" data-action="enter-stage">进入遗迹　→</button>`}</section>`
+  return `<section class="panel town-panel"><header><span>冒险者小镇</span><small>SAFE HAVEN</small></header><p>在镇内自由走动整备；可以跳跃、攻击和练习技能，不消耗法力。走到镇中央的远征法阵按 S 可以直接选择关卡。</p><div class="town-shortcuts">${forgeButton}<button class="secondary" data-action="open-attributes">✦ 属性分配 · ${current.attributePoints ?? 0} 点</button><button class="secondary town-lottery" data-action="open-lottery" ${(current.lotteryChances ?? 0) > 0 ? '' : 'disabled'}>🎟 抽奖 · ${current.lotteryChances ?? 0} 次</button>${npcButton}</div><div class="town-currency"><span>${itemIcon('soul')} 硬币 ${displayCurrency(current.soul ?? 0)}</span><span>${itemIcon('fragment')} 碎片 ${displayCurrency(current.talentFragments ?? 0)}</span><span>${itemIcon('coin')} 天赋币 ${displayCurrency(current.talentCoins ?? 0)}</span><span>${itemIcon('stamp')} 印章 ${displayCurrency(current.stamps ?? 0)} / ${STAMP_UNLOCK}</span></div>${npcUnlocked() ? `<p class="npc-hint">${TOWN_NPC_NAME}已经回到镇上：走到他面前按 S 对话。</p>` : '<p class="npc-hint">通关第一关后，阿岩会出现在镇上。</p>'}${current.completed ? `<p class="stage-progress-copy">十片遗迹皆已沉寂</p><button class="primary" data-action="role-select">返回角色选择</button>` : `<label class="stage-picker"><span>选择关卡</span><select id="stage-select">${options}</select></label><button class="primary" data-action="enter-stage">进入遗迹　→</button>`}</section>`
 }
 function stageOneCleared() {
   return Boolean(game && (game.unlockedStage > 1 || game.stageProgress?.['1']?.bossDefeated))
@@ -2605,7 +2605,8 @@ const ITEM_ICON_PATHS: Record<string, string> = {
   book: '<path d="M4 3h6.5c1.9 0 3.5 1.5 3.5 3.4V21c-.8-.9-2-1.4-3.2-1.4H4V3Zm12.5 0H18c1.7 0 3 1.3 3 3v15c-.8-.9-2-1.4-3.2-1.4h-1.3V3ZM6 5v12.4h4.2c.7 0 1.3.1 1.8.3V5.4c0-.8-.6-1.4-1.4-1.4H6Z"/>',
   armor: '<path d="M12 2 4 5.5V11c0 5 3.4 9.2 8 11 4.6-1.8 8-6 8-11V5.5L12 2Zm0 3.2 5 2.2V11c0 3.5-2.1 6.6-5 8-2.9-1.4-5-4.5-5-8V7.4l5-2.2Z"/>',
   fashion: '<path d="M9 2h6l-1.2 4.2L18 10l-2 12H8L6 10l4.2-3.8L9 2Zm1.5 2-.6 3.1L6.5 10 8 20h8l1.5-10-3.4-2.9L13.5 4h-3Z"/>',
-  soul: '<path d="M12 2c1.4 3.4 4.5 4.7 5.6 7.8 1.3 3.6-.7 7.2-4 8.6 1.6-3.1.6-5-1.1-6.7.2 3.2-1.6 4.5-3 5.6.8-3.6-1.2-5.2-1.5-8.1C7.8 7 9.8 4.8 12 2Z"/>',
+  // 硬币使用金币图标（原先的灵魂图标已替换）。
+  soul: '<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16Zm0 2.5 1.6 3.3 3.6.5-2.6 2.5.6 3.6-3.2-1.7-3.2 1.7.6-3.6-2.6-2.5 3.6-.5L12 6.5Z"/>',
   fragment: '<path d="m12 2 5.5 7.5L12 22 6.5 9.5 12 2Zm0 3.4L8.7 9.8l3.3 8 3.3-8L12 5.4Z"/>',
   coin: '<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16Zm0 2.5 1.6 3.3 3.6.5-2.6 2.5.6 3.6-3.2-1.7-3.2 1.7.6-3.6-2.6-2.5 3.6-.5L12 6.5Z"/>',
   ticket: '<path d="M3 5h18v4.2a2.8 2.8 0 0 0 0 5.6V19H3v-4.2a2.8 2.8 0 0 0 0-5.6V5Zm2 2v1.3a4.8 4.8 0 0 1 0 7.4V17h14v-1.3a4.8 4.8 0 0 1 0-7.4V7H5Z"/>',
@@ -2830,7 +2831,7 @@ function townIntroStoryData(): StoryData {
     { speaker: '旁白', text: '你已经完成了新手指引。这里是冒险者小镇，安全区内不会生成敌人，生命和法力会自动回满。' },
     { speaker: '旁白', text: '背包：点击顶栏“背包”，查看装备、时装、天赋币和其他物品；装备需要手动穿戴。' },
     { speaker: '旁白', text: '属性：击杀小怪获得属性点，在小镇的属性面板中分配，立即生效。' },
-    { speaker: '旁白', text: '合成台与阿岩：通关第一关后解锁。合成台可用 5 件同阶装备（可混搭不同品种）或 3 件同阶时装合成，也可用同关卡 3 种不同专属材料合成装备；阿岩在营火集市用灵魂交易。' },
+    { speaker: '旁白', text: '炉子与阿岩：通关第一关后解锁。炉子可用 5 件同阶装备（可混搭不同品种）或 3 件同阶时装合成，也可用同关卡 3 种不同专属材料合成装备；阿岩在营火集市用硬币交易。' },
     { speaker: '旁白', text: '抽奖：首次通关关卡获得抽奖机会。击败 50 只小怪后挑战 Boss，祝你好运。' },
   ] }
 }
@@ -2848,22 +2849,22 @@ function tutorialCompleteStoryData(): StoryData {
   ] }
 }
 function forgeIntroStoryData(): StoryData {
-  return { id: 'forge-intro', title: '功能介绍 · 合成台', lines: [
-    { speaker: '旁白', text: '合成台：5 件同阶装备（武器与护甲可以混搭，不要求同品种）可以合成高一级装备；3 件同阶时装可以合成下一阶时装。' },
+  return { id: 'forge-intro', title: '功能介绍 · 炉子', lines: [
+    { speaker: '旁白', text: '炉子：5 件同阶装备（武器与护甲可以混搭，不要求同品种）可以合成高一级装备；3 件同阶时装可以合成下一阶时装。' },
     { speaker: '旁白', text: '专属合成：使用同一关卡的 3 种不同专属掉落物，可以合成该关卡等级的装备。' },
     { speaker: '旁白', text: '合成品不会自动穿戴。装备等级和时装阶级没有上限。' },
   ] }
 }
 function shopIntroStoryData(): StoryData {
   return { id: 'shop-intro', title: '功能介绍 · 阿岩', lines: [
-    { speaker: '旁白', text: '灵魂来自击杀小怪和 Boss，可以在灵魂商店购买装备、天赋币碎片、复活币和时装。' },
+    { speaker: '旁白', text: '硬币来自击杀小怪和 Boss，可以在硬币商店购买装备、天赋币碎片、复活币和时装。' },
     { speaker: '旁白', text: '第一关通关后，商店会在小镇开放。' },
   ] }
 }
 function lotteryIntroStoryData(): StoryData {
   return { id: 'lottery-intro', title: '功能介绍 · 抽奖', lines: [
     { speaker: '旁白', text: '首次通关每个关卡会获得一次抽奖机会。重复通关已经通过的关卡不会再次获得。' },
-    { speaker: '旁白', text: '奖池包含属性点、装备、天赋币、灵魂和时装。祝你好运。' },
+    { speaker: '旁白', text: '奖池包含属性点、装备、天赋币、硬币和时装。祝你好运。' },
   ] }
 }
 function bagEquipSlot(slot: 'weapon' | 'armor' | 'fashion' | 'extra', gear: Gear | undefined, label: string, hint: string) {
@@ -2959,7 +2960,7 @@ function otherBagMarkup() {
   if (!game) return ''
   const horns = game.horns ?? 0
   const hornActive = game.hornBuff && hornBuffRemaining() > 0 ? HORN_BUFFS[game.hornBuff] : null
-  return `<div class="bag-info-list"><article class="info-row"><span>${itemIcon('soul')} 灵魂</span><b>${displayCurrency(game.soul ?? 0)}</b></article><article class="info-row"><span>${itemIcon('revive')} 复活币</span><b>${displayCurrency(game.reviveCoins ?? 0)}</b></article><article class="info-row horn-row"><span>${itemIcon('horn')} 号角</span><b>×${horns}${horns > 0 ? ` <button class="horn-use" data-action="use-horn">使用</button>` : ''}</b></article>${hornActive ? `<article class="info-row"><span>${itemIcon('horn')} 当前号角增益</span><b>${hornActive.name} · ${formatHornTime(hornBuffRemaining())}</b></article>` : ''}<article class="info-row"><span>${itemIcon('punch')} 打孔石</span><b>${game.punchStones ?? 0}</b></article><article class="info-row"><span>${itemIcon('stamp')} 王印印章</span><b>${displayCurrency(game.stamps ?? 0)} / ${STAMP_UNLOCK}</b></article><article class="info-row"><span>${itemIcon('ticket')} 抽奖机会</span><b>${displayCurrency(game.lotteryChances ?? 0)}</b></article><article class="info-row"><span>${itemIcon('attribute')} 属性点</span><b>${displayCurrency(game.attributePoints ?? 0)}</b></article></div><p class="bag-note">灵魂可以在小镇商人处购买装备、材料和复活币；集齐 ${STAMP_UNLOCK} 枚王印印章可开启隐藏关卡。</p>`
+  return `<div class="bag-info-list"><article class="info-row"><span>${itemIcon('soul')} 硬币</span><b>${displayCurrency(game.soul ?? 0)}</b></article><article class="info-row"><span>${itemIcon('revive')} 复活币</span><b>${displayCurrency(game.reviveCoins ?? 0)}</b></article><article class="info-row horn-row"><span>${itemIcon('horn')} 号角</span><b>×${horns}${horns > 0 ? ` <button class="horn-use" data-action="use-horn">使用</button>` : ''}</b></article>${hornActive ? `<article class="info-row"><span>${itemIcon('horn')} 当前号角增益</span><b>${hornActive.name} · ${formatHornTime(hornBuffRemaining())}</b></article>` : ''}<article class="info-row"><span>${itemIcon('punch')} 打孔石</span><b>${game.punchStones ?? 0}</b></article><article class="info-row"><span>${itemIcon('stamp')} 王印印章</span><b>${displayCurrency(game.stamps ?? 0)} / ${STAMP_UNLOCK}</b></article><article class="info-row"><span>${itemIcon('ticket')} 抽奖机会</span><b>${displayCurrency(game.lotteryChances ?? 0)}</b></article><article class="info-row"><span>${itemIcon('attribute')} 属性点</span><b>${displayCurrency(game.attributePoints ?? 0)}</b></article></div><p class="bag-note">硬币可以在小镇商人处购买装备、材料和复活币；集齐 ${STAMP_UNLOCK} 枚王印印章可开启隐藏关卡。</p>`
 }
 // ── 号角 ─────────────────────────────────────────────
 function hornPickerMarkup() {
@@ -3003,13 +3004,13 @@ function applyHornBuff(kind: 'material' | 'attack' | 'gear') {
 }
 function npcMarkup() {
   if (!game || !npcOpen) return ''
-  const title = npcView === 'shop' ? '灵魂商店' : npcView === 'talent' ? '天赋研究' : npcView === 'enhance' ? '装备强化' : npcView === 'quests' ? '任务列表' : `${TOWN_NPC_NAME} · 小镇伙伴`
+  const title = npcView === 'shop' ? '硬币商店' : npcView === 'talent' ? '天赋研究' : npcView === 'enhance' ? '装备强化' : npcView === 'quests' ? '任务列表' : `${TOWN_NPC_NAME} · 小镇伙伴`
   const content = npcView === 'shop' ? shopMarkup() : npcView === 'talent' ? talentMarkup() : npcView === 'enhance' ? enhancementMarkup() : npcView === 'quests' ? questsMarkup() : npcMenuMarkup()
   return `<div class="bag-scrim npc-scrim"><section class="bag-dialog npc-dialog"><header><div><small>MERCHANT · 冒险者小镇</small><h2>${title}</h2></div><button data-action="close-npc">×</button></header>${content}</section></div>`
 }
 function npcMenuMarkup() {
   if (!game) return ''
-  return `<p>“任务、天赋、强化和运气，都在我这儿。想做主线就通关关卡，想做支线就来挑一个地点。”</p><div class="npc-menu"><button data-action="npc-quests"><b>${itemIcon('stamp')}</b><span><strong>任务</strong><small>主线任务与支线任务</small></span></button><button data-action="npc-enhance"><b>${itemIcon('enhance')}</b><span><strong>装备强化</strong><small>用强化石强化装备槽位</small></span></button><button data-action="npc-talent"><b>${itemIcon('coin')}</b><span><strong>天赋</strong><small>${talentUnlocked() ? '研究普通与高级天赋' : '角色 5 级后开放'}</small></span></button><button data-action="open-lottery"><b>${itemIcon('ticket')}</b><span><strong>抽奖</strong><small>${game.lotteryChances ?? 0} 次机会</small></span></button></div><div class="npc-currency"><span>${itemIcon('soul')} 灵魂 ${displayCurrency(game.soul ?? 0)}</span><span>${itemIcon('fragment')} 碎片 ${displayCurrency(game.talentFragments ?? 0)}</span><span>${itemIcon('coin')} 天赋币 ${displayCurrency(game.talentCoins ?? 0)}</span></div>`
+  return `<p>“任务、天赋、强化和运气，都在我这儿。想做主线就通关关卡，想做支线就来挑一个地点。”</p><div class="npc-menu"><button data-action="npc-quests"><b>${itemIcon('stamp')}</b><span><strong>任务</strong><small>主线任务与支线任务</small></span></button><button data-action="npc-enhance"><b>${itemIcon('enhance')}</b><span><strong>装备强化</strong><small>用强化石强化装备槽位</small></span></button><button data-action="npc-talent"><b>${itemIcon('coin')}</b><span><strong>天赋</strong><small>${talentUnlocked() ? '研究普通与高级天赋' : '角色 5 级后开放'}</small></span></button><button data-action="open-lottery"><b>${itemIcon('ticket')}</b><span><strong>抽奖</strong><small>${game.lotteryChances ?? 0} 次机会</small></span></button></div><div class="npc-currency"><span>${itemIcon('soul')} 硬币 ${displayCurrency(game.soul ?? 0)}</span><span>${itemIcon('fragment')} 碎片 ${displayCurrency(game.talentFragments ?? 0)}</span><span>${itemIcon('coin')} 天赋币 ${displayCurrency(game.talentCoins ?? 0)}</span></div>`
 }
 // ── 任务 ─────────────────────────────────────────────
 // 噩梦通关宝石奖励（按关卡）。首通会再发一次同样的奖励。
@@ -3050,7 +3051,7 @@ function claimMainQuest(stage: number) {
   for (let variant = 0; variant < 3; variant += 1) addMaterial(materialKey(stage, variant), 1)
   awardExperience(mainQuestExp(stage))
   save(); npcOpen = true; npcView = 'quests'; questTab = 'main'; renderGame()
-  toast(`主线任务奖励：${stage * 1000} 灵魂、3 种第 ${stage} 关专属材料、经验 ${displayNumber(mainQuestExp(stage))}`)
+  toast(`主线任务奖励：${stage * 1000} 硬币、3 种第 ${stage} 关专属材料、经验 ${displayNumber(mainQuestExp(stage))}`)
 }
 function acceptSideQuest(stage: number) {
   if (!game) return
@@ -3083,12 +3084,12 @@ function questsMarkup() {
   const tabs = `<div class="quest-tabs"><button class="${questTab === 'main' ? 'active' : ''}" data-action="quest-tab" data-tab="main" type="button">主线任务</button><button class="${questTab === 'side' ? 'active' : ''}" data-action="quest-tab" data-tab="side" type="button">支线任务</button></div>`
   let body = ''
   if (questTab === 'main') {
-    body = `<p class="bag-note">每通关一个关卡，就可以在这里领取一次主线奖励：灵魂、该关卡的 3 种不同专属材料，以及击败 50 只小怪 + Boss 的经验。</p><div class="quest-list">${Array.from({ length: 10 }, (_, index) => index + 1).map((stage) => {
+    body = `<p class="bag-note">每通关一个关卡，就可以在这里领取一次主线奖励：硬币、该关卡的 3 种不同专属材料，以及击败 50 只小怪 + Boss 的经验。</p><div class="quest-list">${Array.from({ length: 10 }, (_, index) => index + 1).map((stage) => {
       const progress = getStageProgress(stage)
       const config = STAGE_CONFIG[stage - 1]
       const claimed = mainQuestClaimed(stage)
       const cleared = progress.bossDefeated
-      return `<article class="quest-row ${claimed ? 'done' : cleared ? 'ready' : ''}"><span class="quest-copy"><b>第 ${String(stage).padStart(2, '0')} 关 · ${stageNames[stage - 1]}</b><small>守关者生命 ${displayNumber(config.bossHp)} · 攻击 ${displayNumber(config.bossAtk)} · ${claimed ? '已领取' : cleared ? '已通关，可领取' : '未通关'}</small><small class="quest-reward">奖励：${stage * 1000} 灵魂 · ${(STAGE_MATERIALS[stage - 1] ?? []).join('、')} 各 1 · 经验 ${displayNumber(mainQuestExp(stage))}</small></span>${claimed ? '<i class="quest-state">已领取</i>' : `<button data-action="main-claim" data-stage="${stage}" ${cleared ? '' : 'disabled'}>领取</button>`}</article>`
+      return `<article class="quest-row ${claimed ? 'done' : cleared ? 'ready' : ''}"><span class="quest-copy"><b>第 ${String(stage).padStart(2, '0')} 关 · ${stageNames[stage - 1]}</b><small>守关者生命 ${displayNumber(config.bossHp)} · 攻击 ${displayNumber(config.bossAtk)} · ${claimed ? '已领取' : cleared ? '已通关，可领取' : '未通关'}</small><small class="quest-reward">奖励：${stage * 1000} 硬币 · ${(STAGE_MATERIALS[stage - 1] ?? []).join('、')} 各 1 · 经验 ${displayNumber(mainQuestExp(stage))}</small></span>${claimed ? '<i class="quest-state">已领取</i>' : `<button data-action="main-claim" data-stage="${stage}" ${cleared ? '' : 'disabled'}>领取</button>`}</article>`
     }).join('')}</div>`
   } else {
     const quest = game.sideQuest
@@ -3126,7 +3127,7 @@ function socketGem(kind: GemKind, tier: number) {
   const gear = mainGearForGem(slot)
   if (!gear) { toast(slot === 'weapon' ? '请先装备主武器。' : '请先装备主护甲。'); return }
   const index = firstEmptySocket(gear)
-  if (index < 0) { toast('该装备没有可用空孔位，可在合成台打孔。'); return }
+  if (index < 0) { toast('该装备没有可用空孔位，可在炉子打孔。'); return }
   const gem = game.gems[gemIndex]
   game.gems.splice(gemIndex, 1)
   gear.socketGems ??= []
@@ -3194,7 +3195,7 @@ function gemsMarkup() {
       const canCombine = list.length >= 3 && gem.tier < 6
       return `<article class="gem-row"><span class="gear-glyph">${gemIcon(gem)}</span><span class="gear-copy"><b>${gemName(gem)} ×${list.length}</b><small>${gemSummary(gem)} · ${slot === 'armor' ? '护甲孔位' : '武器孔位'}</small></span><span class="gem-actions"><button data-action="gem-socket" data-kind="${gem.kind}" data-tier="${gem.tier}" ${canSocket ? '' : 'disabled'}>镶嵌</button>${canCombine ? `<button data-action="gem-combine" data-kind="${gem.kind}" data-tier="${gem.tier}">合成 3→1</button>` : ''}</span></article>`
     }).join('')
-  return `<p class="bag-note">护甲只能镶嵌生命/防御宝石，武器只能镶嵌攻击/能量宝石；天赋的额外武器/护甲不能镶嵌。没有孔位时先去合成台打孔。</p><div class="gem-equips">${gemSocketMarkup(weapon, 'weapon')}${gemSocketMarkup(armor, 'armor')}</div><h3 class="gem-title">宝石背包</h3><div class="forge-bag-list">${inventory || '<div class="empty-gear">还没有宝石<small>噩梦副本的守关者会掉落宝石</small></div>'}</div><h3 class="gem-title">宝石合成</h3><p class="bag-note">3 个同阶同类宝石可以合成 1 个更高一阶的同类宝石（最高六阶）。</p>`
+  return `<p class="bag-note">护甲只能镶嵌生命/防御宝石，武器只能镶嵌攻击/能量宝石；天赋的额外武器/护甲不能镶嵌。没有孔位时先去炉子打孔。</p><div class="gem-equips">${gemSocketMarkup(weapon, 'weapon')}${gemSocketMarkup(armor, 'armor')}</div><h3 class="gem-title">宝石背包</h3><div class="forge-bag-list">${inventory || '<div class="empty-gear">还没有宝石<small>噩梦副本的守关者会掉落宝石</small></div>'}</div><h3 class="gem-title">宝石合成</h3><p class="bag-note">3 个同阶同类宝石可以合成 1 个更高一阶的同类宝石（最高六阶）。</p>`
 }
 function todayKey() {
   const now = new Date()
@@ -3218,7 +3219,7 @@ function soulShopMarkup() {
   const active: 'all' | ShopCategory = shopCategory !== 'all' && categories.includes(shopCategory) ? shopCategory : 'all'
   const items = active === 'all' ? all : all.filter((item) => item.category === active)
   const rows = items.map((item) => {
-    // 体验版：所有道具都可用 1 灵魂购买，不受限购与冷却约束。
+    // 体验版：所有道具都可用 1 硬币购买，不受限购与冷却约束。
     const uniqueSold = !demo && Boolean(item.unique && game!.shopFashionBought)
     const dailySold = !demo && item.id === 'fragments1' && game!.fragmentBuyDay === todayKey()
     const reviveLeft = !demo && item.id === 'revive1' ? Math.max(0, 3 * 24 * 3600 * 1000 - (Date.now() - (game!.reviveBuyAt ?? 0))) : 0
@@ -3228,11 +3229,11 @@ function soulShopMarkup() {
     const price = demo ? 1 : item.cost
     const canBuy = !limited && (game!.soul ?? 0) >= price
     const label = uniqueSold ? '已购买' : dailySold ? '今日已购' : reviveLeft > 0 || punchLeft > 0 || hornLeft > 0 ? '冷却中' : '购买'
-    const extra = demo ? ' · 体验版 1 灵魂' : reviveLeft > 0 ? ` · 剩余 ${cooldownText(reviveLeft)}` : punchLeft > 0 ? ` · 剩余 ${cooldownText(punchLeft)}` : hornLeft > 0 ? ` · 剩余 ${cooldownText(hornLeft)}` : dailySold ? ' · 明天刷新' : ''
+    const extra = demo ? ' · 体验版 1 硬币' : reviveLeft > 0 ? ` · 剩余 ${cooldownText(reviveLeft)}` : punchLeft > 0 ? ` · 剩余 ${cooldownText(punchLeft)}` : hornLeft > 0 ? ` · 剩余 ${cooldownText(hornLeft)}` : dailySold ? ' · 明天刷新' : ''
     return `<article class="shop-row"><span class="gear-glyph">${itemIcon(item.icon, item.iconClass ?? '')}</span><span class="gear-copy"><b>${item.name}</b><small>${item.desc}${extra}</small></span><b class="shop-price">${itemIcon('soul')} ${price}</b><button data-action="shop-buy" data-id="${item.id}" ${canBuy ? '' : 'disabled'}>${label}</button></article>`
   }).join('')
   const categoryBar = `<div class="shop-categories"><button class="${active === 'all' ? 'active' : ''}" data-action="shop-category" data-category="all" type="button">全部</button>${categories.map((category) => `<button class="${active === category ? 'active' : ''}" data-action="shop-category" data-category="${category}" type="button">${SHOP_CATEGORY_LABELS[category]}</button>`).join('')}</div>`
-  return `${categoryBar}<div class="npc-currency"><span>${itemIcon('soul')} 灵魂 ${displayCurrency(game.soul ?? 0)}</span><span>${itemIcon('fragment')} 碎片 ${displayCurrency(game.talentFragments ?? 0)}</span><span>${itemIcon('revive')} 复活币 ${displayCurrency(game.reviveCoins ?? 0)}</span></div><div class="bag-list shop-list">${rows || '<div class="empty-gear">该分类暂时没有道具</div>'}</div>`
+  return `${categoryBar}<div class="npc-currency"><span>${itemIcon('soul')} 硬币 ${displayCurrency(game.soul ?? 0)}</span><span>${itemIcon('fragment')} 碎片 ${displayCurrency(game.talentFragments ?? 0)}</span><span>${itemIcon('revive')} 复活币 ${displayCurrency(game.reviveCoins ?? 0)}</span></div><div class="bag-list shop-list">${rows || '<div class="empty-gear">该分类暂时没有道具</div>'}</div>`
 }
 function shopMarkup() {
   if (!game) return ''
@@ -3264,7 +3265,7 @@ function talentMarkup() {
     return `<article class="talent-row"><span class="gear-glyph">${itemIcon('coin')}</span><span class="gear-copy"><b>${talent.name}</b><small>${hint}</small></span><span class="talent-actions"><button data-action="talent-advanced-select" data-id="${talent.id}" ${can ? '' : 'disabled'}>激活 ${itemIcon('coin')}${ADVANCED_TALENT_COST}</button></span></article>`
   }).join('')
   const canCraft = (game.talentFragments ?? 0) >= TALENT_FRAGMENTS_PER_COIN && (game.soul ?? 0) >= 500
-  return `<div class="npc-currency"><span>${itemIcon('fragment')} 碎片 ${displayCurrency(game.talentFragments ?? 0)}</span><span>${itemIcon('coin')} 天赋币 ${displayCurrency(game.talentCoins ?? 0)}</span><span>${itemIcon('soul')} 灵魂 ${displayCurrency(game.soul ?? 0)}</span><span>${itemIcon('attribute')} 等级 ${displayNumber(game.level ?? 1)}</span></div><section class="talent-block"><h3>普通天赋 <small>可以全部激活，分别升级</small></h3>${normalRows}</section><section class="talent-block"><h3>高级天赋 <small>只能激活一个，可升级与重置</small></h3>${advancedRows}</section><div class="talent-footer"><button class="secondary" data-action="talent-craft" ${canCraft ? '' : 'disabled'}>${itemIcon('coin')} 合成天赋币（${displayCurrency(game.talentFragments ?? 0)} / ${TALENT_FRAGMENTS_PER_COIN} · 500 灵魂）</button><button class="secondary npc-back" data-action="npc-menu">返回商人</button></div><p class="bag-note">撤销或重置天赋会返还已投入的天赋币；每级普通天赋的升级费用依次为 1、2、3…，高级天赋升级费用依次为 3、5、7…。</p>`
+  return `<div class="npc-currency"><span>${itemIcon('fragment')} 碎片 ${displayCurrency(game.talentFragments ?? 0)}</span><span>${itemIcon('coin')} 天赋币 ${displayCurrency(game.talentCoins ?? 0)}</span><span>${itemIcon('soul')} 硬币 ${displayCurrency(game.soul ?? 0)}</span><span>${itemIcon('attribute')} 等级 ${displayNumber(game.level ?? 1)}</span></div><section class="talent-block"><h3>普通天赋 <small>可以全部激活，分别升级</small></h3>${normalRows}</section><section class="talent-block"><h3>高级天赋 <small>只能激活一个，可升级与重置</small></h3>${advancedRows}</section><div class="talent-footer"><button class="secondary" data-action="talent-craft" ${canCraft ? '' : 'disabled'}>${itemIcon('coin')} 合成天赋币（${displayCurrency(game.talentFragments ?? 0)} / ${TALENT_FRAGMENTS_PER_COIN} · 500 硬币）</button><button class="secondary npc-back" data-action="npc-menu">返回商人</button></div><p class="bag-note">撤销或重置天赋会返还已投入的天赋币；每级普通天赋的升级费用依次为 1、2、3…，高级天赋升级费用依次为 3、5、7…。</p>`
 }
 function lotteryMarkup() {
   if (!game || !lotteryOpen) return ''
@@ -3303,7 +3304,7 @@ function openNpcMenu() {
   }
   resetPanels(); npcOpen = true; npcView = 'menu'; renderGame()
 }
-// 商城入口已移到小镇合成台旁边，直接打开商城页面。
+// 商城入口已移到小镇炉子旁边，直接打开商城页面。
 function openShopMenu() {
   if (!game || scene !== 'town' || !npcUnlocked()) return
   if (!game.shopIntroSeen) {
@@ -3414,7 +3415,7 @@ function buyShopItem(id: string) {
   const item = shopItems().find((entry) => entry.id === id)
   if (!item) return
   if (item.demoOnly && !DEMO_MODE) return
-  // 体验版没有限购与冷却，只要灵魂足够即可购买所有道具。
+  // 体验版没有限购与冷却，只要硬币足够即可购买所有道具。
   if (!DEMO_MODE) {
     if (item.unique && game.shopFashionBought) { toast('这件时装已经购买过。'); return }
     if (item.id === 'fragments1' && game.fragmentBuyDay === todayKey()) { toast('天赋币碎片每天只能购买一次，明天再来吧。'); return }
@@ -3432,7 +3433,7 @@ function buyShopItem(id: string) {
     }
   }
   const cost = DEMO_MODE ? 1 : item.cost
-  if ((game.soul ?? 0) < cost) { toast('灵魂不足。'); return }
+  if ((game.soul ?? 0) < cost) { toast('硬币不足。'); return }
   game.soul = (game.soul ?? 0) - cost
   grantShopItem(item.grant)
   if (item.id === 'fragments1') game.fragmentBuyDay = todayKey()
@@ -3522,7 +3523,7 @@ function resetAdvancedTalent() {
 }
 function craftTalentCoin() {
   if (!game || (game.talentFragments ?? 0) < TALENT_FRAGMENTS_PER_COIN) return
-  if ((game.soul ?? 0) < 500) { toast('合成天赋币需要 500 灵魂。'); return }
+  if ((game.soul ?? 0) < 500) { toast('合成天赋币需要 500 硬币。'); return }
   game.soul = (game.soul ?? 0) - 500
   game.talentFragments = (game.talentFragments ?? 0) - TALENT_FRAGMENTS_PER_COIN
   game.talentCoins = (game.talentCoins ?? 0) + 1
@@ -3788,7 +3789,7 @@ function hudMarkup() {
       <button class="hud-bag" data-action="bag" title="打开背包">${itemIcon('bag')}<b>背包</b><span id="hud-bag-count">${game.gear.length}</span></button>
       <button class="hud-bag hud-skill" data-action="open-skill-panel" title="查看技能">${itemIcon('attribute')}<b>技能</b></button>
       ${scene === 'town' && npcUnlocked() ? `<button class="hud-bag hud-shop" data-action="open-shop" title="打开商城">${itemIcon('soul')}<b>商城</b></button>` : ''}
-      ${scene === 'town' && forgeUnlocked() ? `<button class="hud-forge" data-action="open-crafting" title="打开合成台">⚒<b>合成台</b></button>` : ''}
+      ${scene === 'town' && forgeUnlocked() ? `<button class="hud-forge" data-action="open-crafting" title="打开炉子">⚒<b>炉子</b></button>` : ''}
     </div>
   </div>`
 }
@@ -3899,7 +3900,7 @@ function mailMarkup() {
         <p class="mail-text">感谢您来体验我的游戏！cwzl666</p>
         <div class="mail-attachments">
           <article class="mail-attach"><span class="mail-attach-icon">${itemIcon('fashion')}</span><b>一阶时装</b><small>限时 7 天</small></article>
-          <article class="mail-attach"><span class="mail-attach-icon">${itemIcon('soul')}</span><b>灵魂 ×3000</b><small>领取后直接到账</small></article>
+          <article class="mail-attach"><span class="mail-attach-icon">${itemIcon('soul')}</span><b>硬币 ×3000</b><small>领取后直接到账</small></article>
           <article class="mail-attach"><span class="mail-attach-icon">${itemIcon('revive')}</span><b>复活币 ×3</b><small>领取后直接到账</small></article>
         </div>
         <p class="mail-note">附件领取后放入当前存档的背包与货币栏；每个存档限领一次。</p>
@@ -3913,7 +3914,7 @@ function sellConfirmMarkup() {
   const gear = game.gear.find((entry) => entry.id === sellConfirmId)
   if (!gear) return ''
   const price = gearSellPrice(gear.level)
-  return `<div class="bag-scrim sell-scrim"><section class="slot-dialog sell-dialog"><small>SELL · 出售装备</small><h2>出售「${escapeHtml(gear.name)}」？</h2><p>${gear.level} 阶装备，出售后无法找回。你将获得 <b>${displayCurrency(price)}</b> 灵魂。</p><div class="sell-actions"><button class="secondary" data-action="cancel-sell" type="button">取消</button><button class="primary" data-action="confirm-sell" type="button">确认出售</button></div></section></div>`
+  return `<div class="bag-scrim sell-scrim"><section class="slot-dialog sell-dialog"><small>SELL · 出售装备</small><h2>出售「${escapeHtml(gear.name)}」？</h2><p>${gear.level} 阶装备，出售后无法找回。你将获得 <b>${displayCurrency(price)}</b> 硬币。</p><div class="sell-actions"><button class="secondary" data-action="cancel-sell" type="button">取消</button><button class="primary" data-action="confirm-sell" type="button">确认出售</button></div></section></div>`
 }
 function claimMail() {
   if (!game || game.mailClaimed) return
@@ -3922,7 +3923,7 @@ function claimMail() {
   game.soul = (game.soul ?? 0) + 3000
   game.reviveCoins = (game.reviveCoins ?? 0) + 3
   save()
-  toast('已领取邮箱附件：一阶时装（7 天）、3000 灵魂、3 个复活币。')
+  toast('已领取邮箱附件：一阶时装（7 天）、3000 硬币、3 个复活币。')
   renderGame()
 }
 function gearIsEquipped(id: string) {
@@ -3955,7 +3956,7 @@ function confirmSellGear() {
   game.soul = (game.soul ?? 0) + price
   sellConfirmId = null
   save()
-  toast(`已出售「${gear.name}」，获得 ${displayCurrency(price)} 灵魂。`)
+  toast(`已出售「${gear.name}」，获得 ${displayCurrency(price)} 硬币。`)
   renderGame()
 }
 function submitRedeemCode() {
@@ -4005,10 +4006,10 @@ function skillBagMarkup() {
     const button = canUpgrade
       ? hasSoul
         ? `<button class="skill-upgrade" type="button" data-action="skill-upgrade" data-index="${index}">升级 · ${itemIcon('soul')}${cost}</button>`
-        : `<button class="skill-upgrade" type="button" disabled>灵魂不足 · ${cost}</button>`
+        : `<button class="skill-upgrade" type="button" disabled>硬币不足 · ${cost}</button>`
       : `<button class="skill-upgrade" type="button" disabled>角色 Lv.${required} 解锁</button>`
     return `<article class="skill-card"><header><b>${index + 1}</b><strong>${name}</strong><small>Lv.${level} · ${keyLabel(keyBinds[`skill${index + 1}` as BindAction])}</small></header><p>${SKILL_DESCRIPTIONS[set][index]}</p><footer><span>${skillSummary(index, set)}</span><small class="skill-next">下一级：伤害/效果 +${index === 3 ? 20 : 10}% · 蓝耗 +10</small>${button}</footer></article>`
-  }).join('')}<p class="bag-note">角色等级 Lv.${game.level ?? 1} · 灵魂 ${displayCurrency(game.soul ?? 0)}。技能组由装备的武器决定；技能 1/2/3/4 分别在角色 2/3/4/5 级解锁升级，之后每 4 级可以再升一级。升级消耗 500、1000、1500… 灵魂。</p></div>`
+  }).join('')}<p class="bag-note">角色等级 Lv.${game.level ?? 1} · 硬币 ${displayCurrency(game.soul ?? 0)}。技能组由装备的武器决定；技能 1/2/3/4 分别在角色 2/3/4/5 级解锁升级，之后每 4 级可以再升一级。升级消耗 500、1000、1500… 硬币。</p></div>`
 }
 const SKILL_SET_NAMES: Record<SkillSetKey, string> = { sword: '剑术技能', bow: '弓术技能', staff: '法杖技能', book: '魔典技能' }
 function skillPanelMarkup() {
@@ -4025,7 +4026,7 @@ function upgradeSkill(index: number) {
     return
   }
   const cost = skillUpgradeCost(level)
-  if ((game.soul ?? 0) < cost) { toast(`升级技能需要 ${cost} 灵魂。`); return }
+  if ((game.soul ?? 0) < cost) { toast(`升级技能需要 ${cost} 硬币。`); return }
   game.soul = (game.soul ?? 0) - cost
   game.skillLevels ??= {}
   game.skillLevels[`${set}:${index}`] = level + 1
@@ -4097,7 +4098,7 @@ function renderGame() {
   const townOverlay = ''
   const deathOverlay = scene === 'defeat' ? `<div class="overlay death-overlay"><small>EXPEDITION PAUSED</small><h2>你倒在了遗迹深处</h2><p>每天可以免费满血复活一次；复活币同样能满状态复活，每个关卡限用一次；重新开始会恢复满状态并从本关第一波重新挑战；回到小镇会恢复满状态。</p><div class="death-actions">${game.freeReviveDay !== todayKey() ? `<button data-action="free-revive" class="primary">免费满血复活（今日 1 次）</button>` : ''}${(game.reviveCoins ?? 0) > 0 && !game.reviveUsed ? `<button data-action="revive-coin" class="revive-button">${itemIcon('revive')} 使用复活币（满状态） · ${game.reviveCoins}</button>` : ''}<button data-action="restart-stage" class="secondary">重新开始（满状态）</button><button data-action="respawn-town" class="secondary">回到小镇</button></div></div>` : ''
   const endingOverlay = scene === 'ending' ? '<div class="overlay"><small>THE FRONTIER IS YOURS</small><h2>十片遗迹，皆已沉寂</h2><p>你完成了元素远征。</p><button data-action="town" class="primary">返回小镇　↗</button></div>' : ''
-  app.innerHTML = `<main class="game-shell ${isTown ? 'town-mode' : ''}"><header class="game-header"><a data-action="town" class="wordmark"><b>A</b> 成王之路 <i>／</i> ${isTown ? '冒险者小镇' : '元素远征'}</a>${DEMO_MODE ? '<span class="demo-badge">体验版 · 全关卡</span>' : ''}<span class="save-state"><i></i>${isTown ? '小镇安全区' : '进度已自动保存'}</span><span class="soul-badge" title="灵魂">${itemIcon('soul')} ${displayNumber(game.soul ?? 0)}</span><button class="bag-button" data-action="bag">${itemIcon('bag')} 背包 <span>${game.gear.length}</span></button><button class="bag-button mail-button" data-action="open-mail" title="打开邮箱">${itemIcon('mail')} 邮箱${mailUnread() ? '<span class="mail-badge">!</span>' : ''}</button><button class="save-button" data-action="save" title="保存进度">▣</button></header><section class="overview"><div><small>${isTown ? '冒险者小镇' : chapterLabel}</small><h1>${isTown ? '营火集市' : areaName}</h1><p>${isTown ? '缓冲区 · 整备装备与选择关卡' : tutorialMode ? '新手试炼 · 完成引导目标' : hiddenBattle ? '宿敌对决 · 没有退路' : `遗迹入口 · 击败 ${MAX_SMALL_KILLS} 只守卫后迎战 Boss`}</p></div><div class="metrics"><div><small>职业</small><b>${roleLabels[game.role]}</b></div><div><small>已击杀</small><b>${isTown ? `开放至第 ${game.unlockedStage} 关` : countText}</b></div><div><small>当前装备</small><b>${item()?.name ?? '无'}</b></div></div></section><section class="game-grid"><div class="battle-column"><div class="arena-label"><span>◆ ${isTown ? '冒险者小镇 · 补给站' : `${areaName} · 深层区域`}</span><b id="enemy-name">${isTown ? '安全区域' : tutorialMode ? '训练傀儡正在等待' : hiddenBattle ? '宿敌正在等待' : boss ? `${bossLabel}冲刺准备中` : `${foes.length} 只守卫正在逼近`}</b></div><div class="arena-stage"><div class="arena"><canvas id="arena" aria-label="横版战斗场景"></canvas><div class="coords"><span>${isTown ? 'TOWN · SAFE ZONE' : tutorialMode ? 'NEW PLAYER · TRAINING' : hiddenBattle ? 'SECRET · RIVAL' : `遗迹远征 · ${String(game.stage).padStart(2, '0')}`}</span><span>${boss ? 'BOSS ENCOUNTER' : isTown ? 'REST & PREPARE' : 'WAVE ENCOUNTER'}</span></div>${townOverlay}${deathOverlay}${endingOverlay}${bossVictoryMarkup()}${lootRevealMarkup()}${tutorialHintMarkup()}<div class="mobile-control-deck"><div class="mobile-rail mobile-move-rail"><div class="mobile-joystick" data-joystick ${canControl ? '' : 'data-disabled="true"'} aria-label="移动摇杆"><span class="joystick-knob"></span></div></div><div class="mobile-rail mobile-action-rail"><div class="mobile-skills">${[2, 3, 0, 1].map((index) => `<button class="mobile-skill" data-action="skill" data-index="${index}" aria-label="技能 ${index + 1}" ${canControl ? '' : 'disabled'}>${index + 1}</button>`).join('')}</div><div class="mobile-utils"><button class="mobile-skill mobile-pickup" data-action="pickup" aria-label="拾取" title="拾取药水 / 与商人对话" ${canControl ? '' : 'disabled'}>S</button><button class="mobile-skill mobile-shield" data-shield aria-label="护盾" title="按住生成护盾" ${canControl ? '' : 'disabled'}>L</button></div><button class="mobile-pad attack-pad" data-action="attack" aria-label="攻击" title="攻击" ${canControl ? '' : 'disabled'}>⚔</button><button class="mobile-pad jump-pad" data-action="jump" aria-label="跳跃" title="跳跃" ${canControl ? '' : 'disabled'}>↟</button></div></div></div></div><div class="foe-health"><div><span>${isTown ? '冒险者状态' : boss ? bossLabel : '本批守卫'}</span><b id="foe-hp">${isTown ? '安全休整' : boss ? `${Math.ceil(foes[0]?.hp ?? 0)} / ${foes[0]?.maxHp ?? 0}` : `${foes.length} 名敌人 · 已击败 ${game.kills} / ${MAX_SMALL_KILLS}`}</b></div><div><i id="foe-fill" style="width:${boss ? `${Math.max(0, foes[0].hp / foes[0].maxHp * 100)}%` : '100%'}"></i></div></div><div class="combat-bar"><button data-action="attack" class="attack" ${canControl ? '' : 'disabled'}><b>${game.role === 'warrior' ? '⚔' : '✦'}</b><span><strong>${game.role === 'warrior' ? '剑刃斩击' : '法杖射击'}</strong><small>J · ${game.role === 'warrior' ? '近战' : '远程'}</small></span></button><button data-action="jump" ${canControl ? '' : 'disabled'}><b>↟</b><span><strong>跳跃</strong><small>K ×2</small></span></button>${SKILL_LABELS[activeSkillSet()].map((label, i) => `<button data-action="skill" data-index="${i}" ${canControl ? '' : 'disabled'}><i>${i + 1}</i><span><strong>${label}</strong><small>${skillSummary(i)}</small></span></button>`).join('')}</div><div class="combat-log"><b>✦</b><span>${logText}</span></div></div><aside class="side-column">${isTown ? townPanelMarkup() : ''}<section class="panel status-panel"><header><span>角色状态</span><small>${String(game.stage).padStart(2, '0')}</small></header><div class="hero-card"><b class="avatar ${game.role}">${game.role === 'warrior' ? '刃' : '✦'}</b><span><strong>${roleLabels[game.role]}</strong><small>${game.role === 'warrior' ? '钢铁誓约 · 剑士' : '星辉学派 · 法杖'}</small></span></div><div class="resource-label"><span>生命</span><b id="hp-text">${displayNumber(game.hp)} <i>/ ${displayNumber(s.hp)}</i></b><em>♥</em></div><div class="resource"><i id="hp-fill" style="width:${game.hp / s.hp * 100}%"></i></div><div class="resource-label mana-label"><span>法力</span><b id="mp-text">${displayNumber(game.mp)} <i>/ ${displayNumber(s.mp)}</i></b><em>✦</em></div><div class="resource"><i id="mp-fill" style="width:${game.mp / s.mp * 100}%"></i></div><div class="stats"><div><small>攻击</small><b>${displayNumber(s.attack)}</b></div><div><small>防御</small><b>${displayNumber(s.defense)}</b></div><div><small>增益</small><b id="buff-stat">${buffTime > 0 ? `${buffTime.toFixed(1)}s` : '—'}</b></div></div></section><section class="panel gear-panel"><header><span>装备栏</span><small>${item()?.name ?? '未装备'}</small></header><div class="gear-summary">${item() ? `生命 +${item()!.hp}　攻击 +${item()!.attack}　防御 +${item()!.defense}` : '装备不会自动穿戴，请在小镇打开背包手动更换。'}</div><button class="open-bag" data-action="bag">打开背包　↗</button><div class="camp-hint">⌂　${isTown ? '安全区内可自由更换装备' : '击败 Boss 后回到小镇整备'}</div></section></aside></section><footer class="game-footer"><span>WASD / ← → 移动　·　J 攻击　·　K 跳跃 / 二段跳　·　1–4 技能　·　L 护盾</span><b>LOCAL SAVE　●</b></footer>${bagOpen ? bagMarkup() : ''}</main>`
+  app.innerHTML = `<main class="game-shell ${isTown ? 'town-mode' : ''}"><header class="game-header"><a data-action="town" class="wordmark"><b>A</b> 成王之路 <i>／</i> ${isTown ? '冒险者小镇' : '元素远征'}</a>${DEMO_MODE ? '<span class="demo-badge">体验版 · 全关卡</span>' : ''}<span class="save-state"><i></i>${isTown ? '小镇安全区' : '进度已自动保存'}</span><span class="soul-badge" title="硬币">${itemIcon('soul')} ${displayNumber(game.soul ?? 0)}</span><button class="bag-button" data-action="bag">${itemIcon('bag')} 背包 <span>${game.gear.length}</span></button><button class="bag-button mail-button" data-action="open-mail" title="打开邮箱">${itemIcon('mail')} 邮箱${mailUnread() ? '<span class="mail-badge">!</span>' : ''}</button><button class="save-button" data-action="save" title="保存进度">▣</button></header><section class="overview"><div><small>${isTown ? '冒险者小镇' : chapterLabel}</small><h1>${isTown ? '营火集市' : areaName}</h1><p>${isTown ? '缓冲区 · 整备装备与选择关卡' : tutorialMode ? '新手试炼 · 完成引导目标' : hiddenBattle ? '宿敌对决 · 没有退路' : `遗迹入口 · 击败 ${MAX_SMALL_KILLS} 只守卫后迎战 Boss`}</p></div><div class="metrics"><div><small>职业</small><b>${roleLabels[game.role]}</b></div><div><small>已击杀</small><b>${isTown ? `开放至第 ${game.unlockedStage} 关` : countText}</b></div><div><small>当前装备</small><b>${item()?.name ?? '无'}</b></div></div></section><section class="game-grid"><div class="battle-column"><div class="arena-label"><span>◆ ${isTown ? '冒险者小镇 · 补给站' : `${areaName} · 深层区域`}</span><b id="enemy-name">${isTown ? '安全区域' : tutorialMode ? '训练傀儡正在等待' : hiddenBattle ? '宿敌正在等待' : boss ? `${bossLabel}冲刺准备中` : `${foes.length} 只守卫正在逼近`}</b></div><div class="arena-stage"><div class="arena"><canvas id="arena" aria-label="横版战斗场景"></canvas><div class="coords"><span>${isTown ? 'TOWN · SAFE ZONE' : tutorialMode ? 'NEW PLAYER · TRAINING' : hiddenBattle ? 'SECRET · RIVAL' : `遗迹远征 · ${String(game.stage).padStart(2, '0')}`}</span><span>${boss ? 'BOSS ENCOUNTER' : isTown ? 'REST & PREPARE' : 'WAVE ENCOUNTER'}</span></div>${townOverlay}${deathOverlay}${endingOverlay}${bossVictoryMarkup()}${lootRevealMarkup()}${tutorialHintMarkup()}<div class="mobile-control-deck"><div class="mobile-rail mobile-move-rail"><div class="mobile-joystick" data-joystick ${canControl ? '' : 'data-disabled="true"'} aria-label="移动摇杆"><span class="joystick-knob"></span></div></div><div class="mobile-rail mobile-action-rail"><div class="mobile-skills">${[2, 3, 0, 1].map((index) => `<button class="mobile-skill" data-action="skill" data-index="${index}" aria-label="技能 ${index + 1}" ${canControl ? '' : 'disabled'}>${index + 1}</button>`).join('')}</div><div class="mobile-utils"><button class="mobile-skill mobile-pickup" data-action="pickup" aria-label="拾取" title="拾取药水 / 与商人对话" ${canControl ? '' : 'disabled'}>S</button><button class="mobile-skill mobile-shield" data-shield aria-label="护盾" title="按住生成护盾" ${canControl ? '' : 'disabled'}>L</button></div><button class="mobile-pad attack-pad" data-action="attack" aria-label="攻击" title="攻击" ${canControl ? '' : 'disabled'}>⚔</button><button class="mobile-pad jump-pad" data-action="jump" aria-label="跳跃" title="跳跃" ${canControl ? '' : 'disabled'}>↟</button></div></div></div></div><div class="foe-health"><div><span>${isTown ? '冒险者状态' : boss ? bossLabel : '本批守卫'}</span><b id="foe-hp">${isTown ? '安全休整' : boss ? `${Math.ceil(foes[0]?.hp ?? 0)} / ${foes[0]?.maxHp ?? 0}` : `${foes.length} 名敌人 · 已击败 ${game.kills} / ${MAX_SMALL_KILLS}`}</b></div><div><i id="foe-fill" style="width:${boss ? `${Math.max(0, foes[0].hp / foes[0].maxHp * 100)}%` : '100%'}"></i></div></div><div class="combat-bar"><button data-action="attack" class="attack" ${canControl ? '' : 'disabled'}><b>${game.role === 'warrior' ? '⚔' : '✦'}</b><span><strong>${game.role === 'warrior' ? '剑刃斩击' : '法杖射击'}</strong><small>J · ${game.role === 'warrior' ? '近战' : '远程'}</small></span></button><button data-action="jump" ${canControl ? '' : 'disabled'}><b>↟</b><span><strong>跳跃</strong><small>K ×2</small></span></button>${SKILL_LABELS[activeSkillSet()].map((label, i) => `<button data-action="skill" data-index="${i}" ${canControl ? '' : 'disabled'}><i>${i + 1}</i><span><strong>${label}</strong><small>${skillSummary(i)}</small></span></button>`).join('')}</div><div class="combat-log"><b>✦</b><span>${logText}</span></div></div><aside class="side-column">${isTown ? townPanelMarkup() : ''}<section class="panel status-panel"><header><span>角色状态</span><small>${String(game.stage).padStart(2, '0')}</small></header><div class="hero-card"><b class="avatar ${game.role}">${game.role === 'warrior' ? '刃' : '✦'}</b><span><strong>${roleLabels[game.role]}</strong><small>${game.role === 'warrior' ? '钢铁誓约 · 剑士' : '星辉学派 · 法杖'}</small></span></div><div class="resource-label"><span>生命</span><b id="hp-text">${displayNumber(game.hp)} <i>/ ${displayNumber(s.hp)}</i></b><em>♥</em></div><div class="resource"><i id="hp-fill" style="width:${game.hp / s.hp * 100}%"></i></div><div class="resource-label mana-label"><span>法力</span><b id="mp-text">${displayNumber(game.mp)} <i>/ ${displayNumber(s.mp)}</i></b><em>✦</em></div><div class="resource"><i id="mp-fill" style="width:${game.mp / s.mp * 100}%"></i></div><div class="stats"><div><small>攻击</small><b>${displayNumber(s.attack)}</b></div><div><small>防御</small><b>${displayNumber(s.defense)}</b></div><div><small>增益</small><b id="buff-stat">${buffTime > 0 ? `${buffTime.toFixed(1)}s` : '—'}</b></div></div></section><section class="panel gear-panel"><header><span>装备栏</span><small>${item()?.name ?? '未装备'}</small></header><div class="gear-summary">${item() ? `生命 +${item()!.hp}　攻击 +${item()!.attack}　防御 +${item()!.defense}` : '装备不会自动穿戴，请在小镇打开背包手动更换。'}</div><button class="open-bag" data-action="bag">打开背包　↗</button><div class="camp-hint">⌂　${isTown ? '安全区内可自由更换装备' : '击败 Boss 后回到小镇整备'}</div></section></aside></section><footer class="game-footer"><span>WASD / ← → 移动　·　J 攻击　·　K 跳跃 / 二段跳　·　1–4 技能　·　L 护盾</span><b>LOCAL SAVE　●</b></footer>${bagOpen ? bagMarkup() : ''}</main>`
   if (craftingOpen && isTown) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', craftingMarkup())
   if (attributesOpen && isTown) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', attributeMarkup())
   document.querySelector('.arena')?.insertAdjacentHTML('beforeend', hudMarkup())
@@ -5015,7 +5016,7 @@ function defeatFoe(target: Foe) {
     scene = 'town'; paused = false; heroSupportTop = world.floor
     restoreTownVitals()
     projectiles = []; foeShots = []; effects = []; burst = 0; burstTargetId = null
-    // 隐藏关卡奖励：一阶时装、灵魂 10000、天赋币碎片 ×5，可重复挑战重复获得。
+    // 隐藏关卡奖励：一阶时装、硬币 10000、天赋币碎片 ×5，可重复挑战重复获得。
     // 宿敌同样视为 Boss：号角的装备掉率增益按 Boss 的 +10% 结算。
     const mirrorGear = dropBossGear()
     game.gear.unshift(makeFashion(1))
@@ -5023,7 +5024,7 @@ function defeatFoe(target: Foe) {
     game.talentFragments = (game.talentFragments ?? 0) + 5
     for (const gear of mirrorGear) game.gear.unshift(gear)
     const mirrorGearText = mirrorGear.length ? `、${mirrorGear.map((gear) => gear.name).join('、')}` : ''
-    toast(`隐藏关卡奖励：一阶时装 ×1、灵魂 ×10000、天赋币碎片 ×5${mirrorGearText}`)
+    toast(`隐藏关卡奖励：一阶时装 ×1、硬币 ×10000、天赋币碎片 ×5${mirrorGearText}`)
     save()
     // 已经看过的结局剧情不再重复弹出。
     if (!seenStory('hidden-complete')) startStory(hiddenCompleteStoryData(), () => { save(); renderGame() })
@@ -5079,7 +5080,7 @@ function defeatFoe(target: Foe) {
       toast(game.sideQuest.clears >= 2 ? `支线任务完成：第 ${clearedStage} 关 2 / 2，可回小镇领取奖励。` : `支线任务进度：第 ${clearedStage} 关 ${game.sideQuest.clears} / 2。`)
     }
     // Boss 掉落先放入宝箱，靠近后按 S 开启。
-    const rewards = [`${itemIcon('soul')} 灵魂 +${soulGain}`]
+    const rewards = [`${itemIcon('soul')} 硬币 +${soulGain}`]
     for (const gear of droppedGear) rewards.push(`${itemIcon(gear.type === 'armor' ? 'armor' : 'weapon')} ${gear.name}`)
     const stamps = Math.random() < STAMP_DROP_CHANCE ? 1 : 0
     if (stamps) rewards.push(`${itemIcon('stamp')} 王印印章 +1`)
@@ -5400,7 +5401,7 @@ function pickupDrop() {
     const info = key ? materialInfo(key) : null
     if (key) addMaterial(key, 1)
     toast(`拾取专属材料：${info?.name ?? '未知材料'} ×1`)
-    setLog(`获得 ${info?.name ?? '专属材料'}，可在合成台进行专属合成。`)
+    setLog(`获得 ${info?.name ?? '专属材料'}，可在炉子进行专属合成。`)
   } else if (nearest.drop.type === 'hp-potion') {
     const recovered = Math.min(stats().hp - game.hp, Math.ceil(stats().hp * .15))
     game.hp = Math.min(stats().hp, game.hp + recovered)
@@ -5660,7 +5661,7 @@ function performAction(name: string, target: HTMLElement) {
   if (name === 'overwrite-slot' && pendingRole && target.dataset.slot) createRole(pendingRole, target.dataset.slot)
   if (name === 'cancel-new') { pendingRole = null; renderTitle() }
   if (name === 'open-crafting' && scene === 'town') {
-    if (!forgeUnlocked()) { toast('通关第一关后解锁合成台。'); return }
+    if (!forgeUnlocked()) { toast('通关第一关后解锁炉子。'); return }
     if (game && !game.forgeIntroSeen) {
       startStory(forgeIntroStoryData(), () => {
         if (!game) return
@@ -6849,7 +6850,7 @@ function drawTownBackdrop(c: CanvasRenderingContext2D, bg: BackgroundTheme) {
   // 属性祭坛
   c.fillStyle = bg.far; c.fillRect(252, 342, 74, 14); c.fillRect(274, 316, 30, 30)
   c.save(); c.shadowColor = bg.accent; c.shadowBlur = 16; c.fillStyle = bg.accent; c.beginPath(); c.moveTo(289, 286); c.lineTo(300, 312); c.lineTo(289, 334); c.lineTo(278, 312); c.closePath(); c.fill(); c.restore()
-  // 合成台与熔炉
+  // 炉子与熔炉
   c.fillStyle = '#3d3328'; c.fillRect(648, 320, 116, 54); c.fillStyle = '#6b5a40'; c.fillRect(660, 332, 92, 12); c.fillRect(676, 344, 60, 10)
   const glow = c.createRadialGradient(704, 352, 4, 704, 352, 56); glow.addColorStop(0, 'rgba(244, 198, 112, .35)'); glow.addColorStop(1, 'rgba(244, 198, 112, 0)')
   c.fillStyle = glow; c.beginPath(); c.arc(704, 352, 56, 0, Math.PI * 2); c.fill()
