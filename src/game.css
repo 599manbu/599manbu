@@ -1331,3 +1331,61 @@ body { background: #0d1717; }
   .mobile-move-rail { margin-left: clamp(16px, 6vw, 46px); }
   .mobile-action-rail { margin-right: clamp(8px, 3vw, 26px); }
 }
+
+/* ── 邮箱 / 兑换码 / 出售 ───────────────────────────── */
+.mail-button { display: inline-flex; align-items: center; gap: 4px; }
+.mail-badge { position: relative; top: -1px; margin-left: 5px !important; padding: 0 5px; border-radius: 8px; background: #c9b273; color: #182523 !important; font-family: var(--mono); font-size: 9px; line-height: 15px; }
+.mail-dialog { width: min(980px, 96vw); max-height: min(820px, 92vh); overflow-y: auto; }
+.mail-layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 18px; min-height: 460px; margin-top: 14px; }
+.mail-list { display: grid; align-content: start; gap: 8px; padding-right: 12px; border-right: 1px solid var(--line); }
+.mail-entry { display: grid; gap: 6px; padding: 14px 12px; border: 1px solid rgba(201, 178, 115, .35); background: rgba(35, 54, 50, .7); color: #e1e6d6; }
+.mail-entry.active { border-color: #c9b273; background: rgba(60, 58, 35, .5); }
+.mail-entry b { font-size: 14px; font-weight: 500; }
+.mail-entry small { color: #9fae9f; font-size: 11px; }
+.mail-entry i { color: #d9c28a; font-size: 9px; font-style: normal; }
+.mail-content { display: flex; flex-direction: column; min-width: 0; padding: 4px 4px 0; }
+.mail-content > small { color: #c8b579; font-family: var(--mono); font-size: 9px; }
+.mail-content h3 { margin: 8px 0 14px; color: #e8e2cd; font-family: 'STKaiti', 'KaiTi', serif; font-size: 26px; font-weight: 500; }
+.mail-text { margin: 0 0 20px; padding: 18px 20px; border-left: 2px solid #c9b273; background: rgba(20, 36, 35, .7); color: #e6e9db; font-size: 17px; line-height: 1.9; }
+.mail-attachments { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.mail-attach { display: grid; justify-items: center; gap: 6px; padding: 16px 10px; border: 1px solid rgba(201, 178, 115, .28); background: rgba(28, 46, 44, .7); text-align: center; }
+.mail-attach-icon { display: grid; place-items: center; width: 48px; height: 48px; border: 1px solid rgba(201, 178, 115, .3); background: rgba(13, 27, 27, .7); color: #d9c28a; }
+.mail-attach-icon .item-icon { width: 30px; height: 30px; }
+.mail-attach b { color: #e4dfc8; font-size: 13px; font-weight: 500; }
+.mail-attach small { color: #93a295; font-size: 10px; }
+.mail-note { margin: 16px 0; color: #93a295; font-size: 11px; }
+.mail-claim { align-self: flex-start; min-width: 180px; min-height: 44px; font-size: 13px; }
+.mail-claim:disabled { opacity: .45; cursor: default; }
+.redeem-box { display: flex; gap: 8px; }
+.redeem-box input { flex: 1; min-width: 0; height: 40px; padding: 0 12px; border: 1px solid rgba(191, 202, 169, .3); border-radius: 2px; background: #142524; color: #e8e4d2; font: inherit; font-size: 12px; outline: none; }
+.redeem-box input:focus { border-color: #c9b273; }
+.redeem-box button { min-width: 84px; border: 1px solid rgba(201, 178, 115, .45); border-radius: 2px; background: rgba(60, 52, 29, .6); color: #e8d7a0; font-size: 12px; cursor: pointer; }
+.redeem-box button:hover { background: rgba(86, 73, 38, .8); }
+.redeem-message { margin: 8px 0 0; color: #b9c7b8; font-size: 11px; }
+.redeem-choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.redeem-choices button { display: grid; justify-items: center; gap: 5px; padding: 12px 8px; border: 1px solid rgba(191, 202, 169, .26); background: rgba(20, 35, 35, .72); color: #e1e6d6; cursor: pointer; }
+.redeem-choices button:hover { border-color: #c9b273; background: #293a35; }
+.redeem-choices .item-icon { width: 26px; height: 26px; }
+.redeem-choices b { font-size: 12px; font-weight: 500; }
+.redeem-choices small { color: #8fa79a; font-size: 9px; }
+.sell-scrim { z-index: 60; }
+.sell-dialog { width: min(430px, 100%); }
+.sell-dialog b { color: #e2c57e; }
+.sell-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+.sell-actions button { min-width: 96px; min-height: 38px; }
+.gear-actions .gear-sell { min-width: 64px; border-color: rgba(201, 143, 115, .35); color: #d9b09a; }
+.gear-actions .gear-sell:hover:not(:disabled) { border-color: #d3a07d; background: rgba(70, 40, 30, .55); }
+@media (max-width: 720px) {
+  .mail-layout { grid-template-columns: 1fr; min-height: 0; }
+  .mail-list { padding: 0 0 10px; border-right: 0; border-bottom: 1px solid var(--line); }
+  .mail-content h3 { font-size: 21px; }
+  .mail-text { font-size: 14px; padding: 13px 14px; }
+  .mail-attachments { grid-template-columns: 1fr; }
+  .mail-attach { grid-template-columns: 44px minmax(0, 1fr); justify-items: start; align-items: center; text-align: left; padding: 10px; }
+  .mail-attach small { grid-column: 2; }
+  .mail-claim { width: 100%; }
+}
+@media (max-width: 600px) {
+  .redeem-choices { grid-template-columns: 1fr; }
+}
+.hud-buttons .hud-mail { border-color: rgba(201, 178, 115, .58); color: #eedca6; }

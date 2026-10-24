@@ -24,6 +24,9 @@ export type CloudProfile = {
 let initialized = false
 
 export function cloudAvailable() {
+  // 4399 版本不接入自建云端账号：4399 要求站内登录，且审核不接受外部账号体系/外部域名请求。
+  // 该模式下游戏自动退回到本地存档（localStorage），与离线模式一致。
+  if (String(import.meta.env.MODE) === '4399') return false
   return typeof window !== 'undefined' && location.protocol !== 'file:' && Boolean(CLOUD_CONFIG.secretKey && CLOUD_CONFIG.apiSafeCode)
 }
 
