@@ -33,7 +33,7 @@ type BattlePlatform = { x: number; w: number; height: number; kind: 'tree' | 'ro
 const SAVE_KEY = 'elemental-expedition-save-v2'
 const DEMO_MODE = import.meta.env.MODE === 'demo'
 const DEMO_SAVE_KEY = `${SAVE_KEY}:demo`
-const GAME_VERSION = '1.94'
+const GAME_VERSION = '1.95'
 const stageNames = ['苔痕边境', '沉钟矿道', '赤岩峡谷', '风蚀高原', '幽蓝沼泽', '断星回廊', '灰烬王庭', '深渊裂谷', '苍白圣所', '终焉之门']
 const roleLabels: Record<Role, string> = { warrior: '战士', mage: '法师' }
 const SKILL_LABELS: Record<SkillSetKey, string[]> = {
@@ -473,7 +473,6 @@ let pendingP1Role: Role | null = null
 let pendingP1Name = ''
 let pendingP2Name = ''
 let bagPlayer: 1 | 2 = 1
-let redeemTarget: 1 | 2 = 1
 function isMobileLayout() {
   // 触屏设备（手机/平板）只允许单人；桌面窄窗口仍可选择双人。
   return typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
@@ -1945,7 +1944,7 @@ function start(role: Role, previous?: Save) {
   bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; cloneAttackPulse = 0; cloneCastPulse = 0; cloneStealthTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null; bombClones = []; arcaneOrb = null
   applyDemoUnlock(game)
   coopRuntime = Boolean(game.coop) && !isMobileLayout()
-  if (!coopRuntime) { bagPlayer = 1; redeemTarget = 1 }
+  if (!coopRuntime) { bagPlayer = 1 }
   if (!game.tutorialDone) { beginTutorial(); return }
   game.unlockedStage = Math.min(10, Math.max(game.unlockedStage ?? 1, game.stage))
   // 从角色选择继续游戏时统一回到小镇，而不是直接恢复上次未结束的战斗。
@@ -1961,7 +1960,7 @@ function start(role: Role, previous?: Save) {
   game.mp = Math.min(Math.max(0, game.mp), caps.mp)
   game.hp = caps.hp; game.mp = caps.mp
   coopRuntime = Boolean(game.coop) && !isMobileLayout()
-  if (!coopRuntime) { bagPlayer = 1; redeemTarget = 1 }
+  if (!coopRuntime) { bagPlayer = 1 }
   resetPartner()
   if (!game.townIntroSeen) {
     startStory(townIntroStoryData(), () => { if (!game) return; game.townIntroSeen = true; save(); renderGame() })
@@ -4143,16 +4142,15 @@ function storyLogMarkup() {
 function settingsMarkup() {
   if (!game || !settingsOpen) return ''
   const rows = BIND_ACTIONS.map((action) => `<button class="bind-row ${listeningBind === action ? 'listening' : ''}" data-action="bind-key" data-bind="${action}" type="button"><span>${BIND_LABELS[action]}</span><b>${listeningBind === action ? '按下新按键…' : keyLabel(keyBinds[action])}</b><i>改键</i></button>`).join('')
-  const redeemPlayer = activeRedeemTarget()
-  const redeemRole = coopRuntime && redeemPlayer === 2 ? (game.p2Role ?? (game.role === 'warrior' ? 'mage' : 'warrior')) : game.role
-  const codeRedeemed = Boolean(redeemList(redeemPlayer).includes('cwzl666'))
-  const redeemNote = redeemMessage || (codeRedeemed ? `玩家${redeemPlayer === 1 ? '一' : '二'}已领取过 cwzl666。` : '')
+  const redeemRole = game.role
+  const codeRedeemed = Boolean(game.redeemedCodes?.includes('cwzl666') || game.redeemedCodes2?.includes('cwzl666'))
+  const redeemNote = redeemMessage || (codeRedeemed ? '该兑换码已经领取过。' : '')
   const weaponChoices: Array<[WeaponStyle, string]> = redeemRole === 'mage'
     ? [['book', '一阶魔法书'], ['staff', '一阶法杖']]
     : [['sword', '一阶长剑'], ['bow', '一阶长弓']]
   const redeemChoices = [
-    ...weaponChoices.map(([style, label]) => `<button data-action="redeem-pick" data-kind="weapon" data-style="${style}" type="button">${itemIcon(style)}<b>${label}</b><small>自选武器</small></button>`),
-    `<button data-action="redeem-pick" data-kind="armor" type="button">${itemIcon('armor')}<b>一阶护甲</b><small>自选护甲</small></button>`,
+    ...weaponChoices.map(([style, label]) => `<button data-action="redeem-pick" data-kind="weapon" data-style="${style}" type="button">${itemIcon(style)}<b>${label}</b><small>${coopRuntime ? '两位角色各一把' : '自选武器'}</small></button>`),
+    `<button data-action="redeem-pick" data-kind="armor" type="button">${itemIcon('armor')}<b>一阶护甲</b><small>${coopRuntime ? '两位角色各一件' : '自选护甲'}</small></button>`,
   ].join('')
   return `<div class="bag-scrim settings-scrim"><section class="bag-dialog settings-dialog"><header><div><small>SETTINGS · 成王之路</small><h2>设置</h2></div><button data-action="close-settings" aria-label="关闭设置">×</button></header>
     <section class="settings-block"><h3>游戏</h3><div class="settings-grid">
@@ -4162,8 +4160,7 @@ function settingsMarkup() {
       <button data-action="settings-audio"><b>${audioEnabled() ? '♪' : '×'}</b><span><strong>音效与音乐</strong><small>当前：${audioEnabled() ? '开启' : '关闭'}</small></span></button>
       <button data-action="open-credits"><b>✎</b><span><strong>制作人</strong><small>查看游戏制作人员</small></span></button>
     </div></section>
-    <section class="settings-block"><h3>兑换码 <small>${coopRuntime ? '玩家一、玩家二各限领一次' : '每个存档每种兑换码限领一次'}</small></h3>
-      ${coopRuntime ? `<div class="bag-player-switch redeem-player-switch"><button class="${redeemPlayer === 1 ? 'active' : ''}" data-action="redeem-target" data-player="1" type="button">玩家一领取</button><button class="${redeemPlayer === 2 ? 'active' : ''}" data-action="redeem-target" data-player="2" type="button">玩家二领取</button></div>` : ''}
+    <section class="settings-block"><h3>兑换码 <small>每个存档每种兑换码限领一次</small></h3>
       <div class="redeem-box"><input id="redeem-code" maxlength="32" placeholder="输入兑换码，例如 cwzl666" value="${escapeHtml(redeemCodeDraft)}" autocomplete="off" spellcheck="false"><button data-action="redeem-submit" type="button">兑换</button></div>
       ${redeemNote ? `<p class="redeem-message">${escapeHtml(redeemNote)}</p>` : ''}
       ${redeemChoiceOpen ? `<div class="redeem-choices">${redeemChoices}</div>` : ''}
@@ -4178,13 +4175,6 @@ function closeCredits() {
   renderGame()
 }
 function mailUnread() { return Boolean(game && !game.mailClaimed) }
-function activeRedeemTarget(): 1 | 2 {
-  return coopRuntime ? redeemTarget : 1
-}
-function redeemList(player: 1 | 2) {
-  if (!game) return []
-  return player === 2 ? (game.redeemedCodes2 ?? []) : (game.redeemedCodes ?? [])
-}
 function mailMarkup() {
   if (!game || !mailOpen) return ''
   const claimed = Boolean(game.mailClaimed)
@@ -4268,35 +4258,45 @@ function submitRedeemCode() {
   redeemCodeDraft = code
   if (!code) { redeemChoiceOpen = false; redeemMessage = '请输入兑换码。'; renderGame(); return }
   if (code !== 'cwzl666') { redeemChoiceOpen = false; redeemMessage = '兑换码无效。'; renderGame(); return }
-  const target = activeRedeemTarget()
-  if (redeemList(target).includes(code)) { redeemChoiceOpen = false; redeemMessage = `玩家${target === 1 ? '一' : '二'}已经领取过该兑换码。`; renderGame(); return }
+  if (game.redeemedCodes?.includes(code) || game.redeemedCodes2?.includes(code)) { redeemChoiceOpen = false; redeemMessage = '该兑换码已经领取过。'; renderGame(); return }
   redeemChoiceOpen = true
-  redeemMessage = `兑换码有效，请为玩家${target === 1 ? '一' : '二'}选择一件一阶装备。`
+  redeemMessage = coopRuntime ? '兑换码有效，请选择装备；领取后两位角色各获得一份。' : '兑换码有效，请选择一件一阶装备。'
   renderGame()
 }
 function pickRedeemGear(target: HTMLElement) {
   if (!game || !redeemChoiceOpen) return
-  const targetPlayer = activeRedeemTarget()
-  if (redeemList(targetPlayer).includes('cwzl666')) { redeemChoiceOpen = false; redeemMessage = `玩家${targetPlayer === 1 ? '一' : '二'}已经领取过该兑换码。`; renderGame(); return }
+  if (game.redeemedCodes?.includes('cwzl666') || game.redeemedCodes2?.includes('cwzl666')) { redeemChoiceOpen = false; redeemMessage = '该兑换码已经领取过。'; renderGame(); return }
   const kind = target.dataset.kind
   let gear: Gear | null = null
+  let chosenStyle: WeaponStyle | undefined
   if (kind === 'armor') gear = makeGear('armor', 1)
   else if (kind === 'weapon') {
     const style = target.dataset.style as WeaponStyle
-    const redeemRole = coopRuntime && targetPlayer === 2 ? (game.p2Role ?? (game.role === 'warrior' ? 'mage' : 'warrior')) : game.role
-    const allowed: WeaponStyle[] = redeemRole === 'mage' ? ['book', 'staff'] : ['sword', 'bow']
+    const allowed: WeaponStyle[] = game.role === 'mage' ? ['book', 'staff'] : ['sword', 'bow']
     if (!allowed.includes(style)) return
+    chosenStyle = style
     gear = makeGear('weapon', 1, style)
   }
   if (!gear) return
   game.gear.unshift(gear)
-  if (targetPlayer === 2) game.redeemedCodes2 = [...(game.redeemedCodes2 ?? []), 'cwzl666']
-  else game.redeemedCodes = [...(game.redeemedCodes ?? []), 'cwzl666']
+  let partnerGear: Gear | null = null
+  if (coopRuntime && game.coop) {
+    if (kind === 'armor') partnerGear = makeGear('armor', 1)
+    else {
+      const p2Role = game.p2Role ?? (game.role === 'warrior' ? 'mage' : 'warrior')
+      const p2Style = chosenStyle && weaponStyleRole(chosenStyle) === p2Role ? chosenStyle : randomWeaponStyle(p2Role)
+      partnerGear = makeGear('weapon', 1, p2Style)
+    }
+    game.gear.unshift(partnerGear)
+    game.redeemedCodes2 = [...(game.redeemedCodes2 ?? []), 'cwzl666']
+  }
+  game.redeemedCodes = [...(game.redeemedCodes ?? []), 'cwzl666']
   redeemChoiceOpen = false
   redeemCodeDraft = ''
-  redeemMessage = `兑换成功：获得「${gear.name}」。`
+  const partnerText = partnerGear ? `；玩家二获得「${partnerGear.name}」` : ''
+  redeemMessage = `兑换成功：玩家一获得「${gear.name}」${partnerText}。`
   save()
-  toast(`兑换成功，获得「${gear.name}」。`)
+  toast(`兑换成功：玩家一获得「${gear.name}」${partnerText}。`)
   renderGame()
 }
 function skillBagMarkup() {
@@ -6146,7 +6146,6 @@ function performAction(name: string, target: HTMLElement) {
   if (name === 'open-settings') { resetPanels(); settingsOpen = true; renderGame() }
   if (name === 'close-settings') { settingsOpen = false; listeningBind = null; renderGame() }
   if (name === 'open-mail') { resetPanels(); mailOpen = true; renderGame() }
-  if (name === 'redeem-target' && target.dataset.player) { redeemTarget = target.dataset.player === '2' ? 2 : 1; redeemMessage = ''; redeemChoiceOpen = false; renderGame(); return }
   if (name === 'close-mail') { mailOpen = false; renderGame() }
   if (name === 'claim-mail') { claimMail(); return }
   if (name === 'sell-gear' && target.dataset.id) { requestSellGear(target.dataset.id); return }
