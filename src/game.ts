@@ -33,7 +33,7 @@ type BattlePlatform = { x: number; w: number; height: number; kind: 'tree' | 'ro
 const SAVE_KEY = 'elemental-expedition-save-v2'
 const DEMO_MODE = import.meta.env.MODE === 'demo'
 const DEMO_SAVE_KEY = `${SAVE_KEY}:demo`
-const GAME_VERSION = '1.93'
+const GAME_VERSION = '1.94'
 const stageNames = ['苔痕边境', '沉钟矿道', '赤岩峡谷', '风蚀高原', '幽蓝沼泽', '断星回廊', '灰烬王庭', '深渊裂谷', '苍白圣所', '终焉之门']
 const roleLabels: Record<Role, string> = { warrior: '战士', mage: '法师' }
 const SKILL_LABELS: Record<SkillSetKey, string[]> = {
@@ -122,12 +122,12 @@ const OTHER_ROLE: Record<Role, Role> = { warrior: 'mage', mage: 'warrior' }
 const HIDDEN_CONFIG = { bossHp: 99000, bossAtk: 2900, mp: 1000 }
 const TALENT_FRAGMENTS_PER_COIN = 10
 const ADVANCED_TALENT_COST = 3
-const TOWN_NPC_X = 620
-const TOWN_CIRCLE_X = 430
+const TOWN_NPC_X = 180
+const TOWN_CIRCLE_X = 780
 const TOWN_NPC_NAME = '阿岩'
-const SECOND_NPC_X = 190
+const SECOND_NPC_X = 380
 const SECOND_NPC_NAME = '铸魂师·霍恩'
-const HIDDEN_NPC_X = 520
+const HIDDEN_NPC_X = 580
 const HIDDEN_NPC_NAME = '守印人·岚'
 // 每关小怪的 3 种专属掉落物。
 const STAGE_MATERIALS: string[][] = [
@@ -1232,6 +1232,7 @@ function runAsPartner<T>(fn: () => T): T | undefined {
   } finally {
     partner.x = heroX; partner.y = heroY; partner.velocityY = velocityY; partner.grounded = grounded
     partner.supportTop = heroSupportTop; partner.facing = facing; partner.jumpCount = jumpCount
+    partner.x = clampPartnerX(partner.x)
     partner.attackWait = attackWait; partner.skillWait = [...skillWait]; partner.mp = game.mp
     heroX = saved.x; heroY = saved.y; velocityY = saved.vy; grounded = saved.grounded
     facing = saved.facing; jumpCount = saved.jumpCount
@@ -1297,8 +1298,7 @@ function updatePartner(dt: number) {
       const dir = right ? 1 : -1
       partner.facing = dir
       const speed = scene === 'town' ? (partnerRunActive ? 296 : 172) : (partnerRunActive ? 322 : 190)
-      if (scene === 'town') partner.x = Math.max(TOWN_LEFT, Math.min(TOWN_RIGHT, partner.x + dir * speed * dt))
-      else partner.x = clampHeroX(partner.x + dir * speed * dt)
+      partner.x = clampPartnerX(partner.x + dir * speed * dt)
       if (partner.grounded && Math.random() < dt * (partnerRunActive ? 14 : 8)) addFx('dust', partner.x - dir * 12, world.floor + partner.y - 2, 1, .2)
     } else partnerRunActive = false
     if (partnerAttackHeld && scene === 'battle') partnerAttack()
@@ -1398,7 +1398,24 @@ function refreshMap() { unlockedWidth = computeUnlockedWidth() }
 function clampHeroX(x: number) { return Math.max(MAP_LEFT, Math.min(Math.max(MAP_LEFT, unlockedWidth - 55), x)) }
 function clampFoeX(x: number) { return Math.max(MAP_LEFT, Math.min(Math.max(MAP_LEFT, unlockedWidth - 30), x)) }
 function updateCamera() {
-  cameraX = Math.max(0, Math.min(Math.max(0, unlockedWidth - world.width), heroX - world.width * .42))
+  const maxCamera = Math.max(0, unlockedWidth - world.width)
+  if (cameraX > maxCamera) cameraX = maxCamera
+  const leftEdge = cameraX + world.width * .18
+  const rightEdge = cameraX + world.width * .82
+  if (heroX < leftEdge) cameraX = heroX - world.width * .18
+  else if (heroX > rightEdge) cameraX = heroX - world.width * .82
+  cameraX = Math.max(0, Math.min(maxCamera, cameraX))
+}
+// 玩家二与玩家一同屏：限制在当前摄像机可见区域内。
+function partnerBounds(): [number, number] {
+  if (scene === 'town') return [TOWN_LEFT, TOWN_RIGHT]
+  const min = Math.max(MAP_LEFT, cameraX + 20)
+  const max = Math.min(Math.max(min, unlockedWidth - 55), cameraX + world.width - 20)
+  return [min, max]
+}
+function clampPartnerX(x: number) {
+  const [min, max] = partnerBounds()
+  return Math.max(min, Math.min(max, x))
 }
 function foeFlyOffset(foe: Foe) {
   if (!foe.flying) return 0
@@ -1586,7 +1603,6 @@ function spawnCurrentWave() {
 function armNextWave() {
   if (!game) return
   const oldWidth = unlockedWidth
-  refreshMap()
   waveReady = true
   bossPending = game.kills >= MAX_SMALL_KILLS
   waveTriggerX = Math.max(MAP_LEFT + 160, oldWidth - 180)
@@ -1936,6 +1952,7 @@ function start(role: Role, previous?: Save) {
   scene = 'town'
   game.town = true
   game.dead = false
+  resetHiddenUltimate()
   paused = false
   heroX = 480; heroY = 0; velocityY = 0; grounded = true; heroSupportTop = world.floor; buffTime = 0; burst = 0; burstTargetId = null; shake = 0; jumpCount = 0; cameraX = 0
   skillWait = [0, 0, 0, 0]; effects = []; projectiles = []; foeShots = []; resetPanels()
@@ -3866,7 +3883,7 @@ function townCompanions(): TownCompanion[] {
   if (!game) return []
   const list: TownCompanion[] = []
   if (game.rescuedXiaoman) list.push({ id: 'xiaoman', name: '小满', x: 280 })
-  if (game.rescuedZhou) list.push({ id: 'zhou', name: '老周', x: 740 })
+  if (game.rescuedZhou) list.push({ id: 'zhou', name: '老周', x: 680 })
   return list
 }
 function companionThanksStoryData(id: TownCompanion['id']): StoryData {
@@ -5158,7 +5175,7 @@ function cast(index: number) {
       addShake(3)
       addFlash(.18, fxColor)
       const target = targetForFacing(165)
-      if (!target) setLog(foes.length ? '距离太远，攻击没有命中。' : '剑气划过空气。')
+      if (!target || !canStrikeVertically(target)) setLog(foes.length ? '距离或高度不符，攻击没有命中。' : '剑气划过空气。')
       else {
         // 拔剑术附带一点击退，把目标推离角色。
         if (!target.boss) target.x = clampFoeX(target.x + (Math.sign(target.x - heroX) || facing) * 34)
@@ -5178,16 +5195,16 @@ function cast(index: number) {
       velocityY = Math.min(velocityY, -690)
       jumpCount = 2
       bowAirLocked = true
-      const spiralTargets = foes.filter((foe) => Math.abs(foe.x - heroX) <= 205)
+      // 只有真正被旋转剑气碰到（近距离且在同一高度）的非 Boss 敌人才能被带上天。
+      const spiralTargets = foes.filter((foe) => !foe.boss && Math.abs(foe.x - heroX) <= 140 && canStrikeVertically(foe))
       spiralTargets.forEach((foe) => {
-        if (foe.boss) return
         foe.spiralLiftTimer = .95
         foe.staggerTimer = Math.max(foe.staggerTimer ?? 0, .95)
         foe.skillWindup = undefined
         foe.rangedWindup = undefined
         foe.attackAnim = 0
       })
-      if (spiralTargets.length) strikeNearby(power, '螺旋斩', 205, true)
+      strikeNearby(power, '螺旋斩', 205, true)
       setLog('螺旋斩：剑刃卷起旋风，将周围敌人一起带向空中。')
     } else if (index === 2) {
       // 拔剑突刺：先拔剑，再突进，结束后立刻收剑入鞘。
@@ -5197,7 +5214,7 @@ function cast(index: number) {
       const endX = scene === 'town'
         ? Math.max(TOWN_LEFT, Math.min(TOWN_RIGHT, heroX + facing * SKILL3_DISTANCE))
         : clampHeroX(heroX + facing * SKILL3_DISTANCE)
-      const targets = foes.filter((foe) => foe.x >= Math.min(startX, endX) - 38 && foe.x <= Math.max(startX, endX) + 38)
+      const targets = foes.filter((foe) => foe.x >= Math.min(startX, endX) - 38 && foe.x <= Math.max(startX, endX) + 38 && canStrikeVertically(foe))
       heroX = endX
       addFx(`weapon-swing-${style}`, heroX + facing * 50, world.floor - 80 + heroY, facing, .45, fxColor)
       addSparks(heroX, world.floor - 70 + heroY, 6, [fxColor, '#f3efd6'], 120)
@@ -5324,6 +5341,7 @@ function defeatFoe(target: Foe) {
     game.tutorialDone = true; game.town = true; game.dead = false; game.completed = false
     scene = 'town'; paused = false; heroSupportTop = world.floor
     restoreTownVitals()
+    resetHiddenUltimate()
     projectiles = []; foeShots = []; effects = []; burst = 0; burstTargetId = null
     save()
     startStory(tutorialCompleteStoryData(), () => {
@@ -5341,6 +5359,7 @@ function defeatFoe(target: Foe) {
     game.town = true; game.dead = false
     scene = 'town'; paused = false; heroSupportTop = world.floor
     restoreTownVitals()
+    resetHiddenUltimate()
     projectiles = []; foeShots = []; effects = []; burst = 0; burstTargetId = null
     // 隐藏关卡奖励：一阶时装、硬币 10000、天赋币碎片 ×5，可重复挑战重复获得。
     // 宿敌同样视为 Boss：号角的装备掉率增益按 Boss 的 +10% 结算。
@@ -5458,6 +5477,7 @@ function finishBossVictory() {
 function advanceAfterBoss(clearedStage: number, ending: boolean, nightmare = false) {
   if (!game) return
   resetCombo()
+  resetHiddenUltimate()
   bossChest = null
   lootReveal = null
   keys.clear()
@@ -6972,6 +6992,7 @@ function update(dt: number) {
     }
     if (scene === 'battle' && waveReady && foes.length === 0 && heroX >= waveTriggerX) {
       waveReady = false
+      refreshMap()
       if (bossPending) {
         bossPending = false
         foes = [spawnFoe(Math.min(unlockedWidth - 100, heroX + 360), true)]
@@ -9610,7 +9631,7 @@ function drawGiantSword(c: CanvasRenderingContext2D, x: number, y: number, scale
   c.restore()
 }
 function drawHiddenUltimate(c: CanvasRenderingContext2D) {
-  if (!hiddenUltKind || hiddenUltTimer <= 0) return
+  if (!hiddenUltKind || hiddenUltTimer <= 0 || scene !== 'battle') return
   const kind = hiddenUltKind
   const color = hiddenUltimateColor(kind)
   const dir = hiddenUltSide
