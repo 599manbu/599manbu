@@ -33,7 +33,7 @@ type BattlePlatform = { x: number; w: number; height: number; kind: 'tree' | 'ro
 const SAVE_KEY = 'elemental-expedition-save-v2'
 const DEMO_MODE = import.meta.env.MODE === 'demo'
 const DEMO_SAVE_KEY = `${SAVE_KEY}:demo`
-const GAME_VERSION = '1.91'
+const GAME_VERSION = '1.92'
 const stageNames = ['苔痕边境', '沉钟矿道', '赤岩峡谷', '风蚀高原', '幽蓝沼泽', '断星回廊', '灰烬王庭', '深渊裂谷', '苍白圣所', '终焉之门']
 const roleLabels: Record<Role, string> = { warrior: '战士', mage: '法师' }
 const SKILL_LABELS: Record<SkillSetKey, string[]> = {
@@ -549,6 +549,7 @@ let redeemCodeDraft = ''
 let quitConfirmOpen = false
 let gameClosed = false
 let creditsOpen = false
+let creditsFromSettings = false
 let storyLogOpen = false
 let storyLogStage = 1
 let skillPanelOpen = false
@@ -3346,7 +3347,7 @@ function closeLottery() {
 }
 // 打开任意面板前统一收起其它弹窗，避免多个遮罩叠加。
 function resetPanels() {
-  bagOpen = false; hornPickerOpen = false; craftingOpen = false; attributesOpen = false; npcOpen = false; secondNpcOpen = false; hiddenNpcOpen = false; lotteryOpen = false; stageCircleOpen = false; gameMenuOpen = false; settingsOpen = false; mailOpen = false; sellConfirmId = null; redeemChoiceOpen = false; redeemMessage = ''; redeemCodeDraft = ''; creditsOpen = false; quitConfirmOpen = false; storyLogOpen = false; skillPanelOpen = false; listeningBind = null; forgeSlots = []; specialSlots = []
+  bagOpen = false; hornPickerOpen = false; craftingOpen = false; attributesOpen = false; npcOpen = false; secondNpcOpen = false; hiddenNpcOpen = false; lotteryOpen = false; stageCircleOpen = false; gameMenuOpen = false; settingsOpen = false; creditsFromSettings = false; mailOpen = false; sellConfirmId = null; redeemChoiceOpen = false; redeemMessage = ''; redeemCodeDraft = ''; creditsOpen = false; quitConfirmOpen = false; storyLogOpen = false; skillPanelOpen = false; listeningBind = null; forgeSlots = []; specialSlots = []
   lotterySpinning = false; lotteryResult = null; lotteryHighlight = -1
   if (lotteryInterval !== null) { window.clearInterval(lotteryInterval); lotteryInterval = null }
   if (lotteryTimeout !== null) { window.clearTimeout(lotteryTimeout); lotteryTimeout = null }
@@ -3797,9 +3798,7 @@ function gameMenuMarkup() {
   if (!game || !gameMenuOpen) return ''
   const isTown = scene === 'town'
   const items: Array<{ action: string; icon: string; title: string; desc: string; disabled?: boolean }> = [
-    { action: 'open-mail', icon: '✉', title: '邮箱', desc: mailUnread() ? '有未领取的系统邮件' : '查看系统邮件' },
     { action: 'open-story-log', icon: '❖', title: '剧情', desc: `第 ${game.stage} 关 · ${stageNames[Math.min(9, Math.max(0, game.stage - 1))]}` },
-    { action: 'open-credits', icon: '✎', title: '制作人', desc: '查看游戏制作人员' },
   ]
   if (isTown) {
     items.push(
@@ -3875,6 +3874,7 @@ function settingsMarkup() {
       <button data-action="settings-role-select"><b>◈</b><span><strong>角色选择</strong><small>返回存档与职业选择页</small></span></button>
       <button data-action="quit-game"><b>⏻</b><span><strong>退出游戏</strong><small>结束当前远征并返回标题</small></span></button>
       <button data-action="settings-audio"><b>${audioEnabled() ? '♪' : '×'}</b><span><strong>音效与音乐</strong><small>当前：${audioEnabled() ? '开启' : '关闭'}</small></span></button>
+      <button data-action="open-credits"><b>✎</b><span><strong>制作人</strong><small>查看游戏制作人员</small></span></button>
     </div></section>
     <section class="settings-block"><h3>兑换码 <small>每个存档每种兑换码限领一次</small></h3>
       <div class="redeem-box"><input id="redeem-code" maxlength="32" placeholder="输入兑换码，例如 cwzl666" value="${escapeHtml(redeemCodeDraft)}" autocomplete="off" spellcheck="false"><button data-action="redeem-submit" type="button">兑换</button></div>
@@ -3884,6 +3884,11 @@ function settingsMarkup() {
     <section class="settings-block"><h3>按键设置 <small>点击任意一项后按下新按键</small></h3><div class="bind-list">${rows}</div>
       <div class="settings-footer"><button data-action="reset-binds">恢复默认按键</button><span>固定按键：方向键左右移动 · S 拾取/对话 · L 护盾 · P 暂停</span></div>
     </section></section></div>`
+}
+function closeCredits() {
+  creditsOpen = false
+  if (creditsFromSettings) { creditsFromSettings = false; settingsOpen = true }
+  renderGame()
 }
 function mailUnread() { return Boolean(game && !game.mailClaimed) }
 function mailMarkup() {
@@ -5758,8 +5763,8 @@ function performAction(name: string, target: HTMLElement) {
   if (name === 'confirm-sell') { confirmSellGear(); return }
   if (name === 'redeem-submit') { submitRedeemCode(); return }
   if (name === 'redeem-pick') { pickRedeemGear(target); return }
-  if (name === 'open-credits') { resetPanels(); creditsOpen = true; renderGame() }
-  if (name === 'close-credits') { creditsOpen = false; renderGame() }
+  if (name === 'open-credits') { const fromSettings = settingsOpen; resetPanels(); creditsFromSettings = fromSettings; creditsOpen = true; renderGame() }
+  if (name === 'close-credits') closeCredits()
   if (name === 'open-story-log' && game) {
     resetPanels(); storyLogOpen = true; storyLogStage = Math.max(1, Math.min(10, game.stage))
     markStoryRead(storyLogStage)
@@ -6057,7 +6062,7 @@ window.addEventListener('keydown', (event) => {
   if (sellConfirmId && key === 'escape') { sellConfirmId = null; renderGame(); return }
   if (mailOpen && key === 'escape') { mailOpen = false; renderGame(); return }
   if (settingsOpen && key === 'escape') { settingsOpen = false; listeningBind = null; renderGame(); return }
-  if (creditsOpen && key === 'escape') { creditsOpen = false; renderGame(); return }
+  if (creditsOpen && key === 'escape') { closeCredits(); return }
   if (storyLogOpen && key === 'escape') { storyLogOpen = false; renderGame(); return }
   if (skillPanelOpen && key === 'escape') { skillPanelOpen = false; renderGame(); return }
   if (gameMenuOpen && key === 'escape') { gameMenuOpen = false; renderGame(); return }
