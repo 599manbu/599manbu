@@ -276,21 +276,29 @@ function musicKick(volume: number) {
   osc.start(); osc.stop(ctx.currentTime + .2)
 }
 
+// 白噪声缓冲区只生成一次并重复使用；每次音效再新建 Buffer 会造成明显的 GC 卡顿。
+let sharedNoiseBuffer: AudioBuffer | null = null
+function getNoiseBuffer(context: AudioContext) {
+  if (sharedNoiseBuffer) return sharedNoiseBuffer
+  const length = Math.max(1, Math.floor(context.sampleRate))
+  sharedNoiseBuffer = context.createBuffer(1, length, context.sampleRate)
+  const data = sharedNoiseBuffer.getChannelData(0)
+  for (let i = 0; i < length; i++) data[i] = Math.random() * 2 - 1
+  return sharedNoiseBuffer
+}
 function musicNoise(duration: number, volume: number, cutoff: number, highpass = false) {
   if (!ctx || !musicBus) return
-  const length = Math.max(1, Math.floor(ctx.sampleRate * duration))
-  const buffer = ctx.createBuffer(1, length, ctx.sampleRate)
-  const data = buffer.getChannelData(0)
-  for (let i = 0; i < length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / length)
   const source = ctx.createBufferSource()
   const filter = ctx.createBiquadFilter()
   const gain = ctx.createGain()
-  source.buffer = buffer
+  source.buffer = getNoiseBuffer(ctx)
   filter.type = highpass ? 'highpass' : 'lowpass'
   filter.frequency.value = cutoff
-  gain.gain.value = volume
+  const now = ctx.currentTime
+  gain.gain.setValueAtTime(Math.max(.0001, volume), now)
+  gain.gain.exponentialRampToValueAtTime(.0001, now + duration)
   source.connect(filter); filter.connect(gain); gain.connect(musicBus)
-  source.start()
+  source.start(now, Math.random() * Math.max(0, 1 - duration), duration)
 }
 
 function musicSnare(volume: number) { musicNoise(.11, volume, 2400, true) }
@@ -333,21 +341,19 @@ function noise(duration: number, volume: number, cutoff: number) {
   if (!enabled) return
   const context = ensureContext()
   if (!context || !sfxBus) return
-  const length = Math.max(1, Math.floor(context.sampleRate * duration))
-  const buffer = context.createBuffer(1, length, context.sampleRate)
-  const data = buffer.getChannelData(0)
-  for (let i = 0; i < length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / length)
   const source = context.createBufferSource()
   const filter = context.createBiquadFilter()
   const gain = context.createGain()
-  source.buffer = buffer
+  source.buffer = getNoiseBuffer(context)
   filter.type = 'lowpass'
   filter.frequency.value = cutoff
-  gain.gain.value = volume
+  const now = context.currentTime
+  gain.gain.setValueAtTime(Math.max(.0001, volume), now)
+  gain.gain.exponentialRampToValueAtTime(.0001, now + duration)
   source.connect(filter)
   filter.connect(gain)
   gain.connect(sfxBus)
-  source.start()
+  source.start(now, Math.random() * Math.max(0, 1 - duration), duration)
 }
 
 export function playSfx(name: SfxName) {

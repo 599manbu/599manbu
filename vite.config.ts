@@ -10,6 +10,11 @@ export default defineConfig(({ mode }) => {
   const buildMode = String(mode)
   return {
     base: './',
+    // 构建时直接替换为布尔字面量，让打包器能彻底删除 4399 版不需要的
+    // 取名、兑换码等字符串，避免审核扫描到已移除功能的文案。
+    define: {
+      PLATFORM_4399: JSON.stringify(buildMode === '4399'),
+    },
     resolve: buildMode === '4399'
       ? { alias: { 'hydrogen-js-sdk': fileURLToPath(new URL('./src/cloud-stub.ts', import.meta.url)) } }
       : undefined,

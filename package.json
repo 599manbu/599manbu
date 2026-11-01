@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "build:demo": "tsc && vite build --mode demo",
-    "build:4399": "tsc && vite build --mode 4399",
+    "build:4399": "tsc && vite build --mode 4399 && node scripts/wrap-4399.mjs",
     "preview": "vite preview",
     "preview:demo": "vite preview --mode demo --port 4174",
     "preview:4399": "vite preview --mode 4399 --port 4175"

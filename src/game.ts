@@ -10,14 +10,15 @@ type WeaponStyle = 'sword' | 'axe' | 'blade' | 'bow' | 'staff' | 'book'
 type SkillSetKey = 'sword' | 'bow' | 'staff' | 'book'
 type GemKind = 'life' | 'defense' | 'attack' | 'energy'
 type Gem = { id: string; kind: GemKind; tier: number }
-type Gear = { id: string; name: string; level: number; type?: GearType; style?: WeaponStyle; hp: number; mp?: number; attack: number; defense: number; sockets?: number; socketGems?: (Gem | null)[]; expiresAt?: number }
+type FashionEffect = 'vampire' | 'superArmor' | 'guard'
+type Gear = { id: string; name: string; level: number; type?: GearType; style?: WeaponStyle; fashionEffect?: FashionEffect; hp: number; mp?: number; attack: number; defense: number; sockets?: number; socketGems?: (Gem | null)[]; expiresAt?: number }
 type WorldDrop = { id: string; type: 'hp-potion' | 'mp-potion' | 'material'; x: number; materialKey?: string }
 type AttributeStat = 'hp' | 'attack' | 'mp' | 'defense'
 type AttributeAllocation = Record<AttributeStat, number>
 type StageProgress = { kills: number; bossDefeated: boolean; pointsClaimed?: number }
-type Save = { role: Role; stage: number; unlockedStage: number; kills: number; stageProgress?: Record<string, StageProgress>; hp: number; mp: number; gear: Gear[]; equipped: string | null; weaponId?: string | null; weapon2Id?: string | null; armorId?: string | null; armor2Id?: string | null; fashionId?: string | null; extraSlot?: 'weapon' | 'armor'; level?: number; exp?: number; drops?: WorldDrop[]; bossDefeated?: boolean; attributePoints?: number; attributeAllocation?: AttributeAllocation; soul?: number; normalTalent?: number; normalTalentLevels?: number[]; advancedTalent?: number; advancedTalentLevel?: number; talentFragments?: number; talentCoins?: number; lotteryChances?: number; shopFashionBought?: boolean; reviveCoins?: number; reviveUsed?: boolean; fragmentBuyDay?: string; reviveBuyAt?: number; materials?: Record<string, number>; stones?: number[]; enhance?: { weapon: number; armor: number; armor2: number; weapon2: number; failWeapon: number; failArmor: number; failArmor2: number; failWeapon2: number }; nightmareCleared?: number[]; nightmareDay?: string; nightmareAttempts?: number; stamps?: number; freeReviveDay?: string; tutorialDone?: boolean; hiddenCleared?: boolean; rivalTrust?: boolean; stage8Choice?: 'save' | 'chase' | 'together' | null; rescuedRock?: boolean; rescuedXiaoman?: boolean; rescuedZhou?: boolean; seenStories?: string[]; forgeIntroSeen?: boolean; shopIntroSeen?: boolean; lotteryIntroSeen?: boolean; townIntroSeen?: boolean; mainQuestsClaimed?: number[]; sideQuest?: { stage: number; clears: number } | null; sideQuestDay?: string; skillLevels?: Record<string, number>; gems?: Gem[]; punchStones?: number; punchBuyAt?: number; horns?: number; hornBuyAt?: number; hornBuff?: 'material' | 'attack' | 'gear' | null; hornBuffUntil?: number; name?: string; p2Name?: string; coop?: boolean; p2Role?: Role; p2WeaponId?: string | null; p2ArmorId?: string | null; p2FashionId?: string | null; mailClaimed?: boolean; redeemedCodes?: string[]; redeemedCodes2?: string[]; combatData?: { attacks: number; skills: number; defends: number; skillUses: number[]; stages: number[] }; town: boolean; completed: boolean; dead: boolean }
+type Save = { role: Role; stage: number; unlockedStage: number; kills: number; stageProgress?: Record<string, StageProgress>; hp: number; mp: number; gear: Gear[]; equipped: string | null; weaponId?: string | null; weapon2Id?: string | null; armorId?: string | null; armor2Id?: string | null; fashionId?: string | null; extraSlot?: 'weapon' | 'armor'; level?: number; exp?: number; drops?: WorldDrop[]; bossDefeated?: boolean; attributePoints?: number; attributeAllocation?: AttributeAllocation; soul?: number; normalTalent?: number; normalTalentLevels?: number[]; advancedTalent?: number; advancedTalentLevel?: number; talentFragments?: number; talentCoins?: number; lotteryChances?: number; shopFashionBought?: boolean; shopWeek?: string; shopBought?: string[]; travelMerchantDay?: string; travelMerchantOffer?: MerchantOffer | null; travelMerchantBoughtDay?: string; reviveCoins?: number; reviveUsed?: boolean; fragmentBuyDay?: string; reviveBuyAt?: number; materials?: Record<string, number>; stones?: number[]; enhance?: { weapon: number; armor: number; armor2: number; weapon2: number; failWeapon: number; failArmor: number; failArmor2: number; failWeapon2: number }; nightmareCleared?: number[]; nightmareDay?: string; nightmareAttempts?: number; stamps?: number; freeReviveDay?: string; tutorialDone?: boolean; hiddenCleared?: boolean; rivalTrust?: boolean; stage8Choice?: 'save' | 'chase' | 'together' | null; rescuedRock?: boolean; rescuedXiaoman?: boolean; rescuedZhou?: boolean; seenStories?: string[]; forgeIntroSeen?: boolean; shopIntroSeen?: boolean; lotteryIntroSeen?: boolean; townIntroSeen?: boolean; mainQuestsClaimed?: number[]; sideQuest?: { stage: number; clears: number } | null; sideQuestDay?: string; skillLevels?: Record<string, number>; gems?: Gem[]; punchStones?: number; punchBuyAt?: number; horns?: number; hornBuyAt?: number; hornBuff?: 'material' | 'attack' | 'gear' | null; hornBuffUntil?: number; name?: string; p2Name?: string; coop?: boolean; p2Role?: Role; p2WeaponId?: string | null; p2ArmorId?: string | null; p2FashionId?: string | null; mailClaimed?: boolean; mailClaimed2?: boolean; redeemedCodes?: string[]; redeemedCodes2?: string[]; combatData?: { attacks: number; skills: number; defends: number; skillUses: number[]; stages: number[] }; adDay?: string; adRewards?: string[]; town: boolean; completed: boolean; dead: boolean }
 type SaveSlot = { id: string; label: string; data: Save; updatedAt: number }
-type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; flyPhase?: number; flyAmplitude?: number; flySpeed?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number; specialTimer?: number; specialWindup?: number; specialKind?: 'pierce' | 'exclusive'; specialNext?: 'pierce' | 'exclusive'; mobSkillTimer?: number; skillWindup?: number; skillKind?: 'lunge' | 'slam'; preferredAttack?: 'melee' | 'ranged'; spiralLiftTimer?: number; lift?: number; staggerTimer?: number; staggerHits?: number; staggerImmune?: number; superArmor?: number; tutorial?: boolean; mirror?: boolean; mirrorRole?: Role; mp?: number; mirrorSkillTimer?: number; mirrorWindup?: number; mirrorSkill?: number; mirrorBuffTimer?: number; mirrorBurst?: number; mirrorBurstWait?: number; mirrorSwitch?: number; mirrorSwapTimer?: number; mirrorNextRole?: Role; mirrorGuard?: number; mirrorGuardCd?: number; mirrorBoltTimer?: number; wanderTimer?: number; wanderTargetX?: number | null }
+type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; flyPhase?: number; flyAmplitude?: number; flySpeed?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number; specialTimer?: number; specialWindup?: number; specialKind?: 'pierce' | 'exclusive'; specialNext?: 'pierce' | 'exclusive'; mobSkillTimer?: number; skillWindup?: number; skillKind?: 'lunge' | 'slam'; preferredAttack?: 'melee' | 'ranged'; spiralLiftTimer?: number; lift?: number; staggerTimer?: number; staggerHits?: number; staggerImmune?: number; superArmor?: number; inMeleeRange?: boolean; tutorial?: boolean; mirror?: boolean; mirrorRole?: Role; mp?: number; mirrorSkillTimer?: number; mirrorWindup?: number; mirrorSkill?: number; mirrorBuffTimer?: number; mirrorBurst?: number; mirrorBurstWait?: number; mirrorSwitch?: number; mirrorSwapTimer?: number; mirrorNextRole?: Role; mirrorGuard?: number; mirrorGuardCd?: number; mirrorBoltTimer?: number; wanderTimer?: number; wanderTargetX?: number | null }
 type Fx = { x: number; y: number; life: number; kind: string; direction?: number; text?: string; damage?: number; duration?: number; vx?: number; vy?: number; color?: string; radius?: number }
 type Projectile = { x: number; y: number; vx: number; vy?: number; life: number; damage: number; targetId: number; kind?: 'homing' | 'arrow' | 'book' | 'charged' | 'fall' | 'blast'; pierce?: boolean; hitIds?: number[]; maxDistance?: number; startX?: number; label?: string; radius?: number; fromClone?: boolean }
 type FoeShot = { x: number; y: number; vx: number; vy: number; damage: number; radius: number; color: string; life: number }
@@ -32,8 +33,23 @@ type BattlePlatform = { x: number; w: number; height: number; kind: 'tree' | 'ro
 
 const SAVE_KEY = 'elemental-expedition-save-v2'
 const DEMO_MODE = import.meta.env.MODE === 'demo'
+// 由 vite.config.ts 的 define 在构建时替换为 true/false，便于摇树删除审核不需要的文案。
+declare const PLATFORM_4399: boolean
 const DEMO_SAVE_KEY = `${SAVE_KEY}:demo`
-const GAME_VERSION = '1.95'
+const GAME_VERSION = '1.96'
+// 画面质量：4399 默认“均衡”，低配设备可切到“流畅”（关闭阴影、降低渲染分辨率）。
+type RenderQuality = 'high' | 'balanced' | 'smooth'
+const QUALITY_KEY = 'adventure-render-quality'
+function initialRenderQuality(): RenderQuality {
+  try {
+    const saved = localStorage.getItem(QUALITY_KEY)
+    if (saved === 'high' || saved === 'balanced' || saved === 'smooth') return saved
+  } catch { /* localStorage 不可用时使用默认值 */ }
+  return PLATFORM_4399 ? 'balanced' : 'high'
+}
+let renderQuality: RenderQuality = initialRenderQuality()
+let shadowCap = 24
+let fxScale = 1
 const stageNames = ['苔痕边境', '沉钟矿道', '赤岩峡谷', '风蚀高原', '幽蓝沼泽', '断星回廊', '灰烬王庭', '深渊裂谷', '苍白圣所', '终焉之门']
 const roleLabels: Record<Role, string> = { warrior: '战士', mage: '法师' }
 const SKILL_LABELS: Record<SkillSetKey, string[]> = {
@@ -129,6 +145,8 @@ const SECOND_NPC_X = 380
 const SECOND_NPC_NAME = '铸魂师·霍恩'
 const HIDDEN_NPC_X = 580
 const HIDDEN_NPC_NAME = '守印人·岚'
+const TRAVEL_MERCHANT_X = 440
+const TRAVEL_MERCHANT_NAME = '旅行商人'
 // 每关小怪的 3 种专属掉落物。
 const STAGE_MATERIALS: string[][] = [
   ['苔痕叶片', '古木碎屑', '勇气碎晶'],
@@ -250,6 +268,30 @@ function fashionTierName(tier: number) {
   const names = ['一阶时装', '二阶时装', '三阶时装', '四阶时装', '五阶时装', '六阶时装']
   return names[tier - 1] ?? `${tier} 阶时装`
 }
+// 一阶~三阶时装会随机附带一种特殊效果；三件同类效果的时装合成时保留该效果。
+const FASHION_EFFECTS: FashionEffect[] = ['vampire', 'superArmor', 'guard']
+const FASHION_EFFECT_NAMES: Record<FashionEffect, string> = { vampire: '吸血', superArmor: '霸体', guard: '守护' }
+// 效果随阶级成长：
+// 吸血 5%/阶（最高 100%）；霸体冷却 25/20/15/10/5 秒（最低 5 秒），持续 5 秒；
+// 守护减伤 80/85/90/95/100%（最高 100%）。
+function fashionEffectTier(tier: number) { return Math.max(1, Math.floor(Number(tier) || 1)) }
+function fashionVampirePct(tier: number) { return Math.min(1, .05 * fashionEffectTier(tier)) }
+function fashionArmorCooldown(tier: number) { return Math.max(5, 30 - 5 * fashionEffectTier(tier)) }
+function fashionGuardReduction(tier: number) { return Math.min(1, .75 + .05 * fashionEffectTier(tier)) }
+function randomFashionEffect(): FashionEffect { return FASHION_EFFECTS[Math.floor(Math.random() * FASHION_EFFECTS.length)] }
+function legacyFashionEffect(id: string): FashionEffect {
+  let hash = 0
+  for (let i = 0; i < id.length; i += 1) hash = (hash * 31 + id.charCodeAt(i)) % 9973
+  return FASHION_EFFECTS[hash % FASHION_EFFECTS.length]
+}
+function fashionEffectName(effect?: FashionEffect) { return effect ? FASHION_EFFECT_NAMES[effect] : '' }
+function fashionEffectDesc(effect?: FashionEffect, tier = 1) {
+  if (!effect) return ''
+  const level = fashionEffectTier(tier)
+  if (effect === 'vampire') return `攻击命中回复造成伤害 ${Math.round(fashionVampirePct(level) * 100)}% 的生命`
+  if (effect === 'superArmor') return `每 ${fashionArmorCooldown(level)} 秒获得 5 秒霸体，期间受击不中断连击（不提供减伤）`
+  return `防御技能减伤 ${Math.round(fashionGuardReduction(level) * 100)}%；生命 ≤10% 时完全免疫`
+}
 // ── 宝石 ─────────────────────────────────────────────
 const GEM_KINDS: GemKind[] = ['life', 'defense', 'attack', 'energy']
 const GEM_NAMES: Record<GemKind, string> = { life: '生命宝石', defense: '防御宝石', attack: '攻击宝石', energy: '能量宝石' }
@@ -288,7 +330,7 @@ type ShopGrant =
   | { kind: 'fashion'; tier: number }
   | { kind: 'gem'; gemKind: GemKind; tier: number }
   | { kind: 'material'; key: string }
-  | { kind: 'stone'; tier: number }
+  | { kind: 'stone'; tier: number; amount?: number }
   | { kind: 'punch'; amount: number }
   | { kind: 'fragments'; amount: number }
   | { kind: 'revive'; amount: number }
@@ -297,16 +339,21 @@ type ShopGrant =
   | { kind: 'lottery'; amount: number }
   | { kind: 'horn'; amount: number }
 type ShopItem = { id: string; name: string; cost: number; desc: string; category: ShopCategory; icon: string; iconClass?: string; unique?: boolean; demoOnly?: boolean; grant: ShopGrant }
+// 流浪商人的每日随机货单：当天生成后固定，售出后标记，次日 00:00 换货。
+type MerchantOffer = { id: string; name: string; desc: string; cost: number; icon: string; iconClass?: string; tag?: string; grant: ShopGrant }
+type TravelMerchantEntry = MerchantOffer & { weight: number }
 const SHOP_ITEMS: ShopItem[] = [
   // 正式版商城不出售武器与护甲。
   { id: 'armor1', name: '一阶护甲 ×1', cost: 1000, desc: '随机一件 1 级护甲', category: 'equipment', icon: 'armor', demoOnly: true, grant: { kind: 'gear', gearType: 'armor', level: 1 } },
   { id: 'weapon1', name: '一阶武器 ×1', cost: 1000, desc: '随机一件 1 级武器', category: 'equipment', icon: 'weapon', demoOnly: true, grant: { kind: 'gear', gearType: 'weapon', level: 1 } },
-  { id: 'fragments1', name: '天赋币碎片 ×1', cost: 2000, desc: '每日限购一次', category: 'other', icon: 'fragment', grant: { kind: 'fragments', amount: 1 } },
-  { id: 'revive1', name: '复活币 ×1', cost: 2000, desc: '每 3 天限购一次；战斗中死亡可满状态复活', category: 'other', icon: 'revive', grant: { kind: 'revive', amount: 1 } },
+  { id: 'fragments1', name: '天赋币碎片 ×1', cost: 2000, desc: '每周限购一次', category: 'other', icon: 'fragment', grant: { kind: 'fragments', amount: 1 } },
+  { id: 'revive1', name: '复活币 ×1', cost: 2000, desc: '每周限购一次；战斗中死亡可满状态复活', category: 'other', icon: 'revive', grant: { kind: 'revive', amount: 1 } },
   { id: 'punch1', name: '打孔石 ×1', cost: 2000, desc: '每周限购一次；在炉子为装备打孔', category: 'material', icon: 'punch', grant: { kind: 'punch', amount: 1 } },
-  { id: 'fashion1', name: '一阶时装 ×1', cost: 10000, desc: '限购一份；小怪与 Boss 不会掉落', category: 'fashion', icon: 'fashion', unique: true, grant: { kind: 'fashion', tier: 1 } },
-  { id: 'horn1', name: '号角 ×1', cost: 10000, desc: '每月限购一次；使用后选择一种增益，持续 30 分钟', category: 'other', icon: 'horn', grant: { kind: 'horn', amount: 1 } },
+  { id: 'fashion1', name: '一阶时装 ×1', cost: 10000, desc: '每周限购一份；随机附带一种时装效果', category: 'fashion', icon: 'fashion', unique: true, grant: { kind: 'fashion', tier: 1 } },
+  { id: 'horn1', name: '号角 ×1', cost: 10000, desc: '每周限购一次；使用后选择一种增益，持续 30 分钟', category: 'other', icon: 'horn', grant: { kind: 'horn', amount: 1 } },
 ]
+// 这些商店道具统一在每周一 00:00 刷新限购次数。
+const WEEKLY_LIMITED_IDS = new Set(['fragments1', 'revive1', 'punch1', 'horn1', 'fashion1'])
 // 体验版商城：所有道具 1 硬币，覆盖时装、装备、宝石、材料与消耗品。
 function demoShopItems(): ShopItem[] {
   const items: ShopItem[] = []
@@ -486,6 +533,8 @@ let cameraX = 0
 let unlockedWidth = BASE_MAP_WIDTH
 let waveReady = false
 let waveTriggerX = 0
+// 当前波次的战斗区域右边界：未清完这波守卫前不能越过。
+let waveArenaRight = 0
 let bossPending = false
 let jumpCount = 0
 let nextFoeId = 1
@@ -558,6 +607,19 @@ let sellConfirmId: string | null = null
 let redeemChoiceOpen = false
 let redeemMessage = ''
 let redeemCodeDraft = ''
+// 4399 广告：每关一次激励复活；插屏每 3 个 Boss + 3 分钟冷却。
+let adReviveUsed = false
+let adInFlight = false
+let bossClearsForAds = 0
+let lastInterstitialAt = 0
+// 时装效果：霸体周期（每 15 秒触发 5 秒）与吸血治疗数字节流。
+let superArmorActive = 0
+let superArmorCycle = 0
+let vampireFxWait = 0
+// 脱战自动回血：8 秒未受伤后每秒恢复 1% 生命上限。
+let noDamageTimer = 0
+let regenAccum = 0
+let mailSelected = 2
 let quitConfirmOpen = false
 let gameClosed = false
 let creditsOpen = false
@@ -567,6 +629,7 @@ let storyLogStage = 1
 let skillPanelOpen = false
 let secondNpcOpen = false
 let hiddenNpcOpen = false
+let merchantOpen = false
 let secondView: 'menu' | 'dungeon' | 'gems' = 'menu'
 let enhanceSlot: 'weapon' | 'weapon2' | 'armor' | 'armor2' = 'weapon'
 let nightmareStage: number | null = null
@@ -627,6 +690,7 @@ let spiralSlashTimer = 0
 // 万剑归宗：落剑后的第二段伤害。
 let myriadImpactTimer = 0
 let myriadImpactPower = 0
+let myriadImpactDir = 1
 // 隐藏必杀：触发条件、持续 2.5 秒、一局一次；期间拥有无敌护盾。
 let hiddenUltUsed = false
 let hiddenUltTimer = 0
@@ -658,7 +722,6 @@ function readSaves(key = currentSaveKey): SaveSlot[] {
   } catch { return [] }
 }
 // 体验版专用：解锁全部关卡，并标记为已通关，方便直接挑战任意 Boss。
-// 每个体验存档首次载入时发放一次满级体验套装；之后保留玩家的改动。
 function applyDemoUnlock(save: Save) {
   if (!DEMO_MODE) return save
   save.unlockedStage = 10
@@ -769,7 +832,14 @@ function normalizeSave(data: Save): Save {
   data.weapon2Id ??= null
   data.fashionId ??= null
   data.name = typeof data.name === 'string' && data.name.trim() ? data.name.trim().slice(0, 12) : roleLabels[data.role]
-  data.p2Name = typeof data.p2Name === 'string' && data.p2Name.trim() ? data.p2Name.trim().slice(0, 12) : roleLabels[data.p2Role ?? (data.role === 'warrior' ? 'mage' : 'warrior')]
+  if (PLATFORM_4399) {
+    // 4399 版本不保留任何自定义名字。
+    data.name = data.coop ? '玩家一' : roleLabels[data.role]
+    data.p2Name = '玩家二'
+  } else {
+    data.name = typeof data.name === 'string' && data.name.trim() ? data.name.trim().slice(0, 12) : roleLabels[data.role]
+    data.p2Name = typeof data.p2Name === 'string' && data.p2Name.trim() ? data.p2Name.trim().slice(0, 12) : roleLabels[data.p2Role ?? (data.role === 'warrior' ? 'mage' : 'warrior')]
+  }
   data.coop = Boolean(data.coop)
   data.p2Role = data.p2Role === 'mage' ? 'mage' : data.p2Role === 'warrior' ? 'warrior' : (data.role === 'warrior' ? 'mage' : 'warrior')
   data.p2WeaponId ??= null
@@ -779,8 +849,20 @@ function normalizeSave(data: Save): Save {
   if (data.p2ArmorId && !data.gear.some((gear) => gear.id === data.p2ArmorId && gear.type === 'armor')) data.p2ArmorId = null
   if (data.p2FashionId && !data.gear.some((gear) => gear.id === data.p2FashionId && gear.type === 'fashion')) data.p2FashionId = null
   data.mailClaimed = Boolean(data.mailClaimed)
+  data.mailClaimed2 = Boolean(data.mailClaimed2)
+  data.shopWeek = typeof data.shopWeek === 'string' ? data.shopWeek : ''
+  data.shopBought = Array.isArray(data.shopBought) ? data.shopBought.filter((id): id is string => typeof id === 'string') : []
+  data.travelMerchantDay = typeof data.travelMerchantDay === 'string' ? data.travelMerchantDay : ''
+  data.travelMerchantOffer = data.travelMerchantOffer && typeof data.travelMerchantOffer === 'object'
+    && typeof data.travelMerchantOffer.id === 'string' && typeof data.travelMerchantOffer.name === 'string'
+    && Number.isFinite(Number(data.travelMerchantOffer.cost)) && data.travelMerchantOffer.grant
+    ? data.travelMerchantOffer
+    : null
+  data.travelMerchantBoughtDay = typeof data.travelMerchantBoughtDay === 'string' ? data.travelMerchantBoughtDay : ''
   data.redeemedCodes = Array.isArray(data.redeemedCodes) ? data.redeemedCodes.filter((code): code is string => typeof code === 'string') : []
   data.redeemedCodes2 = Array.isArray(data.redeemedCodes2) ? data.redeemedCodes2.filter((code): code is string => typeof code === 'string') : []
+  data.adDay = typeof data.adDay === 'string' ? data.adDay : ''
+  data.adRewards = Array.isArray(data.adRewards) ? data.adRewards.filter((id): id is string => typeof id === 'string') : []
   const cd = data.combatData ?? { attacks: 0, skills: 0, defends: 0, skillUses: [0, 0, 0, 0], stages: [] }
   data.combatData = {
     attacks: Math.max(0, Math.floor(Number(cd.attacks) || 0)),
@@ -805,7 +887,17 @@ function normalizeSave(data: Save): Save {
       else delete gear.expiresAt
     }
     if (!gear.type) { gear.sockets = 0; gear.socketGems = []; continue }
-    if (gear.type === 'fashion') { gear.hp = 0; gear.defense = 0; gear.attack = 0; gear.mp = 0; gear.sockets = 0; gear.socketGems = []; continue }
+    if (gear.type === 'fashion') {
+      gear.hp = 0; gear.defense = 0; gear.attack = 0; gear.mp = 0; gear.sockets = 0; gear.socketGems = []
+      // 1~3 阶时装必带一种效果；旧存档按 id 固定补齐，避免刷新存档反复洗效果。
+      if (gear.level >= 1 && gear.level <= 3 && !FASHION_EFFECTS.includes(gear.fashionEffect as FashionEffect)) {
+        gear.fashionEffect = legacyFashionEffect(gear.id)
+      } else if (gear.fashionEffect && !FASHION_EFFECTS.includes(gear.fashionEffect)) {
+        gear.fashionEffect = undefined
+      }
+      if (gear.fashionEffect) gear.name = `${fashionTierName(gear.level)}·${fashionEffectName(gear.fashionEffect)}`
+      continue
+    }
     const values = gearStats(gear.level)
     gear.hp = gear.type === 'armor' ? values.hp : 0
     gear.defense = gear.type === 'armor' ? values.defense : 0
@@ -831,7 +923,7 @@ function compactNumber(value: number) {
   if (abs >= 1e4) return `${(value / 1e4).toFixed(1)}万`
   return String(Math.round(value))
 }
-// 正式版保持原样显示；体验版的 9999 级属性与资源用紧凑格式显示，避免撑破界面。
+// 正式版保持原样显示；体验版的大数字用紧凑格式显示，避免撑破界面。
 function displayNumber(value: number) { return DEMO_MODE ? compactNumber(value) : String(Math.round(value)) }
 function displayCurrency(value: number) { return DEMO_MODE ? Math.round(value).toLocaleString('zh-CN') : String(Math.round(value)) }
 // 300ms 内连续按同一方向两次进入奔跑；奔跑期间可以正常攻击。
@@ -885,7 +977,10 @@ function addComboHit() {
   comboPop = .18
 }
 function takeComboHit() {
+  noDamageTimer = 0
   if (comboCount <= 0) return
+  // 霸体时装：被攻击时连击数不会被清空（仍然正常受伤）。
+  if (superArmorReady()) return
   comboHitsTaken += 1
   if (comboHitsTaken >= 2) resetCombo()
 }
@@ -942,6 +1037,25 @@ function equippedGear() {
     )
   )
 }
+function fashionGearFor(id?: string | null): Gear | undefined {
+  if (!game || !id) return undefined
+  return game.gear.find((entry) => entry.id === id && entry.type === 'fashion' && !isGearExpired(entry))
+}
+function fashionEffectFor(id?: string | null): FashionEffect | undefined {
+  return fashionGearFor(id)?.fashionEffect
+}
+function activeFashionEffect(): FashionEffect | undefined {
+  return fashionEffectFor(actingAsPartner ? game?.p2FashionId : game?.fashionId)
+}
+function activeFashionTier(): number {
+  return fashionGearFor(actingAsPartner ? game?.p2FashionId : game?.fashionId)?.level ?? 0
+}
+function superArmorReady() { return activeFashionEffect() === 'superArmor' && superArmorActive > 0 }
+function resetFashionTimers() {
+  superArmorActive = 0
+  superArmorCycle = fashionArmorCooldown(activeFashionTier() || 1)
+  vampireFxWait = 0; noDamageTimer = 0; regenAccum = 0
+}
 function levelGrowth(level: number) {
   const m = Math.max(0, level - 1)
   const triangle = (m * (m + 1) * (m - 1)) / 6
@@ -974,6 +1088,8 @@ function shieldDamageMultiplier() {
   const maxHp = Math.max(1, stats().hp)
   const ratio = game.hp / maxHp
   if (ratio <= .1) return 0
+  // 守护时装：防御技能按阶级减伤（80% 起），血量 10% 以下完全免疫。
+  if (activeFashionEffect() === 'guard') return Math.max(0, 1 - fashionGuardReduction(activeFashionTier() || 1))
   const reduction = Math.min(.6, .15 + (1 - ratio) * .45)
   return 1 - reduction
 }
@@ -1348,6 +1464,27 @@ function equippedGemBonus() {
   return bonus
 }
 function restoreTownVitals() { if (!game) return; game.hp = stats().hp; game.mp = stats().mp }
+// 大范围技能一次击杀多只怪时，save() 会在同一帧被调用多次；
+// 这里合并 260ms 内的保存，避免 structuredClone + JSON 序列化卡帧。
+let saveTimer: number | null = null
+let lastSaveWriteAt = 0
+function writeSaveNow() {
+  if (!game || !activeSlotId) return
+  const slot = saveSlots.find((entry) => entry.id === activeSlotId)
+  if (!slot) return
+  slot.data = structuredClone(game)
+  slot.updatedAt = Date.now()
+  lastSaveWriteAt = performance.now()
+  try { localStorage.setItem(currentSaveKey, JSON.stringify(saveSlots)) }
+  catch { toast('无法保存，请检查浏览器存储空间。') }
+  scheduleCloudSync()
+}
+function flushSave() {
+  if (suppressSave || saveTimer === null) return
+  window.clearTimeout(saveTimer)
+  saveTimer = null
+  writeSaveNow()
+}
 function save() {
   if (suppressSave) return
   if (!game || !activeSlotId) return
@@ -1355,13 +1492,14 @@ function save() {
   const previous = game.stageProgress[String(game.stage)]
   // 保留“曾经通关”状态：重打已通关关卡时不会把已通关标记降级。
   game.stageProgress[String(game.stage)] = { kills: game.kills, bossDefeated: previous?.bossDefeated || (game.bossDefeated ?? false), pointsClaimed: previous?.pointsClaimed ?? 0 }
-  const slot = saveSlots.find((entry) => entry.id === activeSlotId)
-  if (!slot) return
-  slot.data = structuredClone(game)
-  slot.updatedAt = Date.now()
-  try { localStorage.setItem(currentSaveKey, JSON.stringify(saveSlots)) }
-  catch { toast('无法保存，请检查浏览器存储空间。') }
-  scheduleCloudSync()
+  const now = performance.now()
+  if (now - lastSaveWriteAt < 260) {
+    if (saveTimer === null) {
+      saveTimer = window.setTimeout(() => { saveTimer = null; writeSaveNow() }, 280)
+    }
+    return
+  }
+  writeSaveNow()
 }
 function toast(message: string) { notice = message; noticeTime = 2.2 }
 function setLog(message: string) {
@@ -1375,6 +1513,7 @@ function addDamageText(foe: Foe, damage: number) {
   effects.push({ kind: 'damage-number', x: foe.x, y: world.floor - offset - foeFlyOffset(foe), life: .95, duration: .95, text: `-${displayNumber(damage)}`, damage })
 }
 function addSparks(x: number, y: number, count: number, colors: string[], speed = 150) {
+  count = Math.max(1, Math.round(count * fxScale))
   for (let i = 0; i < count; i++) {
     const angle = Math.random() * Math.PI * 2
     const velocity = speed * (.35 + Math.random())
@@ -1386,6 +1525,8 @@ function addFlash(amount: number, color = '#ffe6a8') { flashTime = Math.max(flas
 function stageIndexNow() { return Math.max(0, Math.min(9, (game?.stage ?? 1) - 1)) }
 function platformsForStage(): BattlePlatform[] {
   const stage = hiddenBattle ? 0 : Math.max(0, Math.min(9, (game?.stage ?? 1) - 1))
+  // 最终 Boss 战不提供可站立的障碍物，避免玩家站高台躲避近战。
+  if (!hiddenBattle && stage === 9 && foes.some((foe) => foe.boss && !foe.mirror)) return []
   return PLATFORM_LAYOUT.map((platform, index) => ({ ...platform, kind: PLATFORM_KINDS[(index + stage) % PLATFORM_KINDS.length] }))
 }
 function computeUnlockedWidth() {
@@ -1394,7 +1535,22 @@ function computeUnlockedWidth() {
   return BASE_MAP_WIDTH + Math.floor(game.kills / WAVE_SIZE) * MAP_SEGMENT
 }
 function refreshMap() { unlockedWidth = computeUnlockedWidth() }
-function clampHeroX(x: number) { return Math.max(MAP_LEFT, Math.min(Math.max(MAP_LEFT, unlockedWidth - 55), x)) }
+function clampHeroX(x: number) {
+  let min = MAP_LEFT
+  let max = Math.max(MAP_LEFT, unlockedWidth - 55)
+  if (game && scene === 'battle' && !bossVictory) {
+    const bossFoe = foes.find((foe) => foe.boss && !foe.mirror)
+    if (bossFoe && !hiddenBattle && (game.stage ?? 1) >= 10) {
+      // 最终 Boss 战锁定在守关者场地内，不能退回复用旧平台。
+      min = Math.max(MAP_LEFT, unlockedWidth - BOSS_ARENA_WIDTH + 30)
+      max = Math.max(min, unlockedWidth - 55)
+    } else if (!bossFoe && foes.length > 0 && waveArenaRight > 0) {
+      // 本波守卫未清完时，不能跑进新区域。
+      max = Math.min(max, Math.max(min, waveArenaRight))
+    }
+  }
+  return Math.max(min, Math.min(max, x))
+}
 function clampFoeX(x: number) { return Math.max(MAP_LEFT, Math.min(Math.max(MAP_LEFT, unlockedWidth - 30), x)) }
 function updateCamera() {
   const maxCamera = Math.max(0, unlockedWidth - world.width)
@@ -1596,7 +1752,9 @@ function spawnCurrentWave() {
     slot += 1
   }
   waveReady = false
-  setLog(`第 ${Math.floor(game.kills / WAVE_SIZE) + 1} 波守卫从两侧出现，继续向右推进。`)
+  // 记录本波战斗区域：清完之前不能继续深入新区域。
+  waveArenaRight = Math.max(MAP_LEFT + 120, Math.min(unlockedWidth - 55, heroX + 470))
+  setLog(`第 ${Math.floor(game.kills / WAVE_SIZE) + 1} 波守卫从两侧出现，清完这波才能继续推进。`)
   updateCamera()
 }
 function armNextWave() {
@@ -1615,10 +1773,12 @@ function enterBattlefield() {
   resetCombo()
   resetHiddenUltimate()
   myriadImpactTimer = 0
+  resetFashionTimers()
   refreshMap()
   foes = []
   waveReady = false
   bossPending = false
+  waveArenaRight = 0
   jumpCount = 0
   heroY = 0; velocityY = 0; grounded = true
   if (game.kills >= MAX_SMALL_KILLS) {
@@ -1915,6 +2075,8 @@ function beginStage(stage: number, mode: 'restart' | 'boss' = 'restart') {
   hiddenBattle = false
   bossChest = null; lootReveal = null; nightmareStage = null; invisibleTimer = 0; cloneTimer = 0; cloneAttackPulse = 0; cloneCastPulse = 0; cloneStealthTimer = 0; bowCharging = false; bowCharge = 0; bowChargeSource = null; bowAirLocked = false; flowerBomb = null; skyBow = null; bombClones = []; arcaneOrb = null
   game.reviveUsed = false
+  adReviveUsed = false
+  resetFashionTimers()
   tutorialMode = false; tutorialStep = 0
   game.stage = stage
   game.kills = mode === 'boss' ? MAX_SMALL_KILLS : 0
@@ -1953,7 +2115,7 @@ function start(role: Role, previous?: Save) {
   game.dead = false
   resetHiddenUltimate()
   paused = false
-  heroX = 480; heroY = 0; velocityY = 0; grounded = true; heroSupportTop = world.floor; buffTime = 0; burst = 0; burstTargetId = null; shake = 0; jumpCount = 0; cameraX = 0
+  heroX = 500; heroY = 0; velocityY = 0; grounded = true; heroSupportTop = world.floor; buffTime = 0; burst = 0; burstTargetId = null; shake = 0; jumpCount = 0; cameraX = 0
   skillWait = [0, 0, 0, 0]; effects = []; projectiles = []; foeShots = []; resetPanels()
   const caps = stats()
   game.hp = Math.min(Math.max(1, game.hp), caps.hp)
@@ -1971,7 +2133,7 @@ function start(role: Role, previous?: Save) {
 function freshSave(role: Role, coop = false, p2Role?: Role, p1Name?: string, p2Name?: string): Save {
   const base = ROLE_BASE[role]
   const secondRole = p2Role ?? (role === 'warrior' ? 'mage' : 'warrior')
-  return { role, name: (p1Name ?? '').trim().slice(0, 12) || roleLabels[role], p2Name: (p2Name ?? '').trim().slice(0, 12) || roleLabels[secondRole], coop, p2Role: p2Role ?? (role === 'warrior' ? 'mage' : 'warrior'), p2WeaponId: null, p2ArmorId: null, p2FashionId: null, stage: 1, unlockedStage: 1, kills: 0, hp: base.hp, mp: base.mp, gear: [], equipped: null, weaponId: null, weapon2Id: null, armorId: null, armor2Id: null, fashionId: null, extraSlot: 'weapon', level: 1, exp: 0, drops: [], bossDefeated: false, attributePoints: 0, attributeAllocation: { hp: 0, attack: 0, mp: 0, defense: 0 }, soul: 0, normalTalent: 0, normalTalentLevels: [0, 0, 0, 0], advancedTalent: 0, advancedTalentLevel: 0, talentFragments: 0, talentCoins: 0, lotteryChances: 0, shopFashionBought: false, reviveCoins: 0, reviveUsed: false, fragmentBuyDay: '', reviveBuyAt: 0, freeReviveDay: '', materials: {}, stones: [0, 0, 0, 0, 0], enhance: { weapon: 0, armor: 0, armor2: 0, weapon2: 0, failWeapon: 0, failArmor: 0, failArmor2: 0, failWeapon2: 0 }, nightmareCleared: [], nightmareDay: '', nightmareAttempts: 0, stamps: 0, tutorialDone: false, hiddenCleared: false, rivalTrust: false, stage8Choice: null, rescuedRock: false, rescuedXiaoman: false, rescuedZhou: false, seenStories: [], forgeIntroSeen: false, shopIntroSeen: false, lotteryIntroSeen: false, townIntroSeen: false, mainQuestsClaimed: [], sideQuest: null, sideQuestDay: '', skillLevels: {}, gems: [], punchStones: 0, punchBuyAt: 0, horns: 0, hornBuyAt: 0, hornBuff: null, hornBuffUntil: 0, mailClaimed: false, redeemedCodes: [], redeemedCodes2: [], combatData: { attacks: 0, skills: 0, defends: 0, skillUses: [0, 0, 0, 0], stages: [] }, town: true, completed: false, dead: false }
+  return { role, name: PLATFORM_4399 ? (coop ? '玩家一' : roleLabels[role]) : ((p1Name ?? '').trim().slice(0, 12) || roleLabels[role]), p2Name: PLATFORM_4399 ? '玩家二' : ((p2Name ?? '').trim().slice(0, 12) || roleLabels[secondRole]), coop, p2Role: p2Role ?? (role === 'warrior' ? 'mage' : 'warrior'), p2WeaponId: null, p2ArmorId: null, p2FashionId: null, stage: 1, unlockedStage: 1, kills: 0, hp: base.hp, mp: base.mp, gear: [], equipped: null, weaponId: null, weapon2Id: null, armorId: null, armor2Id: null, fashionId: null, extraSlot: 'weapon', level: 1, exp: 0, drops: [], bossDefeated: false, attributePoints: 0, attributeAllocation: { hp: 0, attack: 0, mp: 0, defense: 0 }, soul: 0, normalTalent: 0, normalTalentLevels: [0, 0, 0, 0], advancedTalent: 0, advancedTalentLevel: 0, talentFragments: 0, talentCoins: 0, lotteryChances: 0, shopFashionBought: false, reviveCoins: 0, reviveUsed: false, fragmentBuyDay: '', reviveBuyAt: 0, freeReviveDay: '', materials: {}, stones: [0, 0, 0, 0, 0], enhance: { weapon: 0, armor: 0, armor2: 0, weapon2: 0, failWeapon: 0, failArmor: 0, failArmor2: 0, failWeapon2: 0 }, nightmareCleared: [], nightmareDay: '', nightmareAttempts: 0, stamps: 0, tutorialDone: false, hiddenCleared: false, rivalTrust: false, stage8Choice: null, rescuedRock: false, rescuedXiaoman: false, rescuedZhou: false, seenStories: [], forgeIntroSeen: false, shopIntroSeen: false, lotteryIntroSeen: false, townIntroSeen: false, mainQuestsClaimed: [], sideQuest: null, sideQuestDay: '', skillLevels: {}, gems: [], punchStones: 0, punchBuyAt: 0, horns: 0, hornBuyAt: 0, hornBuff: null, hornBuffUntil: 0, mailClaimed: false, mailClaimed2: false, shopWeek: '', shopBought: [], travelMerchantDay: '', travelMerchantOffer: null, travelMerchantBoughtDay: '', redeemedCodes: [], redeemedCodes2: [], combatData: { attacks: 0, skills: 0, defends: 0, skillUses: [0, 0, 0, 0], stages: [] }, adDay: '', adRewards: [], town: true, completed: false, dead: false }
 }
 function awardExperience(amount: number) {
   if (!game) return
@@ -2316,7 +2478,7 @@ function renderTitle() {
     : ''
   const cardTitle = (role: Role) => creationStep === 'p2' ? `角色二 · ${roleLabels[role]}` : (titleCoop ? `角色一 · ${roleLabels[role]}` : `新建${roleLabels[role]}`)
   const cardHint = (role: Role) => creationStep === 'p2' ? '双人同行 · 玩家二职业' : (titleCoop ? '双人同行 · 玩家一职业' : role === 'warrior' ? '剑刃近战 · 创建独立存档' : '法杖远程 · 创建独立存档')
-  const nameField = `<label class="name-field"><span>${creationStep === 'p2' ? '角色二名字' : '角色一名字'}</span><input id="${creationStep === 'p2' ? 'p2-name' : 'p1-name'}" maxlength="12" value="${escapeHtml(creationStep === 'p2' ? pendingP2Name : pendingP1Name)}" placeholder="输入名字（可选）" autocomplete="off" spellcheck="false"></label>`
+  const nameField = PLATFORM_4399 ? '' : `<label class="name-field"><span>${creationStep === 'p2' ? '角色二名字' : '角色一名字'}</span><input id="${creationStep === 'p2' ? 'p2-name' : 'p1-name'}" maxlength="12" value="${escapeHtml(creationStep === 'p2' ? pendingP2Name : pendingP1Name)}" placeholder="输入名字（可选）" autocomplete="off" spellcheck="false"></label>`
   const classPicks = `${stepHint}${nameField}<div class="class-picks"><button class="class-card" data-action="title-role" data-role="warrior"><b class="role-mark">刃</b><span><strong>${cardTitle('warrior')}</strong><small>${cardHint('warrior')}</small></span><i>↗</i></button><button class="class-card" data-action="title-role" data-role="mage"><b class="role-mark mage-mark">✦</b><span><strong>${cardTitle('mage')}</strong><small>${cardHint('mage')}</small></span><i>↗</i></button></div>`
   const audioButton = `<button class="audio-button" data-action="toggle-audio" title="音效与音乐开关" type="button">${audioEnabled() ? '♪' : '×'}</button>`
   const accountBar = DEMO_MODE
@@ -2346,7 +2508,7 @@ function gearMarkup(canEquip: boolean, filter: 'all' | 'weapon' | 'armor' | 'fas
     const type = gear.type === 'weapon' ? '武器' : gear.type === 'armor' ? '护甲' : gear.type === 'fashion' ? '时装' : '旧装备'
     const icon = gearIcon(gear)
     const details = gear.type === 'fashion'
-      ? `${fashionSummary(gear.level)}${gear.expiresAt ? ` · ${gearExpiryText(gear)}` : ''}`
+      ? `${fashionSummary(gear.level)}${gear.fashionEffect ? ` · ${fashionEffectName(gear.fashionEffect)}：${fashionEffectDesc(gear.fashionEffect, gear.level)}` : ''}${gear.expiresAt ? ` · ${gearExpiryText(gear)}` : ''}`
       : gear.type === 'weapon'
         ? `蓝量 +${scaled(gear.mp)} · 攻击 +${scaled(gear.attack)}`
         : gear.type === 'armor'
@@ -2449,6 +2611,12 @@ function forgeCombine() {
   if ((game.soul ?? 0) < 1000) { toast('合成装备需要 1000 硬币。'); return }
   game.soul = (game.soul ?? 0) - 1000
   const consumed = new Set(forgeSlots)
+  // 三件同效果时装合成时保留该效果；不同效果混搭则从材料效果中随机继承一种。
+  const fashionEffects = forgeSlotItems().map((gear) => gear.fashionEffect)
+  const presentEffects = fashionEffects.filter((effect): effect is FashionEffect => Boolean(effect))
+  const inheritedEffect = fashionEffects.length && fashionEffects.every((effect) => effect && effect === fashionEffects[0])
+    ? fashionEffects[0]
+    : presentEffects[Math.floor(Math.random() * presentEffects.length)]
   // 被合成消耗的装备如果镶有宝石，先把宝石取回背包。
   game.gems ??= []
   for (const gear of game.gear) {
@@ -2457,7 +2625,7 @@ function forgeCombine() {
   }
   game.gear = game.gear.filter((gear) => !consumed.has(gear.id))
   const resultType: GearType = recipe.type ?? (Math.random() < .5 ? 'weapon' : 'armor')
-  const result = resultType === 'fashion' ? makeFashion(recipe.level + 1) : makeGear(resultType, recipe.level + 1, recipe.style)
+  const result = resultType === 'fashion' ? makeFashion(recipe.level + 1, undefined, inheritedEffect) : makeGear(resultType, recipe.level + 1, recipe.style)
   game.gear.unshift(result)
   forgeSlots = []
   save(); craftingOpen = true; renderGame()
@@ -2848,7 +3016,7 @@ function townPanelMarkup() {
   const npcButton = npcUnlocked()
     ? `<button class="secondary town-npc" data-action="open-npc">${itemIcon('npc')} ${TOWN_NPC_NAME} · 天赋/抽奖 · S</button>`
     : '<button class="secondary" disabled title="通关第一关后解锁">阿岩 · 第1关解锁</button>'
-  return `<section class="panel town-panel"><header><span>冒险者小镇</span><small>SAFE HAVEN</small></header><p>在镇内自由走动整备；可以跳跃、攻击和练习技能，不消耗法力。走到镇中央的远征法阵按 S 可以直接选择关卡。</p><div class="town-shortcuts">${forgeButton}<button class="secondary" data-action="open-attributes">✦ 属性分配 · ${current.attributePoints ?? 0} 点</button><button class="secondary town-lottery" data-action="open-lottery" ${(current.lotteryChances ?? 0) > 0 ? '' : 'disabled'}>🎟 抽奖 · ${current.lotteryChances ?? 0} 次</button>${npcButton}</div><div class="town-currency"><span>${itemIcon('soul')} 硬币 ${displayCurrency(current.soul ?? 0)}</span><span>${itemIcon('fragment')} 碎片 ${displayCurrency(current.talentFragments ?? 0)}</span><span>${itemIcon('coin')} 天赋币 ${displayCurrency(current.talentCoins ?? 0)}</span><span>${itemIcon('stamp')} 印章 ${displayCurrency(current.stamps ?? 0)} / ${STAMP_UNLOCK}</span></div>${npcUnlocked() ? `<p class="npc-hint">${TOWN_NPC_NAME}已经回到镇上：走到他面前按 S 对话。</p>` : '<p class="npc-hint">通关第一关后，阿岩会出现在镇上。</p>'}${current.completed ? `<p class="stage-progress-copy">十片遗迹皆已沉寂</p><button class="primary" data-action="role-select">返回角色选择</button>` : `<label class="stage-picker"><span>选择关卡</span><select id="stage-select">${options}</select></label><button class="primary" data-action="enter-stage">进入遗迹　→</button>`}</section>`
+  return `<section class="panel town-panel"><header><span>冒险者小镇</span><small>SAFE HAVEN</small></header><p>在镇内自由走动整备；可以跳跃、攻击和练习技能，不消耗法力。走到镇中央的远征法阵按 S 可以直接选择关卡。旅行商人只在周六、周日出现，每天带一件随机货物。</p><div class="town-shortcuts">${forgeButton}<button class="secondary" data-action="open-attributes">✦ 属性分配 · ${current.attributePoints ?? 0} 点</button><button class="secondary town-lottery" data-action="open-lottery" ${(current.lotteryChances ?? 0) > 0 ? '' : 'disabled'}>🎟 抽奖 · ${current.lotteryChances ?? 0} 次</button>${npcButton}</div><div class="town-currency"><span>${itemIcon('soul')} 硬币 ${displayCurrency(current.soul ?? 0)}</span><span>${itemIcon('fragment')} 碎片 ${displayCurrency(current.talentFragments ?? 0)}</span><span>${itemIcon('coin')} 天赋币 ${displayCurrency(current.talentCoins ?? 0)}</span><span>${itemIcon('stamp')} 印章 ${displayCurrency(current.stamps ?? 0)} / ${STAMP_UNLOCK}</span></div>${npcUnlocked() ? `<p class="npc-hint">${TOWN_NPC_NAME}已经回到镇上：走到他面前按 S 对话。</p>` : '<p class="npc-hint">通关第一关后，阿岩会出现在镇上。</p>'}${current.completed ? `<p class="stage-progress-copy">十片遗迹皆已沉寂</p><button class="primary" data-action="role-select">返回角色选择</button>` : `<label class="stage-picker"><span>选择关卡</span><select id="stage-select">${options}</select></label><button class="primary" data-action="enter-stage">进入遗迹　→</button>`}</section>`
 }
 function stageOneCleared() {
   return Boolean(game && (game.unlockedStage > 1 || game.stageProgress?.['1']?.bossDefeated))
@@ -3481,6 +3649,31 @@ function todayKey() {
   const now = new Date()
   return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`
 }
+// 每周刷新：以周一 00:00 为界。
+function weekStartTime(now = Date.now()) {
+  const date = new Date(now)
+  const offset = (date.getDay() + 6) % 7
+  date.setHours(0, 0, 0, 0)
+  date.setDate(date.getDate() - offset)
+  return date.getTime()
+}
+function weekKey(now = Date.now()) {
+  const date = new Date(weekStartTime(now))
+  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+}
+function nextWeekResetIn(now = Date.now()) {
+  const start = weekStartTime(now)
+  return Math.max(0, start + 7 * 86400000 - now)
+}
+function weeklyBought(id: string) {
+  if (!game || game.shopWeek !== weekKey()) return false
+  return (game.shopBought ?? []).includes(id)
+}
+function markWeeklyBought(id: string) {
+  if (!game) return
+  if (game.shopWeek !== weekKey()) { game.shopWeek = weekKey(); game.shopBought = [] }
+  if (!game.shopBought?.includes(id)) (game.shopBought ??= []).push(id)
+}
 function cooldownText(ms: number) {
   if (ms <= 0) return ''
   const totalMinutes = Math.ceil(ms / 60000)
@@ -3500,20 +3693,17 @@ function soulShopMarkup() {
   const items = active === 'all' ? all : all.filter((item) => item.category === active)
   const rows = items.map((item) => {
     // 体验版：所有道具都可用 1 硬币购买，不受限购与冷却约束。
-    const uniqueSold = !demo && Boolean(item.unique && game!.shopFashionBought)
-    const dailySold = !demo && item.id === 'fragments1' && game!.fragmentBuyDay === todayKey()
-    const reviveLeft = !demo && item.id === 'revive1' ? Math.max(0, 3 * 24 * 3600 * 1000 - (Date.now() - (game!.reviveBuyAt ?? 0))) : 0
-    const punchLeft = !demo && item.id === 'punch1' ? Math.max(0, 7 * 24 * 3600 * 1000 - (Date.now() - (game!.punchBuyAt ?? 0))) : 0
-    const hornLeft = !demo && item.id === 'horn1' ? Math.max(0, 30 * 24 * 3600 * 1000 - (Date.now() - (game!.hornBuyAt ?? 0))) : 0
-    const limited = uniqueSold || dailySold || reviveLeft > 0 || punchLeft > 0 || hornLeft > 0
+    const weeklySold = !demo && WEEKLY_LIMITED_IDS.has(item.id) && weeklyBought(item.id)
     const price = demo ? 1 : item.cost
-    const canBuy = !limited && (game!.soul ?? 0) >= price
-    const label = uniqueSold ? '已购买' : dailySold ? '今日已购' : reviveLeft > 0 || punchLeft > 0 || hornLeft > 0 ? '冷却中' : '购买'
-    const extra = demo ? ' · 体验版 1 硬币' : reviveLeft > 0 ? ` · 剩余 ${cooldownText(reviveLeft)}` : punchLeft > 0 ? ` · 剩余 ${cooldownText(punchLeft)}` : hornLeft > 0 ? ` · 剩余 ${cooldownText(hornLeft)}` : dailySold ? ' · 明天刷新' : ''
+    const canBuy = !weeklySold && (game!.soul ?? 0) >= price
+    const label = weeklySold ? '本周已购' : '购买'
+    const extra = demo ? ' · 体验版 1 硬币' : weeklySold ? ` · ${cooldownText(nextWeekResetIn())}后刷新` : ''
     return `<article class="shop-row"><span class="gear-glyph">${itemIcon(item.icon, item.iconClass ?? '')}</span><span class="gear-copy"><b>${item.name}</b><small>${item.desc}${extra}</small></span><b class="shop-price">${itemIcon('soul')} ${price}</b><button data-action="shop-buy" data-id="${item.id}" ${canBuy ? '' : 'disabled'}>${label}</button></article>`
   }).join('')
   const categoryBar = `<div class="shop-categories"><button class="${active === 'all' ? 'active' : ''}" data-action="shop-category" data-category="all" type="button">全部</button>${categories.map((category) => `<button class="${active === category ? 'active' : ''}" data-action="shop-category" data-category="${category}" type="button">${SHOP_CATEGORY_LABELS[category]}</button>`).join('')}</div>`
-  return `${categoryBar}<div class="npc-currency"><span>${itemIcon('soul')} 硬币 ${displayCurrency(game.soul ?? 0)}</span><span>${itemIcon('fragment')} 碎片 ${displayCurrency(game.talentFragments ?? 0)}</span><span>${itemIcon('revive')} 复活币 ${displayCurrency(game.reviveCoins ?? 0)}</span></div><div class="bag-list shop-list">${rows || '<div class="empty-gear">该分类暂时没有道具</div>'}</div>`
+  const adRewardButton = (id: 'soul' | 'revive' | 'fragment', label: string) => `<button class="ad-reward-button" data-action="ad-reward" data-reward="${id}" ${adRewardClaimed(id) ? 'disabled' : ''}>${adRewardClaimed(id) ? '今日已领' : `看广告 ${label}`}</button>`
+  const adPanel = PLATFORM_4399 ? `<div class="ad-reward-panel"><header><b>看广告领福利</b><small>每日每种奖励限 1 次</small></header><div class="ad-reward-grid">${adRewardButton('soul', '硬币 +1000')}${adRewardButton('revive', '复活币 +1')}${adRewardButton('fragment', '天赋币碎片 +1')}</div></div>` : ''
+  return `${categoryBar}<div class="npc-currency"><span>${itemIcon('soul')} 硬币 ${displayCurrency(game.soul ?? 0)}</span><span>${itemIcon('fragment')} 碎片 ${displayCurrency(game.talentFragments ?? 0)}</span><span>${itemIcon('revive')} 复活币 ${displayCurrency(game.reviveCoins ?? 0)}</span></div>${adPanel}<div class="bag-list shop-list">${rows || '<div class="empty-gear">该分类暂时没有道具</div>'}</div>`
 }
 function shopMarkup() {
   if (!game) return ''
@@ -3550,7 +3740,8 @@ function talentMarkup() {
 function lotteryMarkup() {
   if (!game || !lotteryOpen) return ''
   const cards = LOTTERY_PRIZES.map((prize, index) => `<article class="lottery-card ${index === lotteryHighlight ? 'highlight' : ''}" data-lottery-index="${index}"><b>${prizeIcon(prize.id)}</b><span>${prize.label}</span></article>`).join('')
-  return `<div class="bag-scrim lottery-scrim"><section class="bag-dialog lottery-dialog"><header><div><small>LOTTERY · 机会 ${game.lotteryChances ?? 0}</small><h2>命运抽奖</h2></div>${lotterySpinning ? '' : '<button data-action="close-lottery">×</button>'}</header><p>首次通关关卡获得抽奖机会；重复通关已通过的关卡不会再次获得。</p><div class="lottery-grid">${cards}</div>${lotteryResult ? `<div class="lottery-result">获得：${escapeHtml(lotteryResult)}</div>` : ''}<button class="primary lottery-spin" data-action="lottery-spin" ${lotterySpinning || (game.lotteryChances ?? 0) <= 0 ? 'disabled' : ''}>${lotterySpinning ? '抽奖中…' : '开始抽奖'}</button></section></div>`
+  const adLottery = PLATFORM_4399 ? `<button class="secondary ad-lottery" data-action="ad-reward" data-reward="lottery" ${lotterySpinning || adRewardClaimed('lottery') ? 'disabled' : ''}>${adRewardClaimed('lottery') ? '今日已领' : '看广告多抽一次'}</button>` : ''
+  return `<div class="bag-scrim lottery-scrim"><section class="bag-dialog lottery-dialog"><header><div><small>LOTTERY · 机会 ${game.lotteryChances ?? 0}</small><h2>命运抽奖</h2></div>${lotterySpinning ? '' : '<button data-action="close-lottery">×</button>'}</header><p>首次通关关卡获得抽奖机会；重复通关已通过的关卡不会再次获得。</p><div class="lottery-grid">${cards}</div>${lotteryResult ? `<div class="lottery-result">获得：${escapeHtml(lotteryResult)}</div>` : ''}<button class="primary lottery-spin" data-action="lottery-spin" ${lotterySpinning || (game.lotteryChances ?? 0) <= 0 ? 'disabled' : ''}>${lotterySpinning ? '抽奖中…' : '开始抽奖'}</button>${adLottery}</section></div>`
 }
 function bossVictoryMarkup() {
   if (!bossVictory) return ''
@@ -3626,7 +3817,7 @@ function closeLottery() {
 }
 // 打开任意面板前统一收起其它弹窗，避免多个遮罩叠加。
 function resetPanels() {
-  bagOpen = false; hornPickerOpen = false; craftingOpen = false; attributesOpen = false; npcOpen = false; secondNpcOpen = false; hiddenNpcOpen = false; lotteryOpen = false; stageCircleOpen = false; gameMenuOpen = false; settingsOpen = false; creditsFromSettings = false; mailOpen = false; sellConfirmId = null; redeemChoiceOpen = false; redeemMessage = ''; redeemCodeDraft = ''; creditsOpen = false; quitConfirmOpen = false; storyLogOpen = false; skillPanelOpen = false; listeningBind = null; forgeSlots = []; specialSlots = []
+  bagOpen = false; hornPickerOpen = false; craftingOpen = false; attributesOpen = false; npcOpen = false; secondNpcOpen = false; hiddenNpcOpen = false; merchantOpen = false; lotteryOpen = false; stageCircleOpen = false; gameMenuOpen = false; settingsOpen = false; creditsFromSettings = false; mailOpen = false; sellConfirmId = null; redeemChoiceOpen = false; redeemMessage = ''; redeemCodeDraft = ''; creditsOpen = false; quitConfirmOpen = false; storyLogOpen = false; skillPanelOpen = false; listeningBind = null; forgeSlots = []; specialSlots = []
   lotterySpinning = false; lotteryResult = null; lotteryHighlight = -1
   if (lotteryInterval !== null) { window.clearInterval(lotteryInterval); lotteryInterval = null }
   if (lotteryTimeout !== null) { window.clearTimeout(lotteryTimeout); lotteryTimeout = null }
@@ -3681,7 +3872,7 @@ function grantShopItem(grant: ShopGrant) {
   else if (grant.kind === 'fashion') game.gear.unshift(makeFashion(grant.tier))
   else if (grant.kind === 'gem') { game.gems ??= []; game.gems.push(makeGem(grant.gemKind, grant.tier)) }
   else if (grant.kind === 'material') addMaterial(grant.key, 1)
-  else if (grant.kind === 'stone') addStone(grant.tier, 1)
+  else if (grant.kind === 'stone') addStone(grant.tier, grant.amount ?? 1)
   else if (grant.kind === 'punch') game.punchStones = (game.punchStones ?? 0) + grant.amount
   else if (grant.kind === 'fragments') game.talentFragments = (game.talentFragments ?? 0) + grant.amount
   else if (grant.kind === 'revive') game.reviveCoins = (game.reviveCoins ?? 0) + grant.amount
@@ -3695,33 +3886,111 @@ function buyShopItem(id: string) {
   const item = shopItems().find((entry) => entry.id === id)
   if (!item) return
   if (item.demoOnly && !DEMO_MODE) return
-  // 体验版没有限购与冷却，只要硬币足够即可购买所有道具。
-  if (!DEMO_MODE) {
-    if (item.unique && game.shopFashionBought) { toast('这件时装已经购买过。'); return }
-    if (item.id === 'fragments1' && game.fragmentBuyDay === todayKey()) { toast('天赋币碎片每天只能购买一次，明天再来吧。'); return }
-    if (item.id === 'revive1') {
-      const left = 3 * 24 * 3600 * 1000 - (Date.now() - (game.reviveBuyAt ?? 0))
-      if (left > 0) { toast(`复活币每 3 天限购一次，还需等待 ${cooldownText(left)}。`); return }
-    }
-    if (item.id === 'punch1') {
-      const left = 7 * 24 * 3600 * 1000 - (Date.now() - (game.punchBuyAt ?? 0))
-      if (left > 0) { toast(`打孔石每周限购一次，还需等待 ${cooldownText(left)}。`); return }
-    }
-    if (item.id === 'horn1') {
-      const left = 30 * 24 * 3600 * 1000 - (Date.now() - (game.hornBuyAt ?? 0))
-      if (left > 0) { toast(`号角每月限购一次，还需等待 ${cooldownText(left)}。`); return }
-    }
+  // 体验版没有限购与冷却；正式版所有限购道具统一在每周一 00:00 刷新。
+  if (!DEMO_MODE && WEEKLY_LIMITED_IDS.has(item.id) && weeklyBought(item.id)) {
+    toast(`本周已经购买过${item.name}，下周一 00:00 刷新。`); return
   }
   const cost = DEMO_MODE ? 1 : item.cost
   if ((game.soul ?? 0) < cost) { toast('硬币不足。'); return }
   game.soul = (game.soul ?? 0) - cost
   grantShopItem(item.grant)
-  if (item.id === 'fragments1') game.fragmentBuyDay = todayKey()
-  if (item.id === 'revive1') game.reviveBuyAt = Date.now()
-  if (item.id === 'punch1') game.punchBuyAt = Date.now()
-  if (item.id === 'horn1') game.hornBuyAt = Date.now()
-  if (item.id === 'fashion1') game.shopFashionBought = true
+  if (!DEMO_MODE && WEEKLY_LIMITED_IDS.has(item.id)) markWeeklyBought(item.id)
   save(); npcOpen = true; npcView = 'shop'; renderGame(); toast(`已购买：${item.name}`)
+}
+// ── 旅行商人：只在周六、周日出现，每天一件随机货 ──────────
+function isTravelMerchantDay(now = new Date()) {
+  const day = now.getDay()
+  return day === 0 || day === 6
+}
+function rollTravelMerchantOffer(): MerchantOffer {
+  const gearType1: 'weapon' | 'armor' = Math.random() < .5 ? 'weapon' : 'armor'
+  const gearType2: 'weapon' | 'armor' = Math.random() < .5 ? 'weapon' : 'armor'
+  const gemKind1 = randomGemKind()
+  const gemKind2 = randomGemKind()
+  const gemKind3 = randomGemKind()
+  // 表中数值按权重处理（相加超过 100），只用于抽取，不在界面显示。
+  const pool: TravelMerchantEntry[] = [
+    { id: 'fashion1', weight: 10, name: '一阶时装 ×1', desc: '随机附带一种时装效果', cost: 8000, icon: 'fashion', tag: '时装', grant: { kind: 'fashion', tier: 1 } },
+    { id: 'talent', weight: 50, name: '天赋币 ×1', desc: '用于研究与升级天赋', cost: 4000, icon: 'coin', tag: '养成', grant: { kind: 'talentCoin', amount: 1 } },
+    { id: 'punch1', weight: 250, name: '打孔石 ×1', desc: '在炉子为装备打孔', cost: 2500, icon: 'punch', tag: '材料', grant: { kind: 'punch', amount: 1 } },
+    { id: 'coin3000', weight: 300, name: '硬币 ×3000', desc: '一袋硬币，领取后直接到账', cost: 1500, icon: 'soul', tag: '硬币', grant: { kind: 'soul', amount: 3000 } },
+    { id: 'revive1', weight: 200, name: '复活币 ×1', desc: '战斗中死亡可满状态复活', cost: 2500, icon: 'revive', tag: '补给', grant: { kind: 'revive', amount: 1 } },
+    { id: 'gear1', weight: 350, name: '一阶装备 ×1', desc: '随机武器或护甲（1 级）', cost: 1800, icon: 'weapon', tag: '装备', grant: { kind: 'gear', gearType: gearType1, level: 1 } },
+    { id: 'gem1', weight: 150, name: `一级${GEM_NAMES[gemKind1]} ×1`, desc: gemSummary({ id: '', kind: gemKind1, tier: 1 }), cost: 2500, icon: 'gem', iconClass: `gem-${gemKind1}`, tag: '宝石', grant: { kind: 'gem', gemKind: gemKind1, tier: 1 } },
+    { id: 'stone3', weight: 200, name: '一阶强化石 ×3', desc: '用于强化装备', cost: 1200, icon: 'enhance', tag: '材料', grant: { kind: 'stone', tier: 1, amount: 3 } },
+    { id: 'revive2', weight: 150, name: '复活币 ×2', desc: '战斗中死亡可满状态复活', cost: 4500, icon: 'revive', tag: '补给', grant: { kind: 'revive', amount: 2 } },
+    { id: 'punch2', weight: 200, name: '打孔石 ×2', desc: '在炉子为装备打孔', cost: 4500, icon: 'punch', tag: '材料', grant: { kind: 'punch', amount: 2 } },
+    { id: 'gem2', weight: 50, name: `二级${GEM_NAMES[gemKind2]} ×1`, desc: gemSummary({ id: '', kind: gemKind2, tier: 2 }), cost: 6000, icon: 'gem', iconClass: `gem-${gemKind2}`, tag: '宝石', grant: { kind: 'gem', gemKind: gemKind2, tier: 2 } },
+    { id: 'gem3', weight: 10, name: `三级${GEM_NAMES[gemKind3]} ×1`, desc: gemSummary({ id: '', kind: gemKind3, tier: 3 }), cost: 12000, icon: 'gem', iconClass: `gem-${gemKind3}`, tag: '宝石', grant: { kind: 'gem', gemKind: gemKind3, tier: 3 } },
+    { id: 'fashion2', weight: 1, name: '二阶时装 ×1', desc: '随机附带一种时装效果', cost: 18000, icon: 'fashion', tag: '时装', grant: { kind: 'fashion', tier: 2 } },
+    { id: 'coin5000', weight: 200, name: '硬币 ×5000', desc: '一袋硬币，领取后直接到账', cost: 1500, icon: 'soul', tag: '硬币', grant: { kind: 'soul', amount: 5000 } },
+    { id: 'gear2', weight: 20, name: '二阶装备 ×1', desc: '随机武器或护甲（2 级）', cost: 4500, icon: 'armor', tag: '装备', grant: { kind: 'gear', gearType: gearType2, level: 2 } },
+  ]
+  const total = pool.reduce((sum, entry) => sum + entry.weight, 0)
+  let roll = Math.random() * total
+  for (const entry of pool) {
+    roll -= entry.weight
+    if (roll <= 0) {
+      const { weight, ...offer } = entry
+      // 所有货物统一售价 1500 硬币。
+      return { ...offer, cost: 1500 }
+    }
+  }
+  const { weight, ...last } = pool[pool.length - 1]
+  return { ...last, cost: 1500 }
+}
+function ensureTravelMerchantOffer() {
+  if (!game || !isTravelMerchantDay()) return
+  const day = todayKey()
+  if (game.travelMerchantDay === day && game.travelMerchantOffer) return
+  game.travelMerchantDay = day
+  game.travelMerchantOffer = rollTravelMerchantOffer()
+  game.travelMerchantBoughtDay = ''
+  save()
+}
+function refreshTravelMerchantOffer() {
+  if (!game || !isTravelMerchantDay()) return
+  // 今天已经买过就不再刷新，保证每件货物只能购买一次。
+  if (game.travelMerchantBoughtDay === todayKey()) return
+  game.travelMerchantDay = todayKey()
+  game.travelMerchantOffer = rollTravelMerchantOffer()
+  if (game.travelMerchantBoughtDay !== todayKey()) game.travelMerchantBoughtDay = ''
+  save()
+}
+function openTravelMerchant() {
+  if (!game || scene !== 'town' || !isTravelMerchantDay()) return
+  resetPanels()
+  // 每次重新打开旅行商人都换一件；售出后当天保持已售出状态。
+  if (game.travelMerchantBoughtDay !== todayKey()) refreshTravelMerchantOffer()
+  else ensureTravelMerchantOffer()
+  merchantOpen = true
+  renderGame()
+}
+function merchantMarkup() {
+  if (!game || !merchantOpen) return ''
+  ensureTravelMerchantOffer()
+  const offer = game.travelMerchantOffer
+  const sold = Boolean(offer && game.travelMerchantBoughtDay === todayKey())
+  const canBuy = Boolean(offer && !sold && (game.soul ?? 0) >= offer.cost)
+  const row = offer
+    ? `<article class="shop-row merchant-row${sold ? ' sold' : ''}"><span class="gear-glyph">${itemIcon(offer.icon, offer.iconClass ?? '')}</span><span class="gear-copy"><b>${escapeHtml(offer.name)}${offer.tag ? ` <i class="merchant-tag">${escapeHtml(offer.tag)}</i>` : ''}</b><small>${escapeHtml(offer.desc)}</small></span><b class="shop-price">${itemIcon('soul')} ${displayCurrency(offer.cost)}</b><button data-action="merchant-buy" ${canBuy ? '' : 'disabled'}>${sold ? '已售出' : '购买'}</button></article>`
+    : '<div class="empty-gear">今天没有货</div>'
+  const note = sold ? '今天的货物已经售出，下次再来吧。' : '每件货物仅限购买一次，不满意可以换一件。'
+  return `<div class="bag-scrim npc-scrim"><section class="bag-dialog npc-dialog merchant-dialog"><header><div><small>TRAVELING MERCHANT · 周末货物</small><h2>${TRAVEL_MERCHANT_NAME}</h2></div><button data-action="close-merchant" aria-label="关闭">×</button></header><p>“只有周六、周日才来。今天只带了一件货，卖完就等下次吧。”</p><div class="npc-currency"><span>${itemIcon('soul')} 硬币 ${displayCurrency(game.soul ?? 0)}</span><span>${note}</span></div><div class="bag-list shop-list merchant-list">${row}</div><button class="secondary merchant-refresh" data-action="merchant-refresh" ${sold ? 'disabled' : ''}>换一件</button><button class="secondary npc-back" data-action="close-merchant">离开</button></section></div>`
+}
+function buyTravelMerchantOffer() {
+  if (!game) return
+  if (!isTravelMerchantDay()) { toast('旅行商人只在周六、周日出现。'); return }
+  ensureTravelMerchantOffer()
+  const offer = game.travelMerchantOffer
+  if (!offer) return
+  const day = todayKey()
+  if (game.travelMerchantBoughtDay === day) { toast('今天的货物已经买过了，下次再来。'); return }
+  if ((game.soul ?? 0) < offer.cost) { toast('硬币不足。'); return }
+  game.soul = (game.soul ?? 0) - offer.cost
+  grantShopItem(offer.grant)
+  game.travelMerchantBoughtDay = day
+  save(); merchantOpen = true; renderGame(); toast(`已购买：${offer.name}`)
 }
 function applyTalentVitals(before: { hp: number; mp: number }) {
   if (!game) return
@@ -3989,6 +4258,49 @@ function drawTownNpc(c: CanvasRenderingContext2D) {
   c.restore()
   drawCompanionNameplates(c, TOWN_NPC_NAME, x, near, world.floor - 120 + bob)
 }
+// 旅行商人：只在周末出现，披斗篷、背大包裹，脚边摆着当日货箱。
+function drawTravelMerchant(c: CanvasRenderingContext2D) {
+  if (!game || scene !== 'town' || !isTravelMerchantDay()) return
+  const x = TRAVEL_MERCHANT_X
+  const now = performance.now()
+  const bob = Math.sin(now / 500) * 1.2
+  const near = Math.abs(heroX - x) <= 38
+  c.save()
+  c.fillStyle = 'rgba(8, 17, 17, .3)'; c.beginPath(); c.ellipse(x, world.floor + 2, 24, 6, 0, 0, Math.PI * 2); c.fill()
+  c.fillStyle = 'rgba(150, 104, 58, .32)'; c.beginPath(); c.ellipse(x, world.floor + 1, 38, 9, 0, 0, Math.PI * 2); c.fill()
+  c.translate(x, world.floor + bob)
+  // 背后的大包裹
+  c.fillStyle = '#6a4728'; c.fillRect(-30, -60, 20, 46)
+  c.strokeStyle = '#3f2a16'; c.lineWidth = 2; c.strokeRect(-30, -60, 20, 46)
+  c.fillStyle = '#c9b273'; c.fillRect(-30, -42, 20, 3)
+  // 斗篷
+  const cloak = c.createLinearGradient(0, -68, 0, -4)
+  cloak.addColorStop(0, '#8a6c9a'); cloak.addColorStop(.55, '#554168'); cloak.addColorStop(1, '#2a2035')
+  c.fillStyle = cloak; c.beginPath(); c.moveTo(-16, -58); c.lineTo(16, -58); c.lineTo(22, -5); c.lineTo(-22, -5); c.closePath(); c.fill()
+  c.strokeStyle = 'rgba(16, 10, 22, .65)'; c.lineWidth = 1.2; c.stroke()
+  c.fillStyle = '#c9b273'; c.fillRect(-17, -34, 34, 3)
+  // 手臂与手套
+  c.fillStyle = '#554168'; c.fillRect(-23, -54, 8, 23); c.fillRect(15, -54, 8, 23)
+  c.fillStyle = '#b98d58'; c.fillRect(-24, -36, 10, 4); c.fillRect(14, -36, 10, 4)
+  // 兜帽与脸
+  c.fillStyle = '#3c2d4c'; c.beginPath(); c.moveTo(-14, -56); c.quadraticCurveTo(-15, -88, 0, -92); c.quadraticCurveTo(15, -88, 14, -56); c.closePath(); c.fill()
+  c.fillStyle = '#1a1222'; c.beginPath(); c.ellipse(0, -70, 9, 10, 0, 0, Math.PI * 2); c.fill()
+  glint(c, -4, -72, 1.8, '#ffd27a'); glint(c, 4, -72, 1.8, '#ffd27a')
+  // 斗篷下露出的围巾
+  c.strokeStyle = '#b06a58'; c.lineWidth = 4; c.beginPath(); c.moveTo(-12, -56); c.quadraticCurveTo(0, -50, 12, -56); c.stroke()
+  // 手提货箱
+  c.fillStyle = '#7a5230'; c.fillRect(18, -26, 17, 18)
+  c.strokeStyle = '#4e341f'; c.lineWidth = 1.2; c.strokeRect(18, -26, 17, 18)
+  c.fillStyle = '#c9b273'; c.fillRect(18, -20, 17, 2)
+  // 悬浮的硬币招牌
+  c.save(); c.translate(-30, -76 + Math.sin(now / 360) * 3); c.rotate(Math.sin(now / 650) * .2)
+  c.shadowColor = '#ffd27a'; c.shadowBlur = 14
+  c.fillStyle = '#e4cf8f'; c.beginPath(); c.arc(0, 0, 9, 0, Math.PI * 2); c.fill()
+  c.fillStyle = '#8a6c32'; c.font = "700 10px 'Microsoft YaHei', sans-serif"; c.textAlign = 'center'; c.fillText('?', 0, 3.5)
+  c.restore()
+  c.restore()
+  drawCompanionNameplates(c, TRAVEL_MERCHANT_NAME, x, near, world.floor - 118 + bob)
+}
 const SKILL_DESCRIPTIONS: Record<SkillSetKey, string[]> = {
   sword: [
     '向前挥出剑气，造成 150% 攻击伤害，并小幅击退命中的敌人。',
@@ -4142,17 +4454,33 @@ function storyLogMarkup() {
 function settingsMarkup() {
   if (!game || !settingsOpen) return ''
   const rows = BIND_ACTIONS.map((action) => `<button class="bind-row ${listeningBind === action ? 'listening' : ''}" data-action="bind-key" data-bind="${action}" type="button"><span>${BIND_LABELS[action]}</span><b>${listeningBind === action ? '按下新按键…' : keyLabel(keyBinds[action])}</b><i>改键</i></button>`).join('')
-  const redeemRole = game.role
-  const codeRedeemed = Boolean(game.redeemedCodes?.includes('cwzl666') || game.redeemedCodes2?.includes('cwzl666'))
-  const redeemNote = redeemMessage || (codeRedeemed ? '该兑换码已经领取过。' : '')
-  const weaponChoices: Array<[WeaponStyle, string]> = redeemRole === 'mage'
-    ? [['book', '一阶魔法书'], ['staff', '一阶法杖']]
-    : [['sword', '一阶长剑'], ['bow', '一阶长弓']]
-  const redeemChoices = [
-    ...weaponChoices.map(([style, label]) => `<button data-action="redeem-pick" data-kind="weapon" data-style="${style}" type="button">${itemIcon(style)}<b>${label}</b><small>${coopRuntime ? '两位角色各一把' : '自选武器'}</small></button>`),
-    `<button data-action="redeem-pick" data-kind="armor" type="button">${itemIcon('armor')}<b>一阶护甲</b><small>${coopRuntime ? '两位角色各一件' : '自选护甲'}</small></button>`,
-  ].join('')
+  const qualityOptions: Array<[RenderQuality, string, string]> = [
+    ['high', '高清', '2× 分辨率 · 完整光效'],
+    ['balanced', '均衡', '1.5× 分辨率 · 减少光效'],
+    ['smooth', '流畅', '1× 分辨率 · 关闭阴影'],
+  ]
+  const qualityButtons = qualityOptions.map(([id, label, desc]) => `<button class="${renderQuality === id ? 'active' : ''}" data-action="set-quality" data-quality="${id}" type="button"><b>${label}</b><small>${desc}</small></button>`).join('')
+  // 4399 审核要求去掉兑换码功能：4399 包里不生成入口，正式网页版保留。
+  let redeemBlock = ''
+  if (!PLATFORM_4399) {
+    const redeemRole = game.role
+    const codeRedeemed = Boolean(game.redeemedCodes?.includes('cwzl666') || game.redeemedCodes2?.includes('cwzl666'))
+    const redeemNote = redeemMessage || (codeRedeemed ? '该兑换码已经领取过。' : '')
+    const weaponChoices: Array<[WeaponStyle, string]> = redeemRole === 'mage'
+      ? [['book', '一阶魔法书'], ['staff', '一阶法杖']]
+      : [['sword', '一阶长剑'], ['bow', '一阶长弓']]
+    const redeemChoices = [
+      ...weaponChoices.map(([style, label]) => `<button data-action="redeem-pick" data-kind="weapon" data-style="${style}" type="button">${itemIcon(style)}<b>${label}</b><small>${coopRuntime ? '两位角色各一把' : '自选武器'}</small></button>`),
+      `<button data-action="redeem-pick" data-kind="armor" type="button">${itemIcon('armor')}<b>一阶护甲</b><small>${coopRuntime ? '两位角色各一件' : '自选护甲'}</small></button>`,
+    ].join('')
+    redeemBlock = `<section class="settings-block"><h3>兑换码 <small>每个存档每种兑换码限领一次</small></h3>
+      <div class="redeem-box"><input id="redeem-code" maxlength="32" placeholder="输入兑换码，例如 cwzl666" value="${escapeHtml(redeemCodeDraft)}" autocomplete="off" spellcheck="false"><button data-action="redeem-submit" type="button">兑换</button></div>
+      ${redeemNote ? `<p class="redeem-message">${escapeHtml(redeemNote)}</p>` : ''}
+      ${redeemChoiceOpen ? `<div class="redeem-choices">${redeemChoices}</div>` : ''}
+    </section>`
+  }
   return `<div class="bag-scrim settings-scrim"><section class="bag-dialog settings-dialog"><header><div><small>SETTINGS · 成王之路</small><h2>设置</h2></div><button data-action="close-settings" aria-label="关闭设置">×</button></header>
+    <p class="settings-scroll-hint">内容较多，可在面板内上下滑动</p>
     <section class="settings-block"><h3>游戏</h3><div class="settings-grid">
       <button data-action="settings-town"><b>⌂</b><span><strong>返回小镇</strong><small>保存进度并回到安全区</small></span></button>
       <button data-action="settings-role-select"><b>◈</b><span><strong>角色选择</strong><small>返回存档与职业选择页</small></span></button>
@@ -4160,11 +4488,10 @@ function settingsMarkup() {
       <button data-action="settings-audio"><b>${audioEnabled() ? '♪' : '×'}</b><span><strong>音效与音乐</strong><small>当前：${audioEnabled() ? '开启' : '关闭'}</small></span></button>
       <button data-action="open-credits"><b>✎</b><span><strong>制作人</strong><small>查看游戏制作人员</small></span></button>
     </div></section>
-    <section class="settings-block"><h3>兑换码 <small>每个存档每种兑换码限领一次</small></h3>
-      <div class="redeem-box"><input id="redeem-code" maxlength="32" placeholder="输入兑换码，例如 cwzl666" value="${escapeHtml(redeemCodeDraft)}" autocomplete="off" spellcheck="false"><button data-action="redeem-submit" type="button">兑换</button></div>
-      ${redeemNote ? `<p class="redeem-message">${escapeHtml(redeemNote)}</p>` : ''}
-      ${redeemChoiceOpen ? `<div class="redeem-choices">${redeemChoices}</div>` : ''}
+    <section class="settings-block"><h3>画面质量 <small>卡顿时选“流畅”</small></h3>
+      <div class="quality-grid">${qualityButtons}</div>
     </section>
+    ${redeemBlock}
     <section class="settings-block"><h3>按键设置 <small>点击任意一项后按下新按键</small></h3><div class="bind-list">${rows}</div>
       <div class="settings-footer"><button data-action="reset-binds">恢复默认按键</button><span>固定按键：方向键左右移动 · S 拾取/对话 · L 护盾 · P 暂停</span></div>
     </section></section></div>`
@@ -4174,27 +4501,40 @@ function closeCredits() {
   if (creditsFromSettings) { creditsFromSettings = false; settingsOpen = true }
   renderGame()
 }
-function mailUnread() { return Boolean(game && !game.mailClaimed) }
+function mailUnread() { return Boolean(game && (!game.mailClaimed || !game.mailClaimed2)) }
 function mailMarkup() {
   if (!game || !mailOpen) return ''
-  const claimed = Boolean(game.mailClaimed)
-  return `<div class="bag-scrim mail-scrim"><section class="bag-dialog mail-dialog"><header><div><small>MAIL · 冒险者邮箱</small><h2>邮箱</h2></div><button data-action="close-mail" aria-label="关闭邮箱">×</button></header>
-    <div class="mail-layout">
-      <aside class="mail-list">
-        <article class="mail-entry active"><b>系统邮件</b><small>感谢您来体验我的游戏！</small><i>${claimed ? '已领取' : '未领取'}</i></article>
-      </aside>
-      <section class="mail-content">
-        <small>SYSTEM · 系统邮件</small>
+  const selected = mailSelected === 1 ? 1 : 2
+  const claimed1 = Boolean(game.mailClaimed)
+  const claimed2 = Boolean(game.mailClaimed2)
+  const claimed = selected === 1 ? claimed1 : claimed2
+  const content = selected === 1
+    ? `<small>SYSTEM · 系统邮件</small>
         <h3>致每一位远征者</h3>
-        <p class="mail-text">感谢您来体验我的游戏！cwzl666</p>
+        <p class="mail-text">${PLATFORM_4399 ? '感谢您来体验我的游戏！' : '感谢您来体验我的游戏！cwzl666'}</p>
         <div class="mail-attachments">
-          <article class="mail-attach"><span class="mail-attach-icon">${itemIcon('fashion')}</span><b>一阶时装</b><small>限时 7 天</small></article>
+          <article class="mail-attach"><span class="mail-attach-icon">${itemIcon('fashion')}</span><b>一阶时装</b><small>限时 7 天（随机效果）</small></article>
           <article class="mail-attach"><span class="mail-attach-icon">${itemIcon('soul')}</span><b>硬币 ×3000</b><small>领取后直接到账</small></article>
           <article class="mail-attach"><span class="mail-attach-icon">${itemIcon('revive')}</span><b>复活币 ×3</b><small>领取后直接到账</small></article>
         </div>
         <p class="mail-note">附件领取后放入共享背包与货币栏，玩家一与玩家二都可使用；每个存档限领一次。</p>
-        <button class="primary mail-claim" data-action="claim-mail" ${claimed ? 'disabled' : ''}>${claimed ? '已领取' : '一键领取附件'}</button>
-      </section>
+        <button class="primary mail-claim" data-action="claim-mail" ${claimed ? 'disabled' : ''}>${claimed ? '已领取' : '一键领取附件'}</button>`
+    : `<small>UPDATE · 更新福利</small>
+        <h3>优化了一些游戏体验，希望各位玩的开心</h3>
+        <p class="mail-text">优化了一些游戏体验，希望各位玩的开心。感谢每一位远征者的陪伴。</p>
+        <div class="mail-attachments">
+          <article class="mail-attach"><span class="mail-attach-icon">${itemIcon('soul')}</span><b>硬币 ×1000</b><small>领取后直接到账</small></article>
+          <article class="mail-attach"><span class="mail-attach-icon">${itemIcon('revive')}</span><b>复活币 ×1</b><small>领取后直接到账</small></article>
+        </div>
+        <p class="mail-note">更新福利每个存档限领一次。</p>
+        <button class="primary mail-claim" data-action="claim-mail" ${claimed ? 'disabled' : ''}>${claimed ? '已领取' : '一键领取附件'}</button>`
+  return `<div class="bag-scrim mail-scrim"><section class="bag-dialog mail-dialog"><header><div><small>MAIL · 冒险者邮箱</small><h2>邮箱</h2></div><button data-action="close-mail" aria-label="关闭邮箱">×</button></header>
+    <div class="mail-layout">
+      <aside class="mail-list">
+        <article class="mail-entry ${selected === 2 ? 'active' : ''}" data-action="mail-select" data-mail="2"><b>更新福利</b><small>优化了一些游戏体验…</small><i>${claimed2 ? '已领取' : '未领取'}</i></article>
+        <article class="mail-entry ${selected === 1 ? 'active' : ''}" data-action="mail-select" data-mail="1"><b>系统邮件</b><small>感谢您来体验我的游戏！</small><i>${claimed1 ? '已领取' : '未领取'}</i></article>
+      </aside>
+      <section class="mail-content">${content}</section>
     </div>
   </section></div>`
 }
@@ -4206,13 +4546,23 @@ function sellConfirmMarkup() {
   return `<div class="bag-scrim sell-scrim"><section class="slot-dialog sell-dialog"><small>SELL · 出售装备</small><h2>出售「${escapeHtml(gear.name)}」？</h2><p>${gear.level} 阶装备，出售后无法找回。你将获得 <b>${displayCurrency(price)}</b> 硬币。</p><div class="sell-actions"><button class="secondary" data-action="cancel-sell" type="button">取消</button><button class="primary" data-action="confirm-sell" type="button">确认出售</button></div></section></div>`
 }
 function claimMail() {
-  if (!game || game.mailClaimed) return
-  game.mailClaimed = true
-  game.gear.unshift(makeFashion(1, 7))
-  game.soul = (game.soul ?? 0) + 3000
-  game.reviveCoins = (game.reviveCoins ?? 0) + 3
-  save()
-  toast('已领取邮箱附件：一阶时装（7 天）、3000 硬币、3 个复活币；两位角色都可使用。')
+  if (!game) return
+  if (mailSelected === 1) {
+    if (game.mailClaimed) return
+    game.mailClaimed = true
+    game.gear.unshift(makeFashion(1, 7))
+    game.soul = (game.soul ?? 0) + 3000
+    game.reviveCoins = (game.reviveCoins ?? 0) + 3
+    save()
+    toast('已领取邮箱附件：一阶时装（7 天）、3000 硬币、3 个复活币；两位角色都可使用。')
+  } else {
+    if (game.mailClaimed2) return
+    game.mailClaimed2 = true
+    game.soul = (game.soul ?? 0) + 1000
+    game.reviveCoins = (game.reviveCoins ?? 0) + 1
+    save()
+    toast('已领取更新福利：1000 硬币、1 个复活币。')
+  }
   renderGame()
 }
 function gearIsEquipped(id: string) {
@@ -4435,7 +4785,7 @@ function renderGame() {
   const chapterLabel = tutorialMode ? 'NEW PLAYER' : hiddenBattle ? 'SECRET BATTLE' : nightmareStage ? 'NIGHTMARE' : `第 ${String(game.stage).padStart(2, '0')} 章`
   const countText = tutorialMode ? '训练' : hiddenBattle ? '宿敌' : nightmareStage ? '噩梦' : boss ? bossLabel : `${game.kills} / ${MAX_SMALL_KILLS}`
   const townOverlay = ''
-  const deathOverlay = scene === 'defeat' ? `<div class="overlay death-overlay"><small>EXPEDITION PAUSED</small><h2>你倒在了遗迹深处</h2><p>每天可以免费满血复活一次；复活币同样能满状态复活，每个关卡限用一次；重新开始会恢复满状态并从本关第一波重新挑战；回到小镇会恢复满状态。</p><div class="death-actions">${game.freeReviveDay !== todayKey() ? `<button data-action="free-revive" class="primary">免费满血复活（今日 1 次）</button>` : ''}${(game.reviveCoins ?? 0) > 0 && !game.reviveUsed ? `<button data-action="revive-coin" class="revive-button">${itemIcon('revive')} 使用复活币（满状态） · ${game.reviveCoins}</button>` : ''}<button data-action="restart-stage" class="secondary">重新开始（满状态）</button><button data-action="respawn-town" class="secondary">回到小镇</button></div></div>` : ''
+  const deathOverlay = scene === 'defeat' ? `<div class="overlay death-overlay"><small>EXPEDITION PAUSED</small><h2>你倒在了遗迹深处</h2><p>每天可以免费满血复活一次；复活币同样能满状态复活，每个关卡限用一次；重新开始会恢复满状态并从本关第一波重新挑战；回到小镇会恢复满状态。</p><div class="death-actions">${PLATFORM_4399 && !adReviveUsed ? `<button data-action="ad-revive" class="ad-button">看广告满状态复活</button>` : ''}${game.freeReviveDay !== todayKey() ? `<button data-action="free-revive" class="primary">免费满血复活（今日 1 次）</button>` : ''}${(game.reviveCoins ?? 0) > 0 && !game.reviveUsed ? `<button data-action="revive-coin" class="revive-button">${itemIcon('revive')} 使用复活币（满状态） · ${game.reviveCoins}</button>` : ''}<button data-action="restart-stage" class="secondary">重新开始（满状态）</button><button data-action="respawn-town" class="secondary">回到小镇</button></div></div>` : ''
   const endingOverlay = scene === 'ending' ? '<div class="overlay"><small>THE FRONTIER IS YOURS</small><h2>十片遗迹，皆已沉寂</h2><p>你完成了元素远征。</p><button data-action="town" class="primary">返回小镇　↗</button></div>' : ''
   app.innerHTML = `<main class="game-shell ${isTown ? 'town-mode' : ''}"><header class="game-header"><a data-action="town" class="wordmark"><b>A</b> 成王之路 <i>／</i> ${isTown ? '冒险者小镇' : '元素远征'}</a>${DEMO_MODE ? '<span class="demo-badge">体验版 · 全关卡</span>' : ''}<span class="save-state"><i></i>${isTown ? '小镇安全区' : '进度已自动保存'}</span><span class="soul-badge" title="硬币">${itemIcon('soul')} ${displayNumber(game.soul ?? 0)}</span><button class="bag-button" data-action="bag">${itemIcon('bag')} 背包 <span>${game.gear.length}</span></button><button class="bag-button mail-button" data-action="open-mail" title="打开邮箱">${itemIcon('mail')} 邮箱${mailUnread() ? '<span class="mail-badge">!</span>' : ''}</button><button class="save-button" data-action="save" title="保存进度">▣</button></header><section class="overview"><div><small>${isTown ? '冒险者小镇' : chapterLabel}</small><h1>${isTown ? '营火集市' : areaName}</h1><p>${isTown ? '缓冲区 · 整备装备与选择关卡' : tutorialMode ? '新手试炼 · 完成引导目标' : hiddenBattle ? '宿敌对决 · 没有退路' : `遗迹入口 · 击败 ${MAX_SMALL_KILLS} 只守卫后迎战 Boss`}</p></div><div class="metrics"><div><small>职业</small><b>${roleLabels[game.role]}</b></div><div><small>已击杀</small><b>${isTown ? `开放至第 ${game.unlockedStage} 关` : countText}</b></div><div><small>当前装备</small><b>${item()?.name ?? '无'}</b></div></div></section><section class="game-grid"><div class="battle-column"><div class="arena-label"><span>◆ ${isTown ? '冒险者小镇 · 补给站' : `${areaName} · 深层区域`}</span><b id="enemy-name">${isTown ? '安全区域' : tutorialMode ? '训练傀儡正在等待' : hiddenBattle ? '宿敌正在等待' : boss ? `${bossLabel}冲刺准备中` : `${foes.length} 只守卫正在逼近`}</b></div><div class="arena-stage"><div class="arena"><canvas id="arena" aria-label="横版战斗场景"></canvas><div class="coords"><span>${isTown ? 'TOWN · SAFE ZONE' : tutorialMode ? 'NEW PLAYER · TRAINING' : hiddenBattle ? 'SECRET · RIVAL' : `遗迹远征 · ${String(game.stage).padStart(2, '0')}`}</span><span>${boss ? 'BOSS ENCOUNTER' : isTown ? 'REST & PREPARE' : 'WAVE ENCOUNTER'}</span></div>${townOverlay}${deathOverlay}${endingOverlay}${bossVictoryMarkup()}${lootRevealMarkup()}${tutorialHintMarkup()}<div class="mobile-control-deck"><div class="mobile-rail mobile-move-rail"><div class="mobile-joystick" data-joystick ${canControl ? '' : 'data-disabled="true"'} aria-label="移动摇杆"><span class="joystick-knob"></span></div></div><div class="mobile-rail mobile-action-rail"><div class="mobile-skills">${[2, 3, 0, 1].map((index) => `<button class="mobile-skill" data-action="skill" data-index="${index}" aria-label="技能 ${index + 1}" ${canControl ? '' : 'disabled'}>${index + 1}</button>`).join('')}</div><div class="mobile-utils"><button class="mobile-skill mobile-pickup" data-action="pickup" aria-label="拾取" title="拾取药水 / 与商人对话" ${canControl ? '' : 'disabled'}>S</button><button class="mobile-skill mobile-shield" data-shield aria-label="护盾" title="按住生成护盾" ${canControl ? '' : 'disabled'}>L</button></div><button class="mobile-pad attack-pad" data-action="attack" aria-label="攻击" title="攻击" ${canControl ? '' : 'disabled'}>⚔</button><button class="mobile-pad jump-pad" data-action="jump" aria-label="跳跃" title="跳跃" ${canControl ? '' : 'disabled'}>↟</button></div></div></div></div><div class="foe-health"><div><span>${isTown ? '冒险者状态' : boss ? bossLabel : '本批守卫'}</span><b id="foe-hp">${isTown ? '安全休整' : boss ? `${Math.ceil(foes[0]?.hp ?? 0)} / ${foes[0]?.maxHp ?? 0}` : `${foes.length} 名敌人 · 已击败 ${game.kills} / ${MAX_SMALL_KILLS}`}</b></div><div><i id="foe-fill" style="width:${boss ? `${Math.max(0, foes[0].hp / foes[0].maxHp * 100)}%` : '100%'}"></i></div></div><div class="combat-bar"><button data-action="attack" class="attack" ${canControl ? '' : 'disabled'}><b>${game.role === 'warrior' ? '⚔' : '✦'}</b><span><strong>${game.role === 'warrior' ? '剑刃斩击' : '法杖射击'}</strong><small>J · ${game.role === 'warrior' ? '近战' : '远程'}</small></span></button><button data-action="jump" ${canControl ? '' : 'disabled'}><b>↟</b><span><strong>跳跃</strong><small>K ×2</small></span></button>${SKILL_LABELS[activeSkillSet()].map((label, i) => `<button data-action="skill" data-index="${i}" ${canControl ? '' : 'disabled'}><i>${i + 1}</i><span><strong>${label}</strong><small>${skillSummary(i)}</small></span></button>`).join('')}</div><div class="combat-log"><b>✦</b><span>${logText}</span></div></div><aside class="side-column">${isTown ? townPanelMarkup() : ''}<section class="panel status-panel"><header><span>角色状态</span><small>${String(game.stage).padStart(2, '0')}</small></header><div class="hero-card"><b class="avatar ${game.role}">${game.role === 'warrior' ? '刃' : '✦'}</b><span><strong>${roleLabels[game.role]}</strong><small>${game.role === 'warrior' ? '钢铁誓约 · 剑士' : '星辉学派 · 法杖'}</small></span></div><div class="resource-label"><span>生命</span><b id="hp-text">${displayNumber(game.hp)} <i>/ ${displayNumber(s.hp)}</i></b><em>♥</em></div><div class="resource"><i id="hp-fill" style="width:${game.hp / s.hp * 100}%"></i></div><div class="resource-label mana-label"><span>法力</span><b id="mp-text">${displayNumber(game.mp)} <i>/ ${displayNumber(s.mp)}</i></b><em>✦</em></div><div class="resource"><i id="mp-fill" style="width:${game.mp / s.mp * 100}%"></i></div><div class="stats"><div><small>攻击</small><b>${displayNumber(s.attack)}</b></div><div><small>防御</small><b>${displayNumber(s.defense)}</b></div><div><small>增益</small><b id="buff-stat">${buffTime > 0 ? `${buffTime.toFixed(1)}s` : '—'}</b></div></div></section><section class="panel gear-panel"><header><span>装备栏</span><small>${item()?.name ?? '未装备'}</small></header><div class="gear-summary">${item() ? `生命 +${item()!.hp}　攻击 +${item()!.attack}　防御 +${item()!.defense}` : '装备不会自动穿戴，请在小镇打开背包手动更换。'}</div><button class="open-bag" data-action="bag">打开背包　↗</button><div class="camp-hint">⌂　${isTown ? '安全区内可自由更换装备' : '击败 Boss 后回到小镇整备'}</div></section></aside></section><footer class="game-footer"><span>WASD / ← → 移动　·　J 攻击　·　K 跳跃 / 二段跳　·　1–4 技能　·　L 护盾</span><b>LOCAL SAVE　●</b></footer>${bagOpen ? bagMarkup() : ''}</main>`
   if (craftingOpen && isTown) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', craftingMarkup())
@@ -4444,6 +4794,7 @@ function renderGame() {
   if (npcOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', npcMarkup())
   if (secondNpcOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', secondNpcMarkup())
   if (hiddenNpcOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', hiddenNpcMarkup())
+  if (merchantOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', merchantMarkup())
   if (stageCircleOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', stageCircleMarkup())
   if (lotteryOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', lotteryMarkup())
   if (gameMenuOpen) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', gameMenuMarkup())
@@ -4544,7 +4895,7 @@ function mountEquipmentHud() {
   const header = document.querySelector<HTMLElement>('.gear-panel header small')
   const summary = document.querySelector<HTMLElement>('.gear-summary')
   if (header) header.textContent = `武器：${weaponName} · 护甲：${armor?.name ?? '未装备'} · 时装：${fashion?.name ?? '未装备'}${game.role === 'mage' ? ' · 法师收益 80%' : ''}`
-  if (summary) summary.innerHTML = `<span>⚔ 武器　蓝量 +${scaled((weapon?.mp ?? 0) + (offWeapon?.mp ?? 0))}　攻击 +${scaled((weapon?.attack ?? 0) + (offWeapon?.attack ?? 0))}</span><span>▰ 护甲　生命 +${scaled(armor?.hp)}　防御 +${scaled(armor?.defense)}</span><span>✧ 时装　${fashion ? fashionSummary(fashion.level) : '未装备'}</span>`
+  if (summary) summary.innerHTML = `<span>⚔ 武器　蓝量 +${scaled((weapon?.mp ?? 0) + (offWeapon?.mp ?? 0))}　攻击 +${scaled((weapon?.attack ?? 0) + (offWeapon?.attack ?? 0))}</span><span>▰ 护甲　生命 +${scaled(armor?.hp)}　防御 +${scaled(armor?.defense)}</span><span>✧ 时装　${fashion ? fashionSummary(fashion.level) : '未装备'}${fashion?.fashionEffect ? ` · ${fashionEffectName(fashion.fashionEffect)}：${fashionEffectDesc(fashion.fashionEffect, fashion.level)}` : ''}</span>`
   const metric = document.querySelector<HTMLElement>('.metrics div:last-child b')
   if (metric) metric.textContent = `${weaponName} / ${armor?.name ?? '无护甲'} / ${fashion?.name ?? '无时装'}`
 }
@@ -4567,8 +4918,13 @@ function mountTownStageActions() {
     option.textContent = `第 ${String(stage).padStart(2, '0')} 关 · ${stageNames[stage - 1]} · ${stageProgress.bossDefeated ? 'Boss 已击败' : '未通关'}`
   }
 }
+let lastHudSyncAt = 0
 function syncHud() {
   if (!game) return
+  // 战斗 HUD 每帧刷新会反复查询 DOM；限制到约 20fps，显著降低技能爆发时的 CPU 峰值。
+  const now = performance.now()
+  if (scene === 'battle' && now - lastHudSyncAt < 50) return
+  lastHudSyncAt = now
   syncFoeHeads()
   const s = stats()
   const levelLabel = document.querySelector<HTMLElement>('#level-label')
@@ -4605,7 +4961,7 @@ function syncHud() {
   if (killMetric && scene === 'battle') killMetric.textContent = foes.some((foe) => foe.boss) ? '守关者' : `${game.kills} / ${MAX_SMALL_KILLS}`
   const foeHp = document.querySelector<HTMLElement>('#foe-hp')
   if (foeHp && scene === 'battle') foeHp.textContent = bossVictory ? 'BOSS DEFEATED' : foes[0]?.boss ? `${Math.ceil(foes[0].hp)} / ${foes[0].maxHp}` : `${foes.length} 名敌人 · 已击败 ${game.kills} / ${MAX_SMALL_KILLS}`
-  const buff = document.querySelector<HTMLElement>('#buff-stat'); if (buff) buff.textContent = buffTime > 0 ? `${buffTime.toFixed(1)}s` : '—'
+  const buff = document.querySelector<HTMLElement>('#buff-stat'); if (buff) buff.textContent = buffTime > 0 ? `${buffTime.toFixed(1)}s` : scene === 'battle' && superArmorActive > 0 ? `霸体 ${superArmorActive.toFixed(1)}s` : '—'
   const enemyName = document.querySelector<HTMLElement>('#enemy-name')
   if (enemyName && scene === 'battle') enemyName.textContent = bossVictory ? '守关者已击败 · 远征记录更新' : tutorialMode ? '训练傀儡正在等待' : hiddenBattle ? '宿敌正在等待' : foes[0]?.boss ? `${foeLabel(foes[0])}冲刺准备中` : foes.length ? `${foes.length} 只守卫正在逼近` : waveReady ? '继续向右推进，解锁新的区域' : '区域已清空'
   // 沉浸式 HUD
@@ -4791,6 +5147,18 @@ function strike(target: Foe, damage: number, label: string, fromClone = false) {
   const guardMitigation = (target.mirror && (target.mirrorGuard ?? 0) > 0) ? .35 : 1
   const dealt = Math.max(1, Math.round(damage * (switchExposed ? 1.1 : 1) * superArmorMitigation * guardMitigation))
   target.hp -= dealt; target.flash = .18
+  // 吸血时装：按实际造成伤害的阶级比例回复生命（分身伤害不触发）。
+  if (!fromClone && !actingAsPartner && activeFashionEffect() === 'vampire' && game.hp > 0) {
+    const maxHp = stats().hp
+    const heal = Math.max(1, Math.round(dealt * fashionVampirePct(activeFashionTier() || 1)))
+    if (game.hp < maxHp) {
+      game.hp = Math.min(maxHp, game.hp + heal)
+      if (vampireFxWait <= 0) {
+        vampireFxWait = .35
+        effects.push({ kind: 'damage-number', x: heroX, y: world.floor - 100 + heroY, life: .7, duration: .7, text: `+${displayNumber(heal)}`, damage: 0 })
+      }
+    }
+  }
   applyStagger(target)
   addComboHit()
   addDamageText(target, dealt)
@@ -4810,6 +5178,16 @@ function strike(target: Foe, damage: number, label: string, fromClone = false) {
 function strikeNearby(damage: number, label: string, range: number, all = false) {
   const targets = all ? foes.filter((foe) => Math.abs(foe.x - heroX) <= range) : [targetForFacing(range)].filter((foe): foe is Foe => Boolean(foe))
   if (!targets.length) { setLog(foes.length ? '距离太远，攻击没有命中。' : '剑气划过空气。'); return 0 }
+  targets.forEach((target) => strike(target, damage, label))
+  return damage * targets.length
+}
+// 万剑归宗：前方扇形长距离落剑，兼顾近身与远程目标。
+function strikeMyriad(damage: number, label: string, direction: number) {
+  const targets = foes.filter((foe) => {
+    const dx = (foe.x - heroX) * direction
+    return (Math.abs(foe.x - heroX) <= 190 || (dx > 0 && dx <= 430)) && canStrikeVertically(foe)
+  })
+  if (!targets.length) { setLog(foes.length ? '剑气没有触及目标。' : '万剑插入空地。'); return 0 }
   targets.forEach((target) => strike(target, damage, label))
   return damage * targets.length
 }
@@ -5177,8 +5555,8 @@ function cast(index: number) {
       const target = targetForFacing(165)
       if (!target || !canStrikeVertically(target)) setLog(foes.length ? '距离或高度不符，攻击没有命中。' : '剑气划过空气。')
       else {
-        // 拔剑术附带一点击退，把目标推离角色。
-        if (!target.boss) target.x = clampFoeX(target.x + (Math.sign(target.x - heroX) || facing) * 34)
+        // 拔剑术附带击退，把目标推离角色。
+        if (!target.boss) target.x = clampFoeX(target.x + (Math.sign(target.x - heroX) || facing) * 92)
         strike(target, power, '拔剑术')
       }
     } else if (index === 1) {
@@ -5232,16 +5610,17 @@ function cast(index: number) {
       // 万剑归宗：十余把巨剑交错插满地面，连续爆发。
       const greatY = world.floor - 80 + heroY
       addFx(`weapon-swing-${style}`, heroX + facing * 60, greatY, facing, .7, fxColor)
-      addFx('myriad-swords', heroX + facing * 150, world.floor - 4, facing, 1.35, fxColor)
-      addFx('great-quake', heroX + facing * 70, world.floor - 8, facing, 1.2, fxColor)
-      addFx('ground-break', heroX + facing * 60, world.floor - 70, facing, .95)
-      addSparks(heroX + facing * 60, world.floor - 8, 48, [fxColor, '#d8b96c', '#fff6d0', '#a98d55'], 380)
+      addFx('myriad-swords', heroX + facing * 190, world.floor - 4, facing, 1.35, fxColor)
+      addFx('great-quake', heroX + facing * 110, world.floor - 8, facing, 1.2, fxColor)
+      addFx('ground-break', heroX + facing * 90, world.floor - 70, facing, .95)
+      addSparks(heroX + facing * 90, world.floor - 8, 48, [fxColor, '#d8b96c', '#fff6d0', '#a98d55'], 380)
       addShake(20)
       addFlash(.6, fxColor)
-      // 总伤害保持 200%：起手剑气 100%，落剑追加 100%。
-      strikeNearby(Math.max(1, Math.round(power * .5)), '万剑归宗', 175, true)
+      // 总伤害保持 200%：起手剑气 100%，落剑追加 100%；攻击范围向面朝方向延伸。
+      strikeMyriad(Math.max(1, Math.round(power * .5)), '万剑归宗', facing)
       myriadImpactTimer = .7
       myriadImpactPower = Math.max(1, Math.round(power * .5))
+      myriadImpactDir = facing
     }
   } else if (index === 0) {
     buffTime = 7
@@ -5484,7 +5863,7 @@ function advanceAfterBoss(clearedStage: number, ending: boolean, nightmare = fal
   if (nightmare) {
     nightmareStage = null
     scene = 'town'; game.town = true; game.dead = false
-    heroX = 480; cameraX = 0; heroY = 0; velocityY = 0; grounded = true; jumpCount = 0; heroSupportTop = world.floor
+    heroX = 500; cameraX = 0; heroY = 0; velocityY = 0; grounded = true; jumpCount = 0; heroSupportTop = world.floor
     restoreTownVitals()
     save(); renderGame(); return
   }
@@ -5495,12 +5874,15 @@ function advanceAfterBoss(clearedStage: number, ending: boolean, nightmare = fal
     game.stage = clearedStage + 1
     game.kills = 0
     game.bossDefeated = false
-    scene = 'town'; game.town = true; heroX = 480; cameraX = 0; heroY = 0; velocityY = 0; grounded = true; jumpCount = 0; heroSupportTop = world.floor
+    scene = 'town'; game.town = true; heroX = 500; cameraX = 0; heroY = 0; velocityY = 0; grounded = true; jumpCount = 0; heroSupportTop = world.floor
     restoreTownVitals()
   }
   save()
   if (clearedStage >= 10 && !seenStory('stage-ending-story')) startStory(stageEndingStoryData(), () => { save(); renderGame() })
-  else renderGame()
+  else {
+    renderGame()
+    if (!nightmare && clearedStage < 10) maybeShowInterstitial()
+  }
 }
 function openBossChest() {
   if (!game || !bossChest || bossChest.opened) return
@@ -5594,8 +5976,10 @@ function makeGear(type: GearType, level: number, style?: WeaponStyle): Gear {
     socketGems: Array(sockets).fill(null),
   }
 }
-function makeFashion(tier: number, days?: number): Gear {
-  const gear: Gear = { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, name: fashionTierName(tier), level: tier, type: 'fashion', hp: 0, mp: 0, attack: 0, defense: 0, sockets: 0, socketGems: [] }
+function makeFashion(tier: number, days?: number, effect?: FashionEffect): Gear {
+  // 一阶~三阶时装获得时随机附带一种效果；更高阶可继承合成材料的效果。
+  const rolled = effect ?? (tier <= 3 ? randomFashionEffect() : undefined)
+  const gear: Gear = { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, name: rolled ? `${fashionTierName(tier)}·${fashionEffectName(rolled)}` : fashionTierName(tier), level: tier, type: 'fashion', fashionEffect: rolled, hp: 0, mp: 0, attack: 0, defense: 0, sockets: 0, socketGems: [] }
   if (days && days > 0) gear.expiresAt = Date.now() + days * 86400000
   return gear
 }
@@ -5720,6 +6104,7 @@ function pickupDrop() {
       else toast('这段剧情已经看过了，可在「功能 · 剧情」中回顾。')
       return
     }
+    if (isTravelMerchantDay() && Math.abs(heroX - TRAVEL_MERCHANT_X) <= 38) { openTravelMerchant(); return }
     if (Math.abs(heroX - TOWN_CIRCLE_X) <= 60) { openStageCircle(); return }
     if (secondNpcUnlocked() && Math.abs(heroX - SECOND_NPC_X) <= 75) { openSecondNpcMenu(); return }
     if (hiddenUnlocked() && Math.abs(heroX - HIDDEN_NPC_X) <= 70) { openHiddenNpcMenu(); return }
@@ -5934,9 +6319,128 @@ function retreatToTown() {
   if (tutorialMode) { tutorialMode = false; tutorialStep = 0; game.tutorialDone = true }
   scene = 'town'; game.town = true; game.dead = false
   restoreTownVitals()
-  heroX = 480; cameraX = 0; heroY = 0; velocityY = 0; grounded = true; heroSupportTop = world.floor; jumpCount = 0
+  heroX = 500; cameraX = 0; heroY = 0; velocityY = 0; grounded = true; heroSupportTop = world.floor; jumpCount = 0
   resetPartner()
   foes = []; projectiles = []; foeShots = []; burst = 0; burstTargetId = null; resetPanels(); save(); renderGame()
+}
+// ── 4399 广告 ──────────────────────────────────────────
+// 4399 版运行在固定画面外壳 iframe 中，SDK 在外壳加载；这里通过 postMessage 请求广告。
+type RewardedAdResult = { code?: number; message?: string }
+function requestRewardedAd(callback: (ok: boolean, message?: string) => void) {
+  if (!PLATFORM_4399) { callback(false, 'not-4399'); return }
+  let finished = false
+  let timer: number | null = null
+  let onMessage: ((event: MessageEvent) => void) | null = null
+  const finish = (ok: boolean, message?: string) => {
+    if (finished) return
+    finished = true
+    if (timer !== null) window.clearTimeout(timer)
+    if (onMessage) window.removeEventListener('message', onMessage)
+    callback(ok, message)
+  }
+  onMessage = (event: MessageEvent) => {
+    const data = event.data as { source?: string; type?: string; code?: number; message?: string } | null
+    if (!data || data.source !== 'cwzl-host' || data.type !== 'rewarded-ad-result') return
+    if (data.code === 10000) return // 10000 = 开始播放，继续等待结束/异常状态
+    finish(data.code === 10001, data.message)
+  }
+  window.addEventListener('message', onMessage)
+  timer = window.setTimeout(() => finish(false, '广告请求超时'), 60000)
+  if (window.parent && window.parent !== window) {
+    window.parent.postMessage({ source: 'cwzl-game', type: 'rewarded-ad' }, '*')
+    return
+  }
+  const api = (window as unknown as { h5api?: { playAd?: (cb: (obj: RewardedAdResult) => void) => void } }).h5api
+  if (!api?.playAd) { finish(false, '广告接口未加载'); return }
+  try {
+    api.playAd((obj) => {
+      if (obj?.code === 10000) return
+      finish(obj?.code === 10001, obj?.message)
+    })
+  } catch (error) {
+    finish(false, String(error))
+  }
+}
+function requestInterstitialAd() {
+  if (!PLATFORM_4399) return
+  if (window.parent && window.parent !== window) {
+    window.parent.postMessage({ source: 'cwzl-game', type: 'interstitial-ad' }, '*')
+    return
+  }
+  const api = (window as unknown as { h5api?: { playInterstitialAd?: () => void } }).h5api
+  try { api?.playInterstitialAd?.() } catch { /* ignore */ }
+}
+function adRewardClaimed(id: string) {
+  if (!game) return false
+  return game.adDay === todayKey() && Boolean(game.adRewards?.includes(id))
+}
+function markAdReward(id: string) {
+  if (!game) return
+  const day = todayKey()
+  if (game.adDay !== day) { game.adDay = day; game.adRewards = [] }
+  game.adRewards ??= []
+  if (!game.adRewards.includes(id)) game.adRewards.push(id)
+}
+function claimAdReward(id: 'soul' | 'revive' | 'fragment' | 'lottery') {
+  if (!game || !PLATFORM_4399 || adInFlight) return
+  if (adRewardClaimed(id)) { toast('今天已经领取过这个广告奖励了。'); return }
+  adInFlight = true
+  requestRewardedAd((ok, message) => {
+    adInFlight = false
+    if (!game) return
+    if (!ok) {
+      toast(message === '广告接口未加载' ? '广告暂不可用，请稍后再试。' : '广告未播放完，未获得奖励。')
+      renderGame()
+      return
+    }
+    markAdReward(id)
+    if (id === 'soul') game.soul = (game.soul ?? 0) + 1000
+    else if (id === 'revive') game.reviveCoins = (game.reviveCoins ?? 0) + 1
+    else if (id === 'fragment') game.talentFragments = (game.talentFragments ?? 0) + 1
+    else game.lotteryChances = (game.lotteryChances ?? 0) + 1
+    save()
+    toast(id === 'soul' ? '广告奖励：硬币 +1000。' : id === 'revive' ? '广告奖励：复活币 +1。' : id === 'fragment' ? '广告奖励：天赋币碎片 +1。' : '广告奖励：抽奖机会 +1。')
+    renderGame()
+  })
+}
+function useAdRevive() {
+  if (!game || !PLATFORM_4399 || scene !== 'defeat' || adInFlight) return
+  if (adReviveUsed) { toast('本关已经使用过广告复活了。'); return }
+  adInFlight = true
+  toast('正在加载广告…')
+  requestRewardedAd((ok, message) => {
+    adInFlight = false
+    if (!game || scene !== 'defeat') return
+    if (!ok) {
+      toast(message === '广告接口未加载' ? '广告暂不可用，请稍后再试。' : '广告未播放完，未获得复活。')
+      renderGame()
+      return
+    }
+    adReviveUsed = true
+    paused = false
+    resetCombo()
+    const caps = stats()
+    game.hp = caps.hp; game.mp = caps.mp
+    if (hiddenBattle) {
+      scene = 'battle'; game.town = true; game.dead = false
+      heroX = 480; heroY = 0; velocityY = 0; grounded = true; heroSupportTop = world.floor; jumpCount = 0
+      projectiles = []; foeShots = []; burst = 0; burstTargetId = null
+    } else {
+      scene = 'battle'; game.town = false; game.dead = false
+      heroX = 480; heroY = 0; velocityY = 0; grounded = true; heroSupportTop = world.floor; jumpCount = 0
+      projectiles = []; foeShots = []; burst = 0; burstTargetId = null; enterBattlefield()
+    }
+    save(); renderGame(); toast('广告复活：生命与法力已回满。')
+  })
+}
+function maybeShowInterstitial() {
+  if (!PLATFORM_4399) return
+  bossClearsForAds += 1
+  if (bossClearsForAds % 3 !== 0) return
+  const now = Date.now()
+  if (now - lastInterstitialAt < 180000) return
+  lastInterstitialAt = now
+  window.setTimeout(() => requestInterstitialAd(), 800)
 }
 function useReviveCoin() {
   if (!game || scene !== 'defeat') return
@@ -6030,9 +6534,14 @@ function performAction(name: string, target: HTMLElement) {
   if (name === 'title-step-back') { pendingP2Name = (document.querySelector<HTMLInputElement>('#p2-name')?.value ?? '').trim(); createStep = 'p1'; pendingP1Role = null; renderTitle(); return }
   if (name === 'title-role' && (target.dataset.role === 'warrior' || target.dataset.role === 'mage')) {
     const role = target.dataset.role as Role
-    if (!titleCoop) { pendingP1Name = (document.querySelector<HTMLInputElement>('#p1-name')?.value ?? '').trim(); createRole(role); return }
-    if (createStep === 'p1') { pendingP1Name = (document.querySelector<HTMLInputElement>('#p1-name')?.value ?? '').trim(); pendingP1Role = role; createStep = 'p2'; renderTitle(); return }
-    pendingP2Name = (document.querySelector<HTMLInputElement>('#p2-name')?.value ?? '').trim()
+    if (PLATFORM_4399) {
+      // 4399 禁止自定义取名：使用固定默认名字。
+      pendingP1Name = titleCoop ? '玩家一' : roleLabels[role]
+      pendingP2Name = '玩家二'
+    }
+    if (!titleCoop) { pendingP1Name = PLATFORM_4399 ? pendingP1Name : (document.querySelector<HTMLInputElement>('#p1-name')?.value ?? '').trim(); createRole(role); return }
+    if (createStep === 'p1') { pendingP1Name = PLATFORM_4399 ? pendingP1Name : (document.querySelector<HTMLInputElement>('#p1-name')?.value ?? '').trim(); pendingP1Role = role; createStep = 'p2'; renderTitle(); return }
+    pendingP2Name = PLATFORM_4399 ? '玩家二' : (document.querySelector<HTMLInputElement>('#p2-name')?.value ?? '').trim()
     titleP2Role = role
     createRole(pendingP1Role ?? role)
     return
@@ -6126,6 +6635,9 @@ function performAction(name: string, target: HTMLElement) {
   if (name === 'open-shop' && game && scene === 'town') { openShopMenu() }
   if (name === 'close-npc') { npcOpen = false; renderGame() }
   if (name === 'close-second-npc') { secondNpcOpen = false; renderGame() }
+  if (name === 'close-merchant') { merchantOpen = false; renderGame() }
+  if (name === 'merchant-buy') { buyTravelMerchantOffer(); return }
+  if (name === 'merchant-refresh') { refreshTravelMerchantOffer(); renderGame(); return }
   if (name === 'second-menu') { secondView = 'menu'; renderGame() }
   if (name === 'second-dungeon') { secondView = 'dungeon'; renderGame() }
   if (name === 'second-gems') { secondView = 'gems'; renderGame() }
@@ -6145,14 +6657,24 @@ function performAction(name: string, target: HTMLElement) {
   if (name === 'close-game-menu') { gameMenuOpen = false; renderGame() }
   if (name === 'open-settings') { resetPanels(); settingsOpen = true; renderGame() }
   if (name === 'close-settings') { settingsOpen = false; listeningBind = null; renderGame() }
-  if (name === 'open-mail') { resetPanels(); mailOpen = true; renderGame() }
+  if (name === 'set-quality' && target.dataset.quality) {
+    const quality = target.dataset.quality
+    if (quality === 'high' || quality === 'balanced' || quality === 'smooth') {
+      renderQuality = quality
+      try { localStorage.setItem(QUALITY_KEY, quality) } catch { /* ignore */ }
+      setupCanvas()
+      renderGame()
+    }
+  }
+  if (name === 'open-mail') { resetPanels(); mailSelected = game && !game.mailClaimed2 ? 2 : game && !game.mailClaimed ? 1 : 2; mailOpen = true; renderGame() }
+  if (name === 'mail-select' && target.dataset.mail) { mailSelected = target.dataset.mail === '1' ? 1 : 2; renderGame(); return }
   if (name === 'close-mail') { mailOpen = false; renderGame() }
   if (name === 'claim-mail') { claimMail(); return }
   if (name === 'sell-gear' && target.dataset.id) { requestSellGear(target.dataset.id); return }
   if (name === 'cancel-sell') { sellConfirmId = null; renderGame(); return }
   if (name === 'confirm-sell') { confirmSellGear(); return }
-  if (name === 'redeem-submit') { submitRedeemCode(); return }
-  if (name === 'redeem-pick') { pickRedeemGear(target); return }
+  if (!PLATFORM_4399 && name === 'redeem-submit') { submitRedeemCode(); return }
+  if (!PLATFORM_4399 && name === 'redeem-pick') { pickRedeemGear(target); return }
   if (name === 'open-credits') { const fromSettings = settingsOpen; resetPanels(); creditsFromSettings = fromSettings; creditsOpen = true; renderGame() }
   if (name === 'close-credits') closeCredits()
   if (name === 'open-story-log' && game) {
@@ -6248,6 +6770,12 @@ function performAction(name: string, target: HTMLElement) {
   if (name === 'respawn-town') retreatToTown()
   if (name === 'revive-coin') useReviveCoin()
   if (name === 'free-revive') useFreeRevive()
+  if (name === 'ad-revive') { useAdRevive(); return }
+  if (name === 'ad-reward' && target.dataset.reward) {
+    const reward = target.dataset.reward
+    if (reward === 'soul' || reward === 'revive' || reward === 'fragment' || reward === 'lottery') claimAdReward(reward)
+    return
+  }
   if (name === 'town' && game) retreatToTown()
   if (name === 'save') { save(); toast('远征进度已保存。') }
 }
@@ -6460,10 +6988,11 @@ window.addEventListener('keydown', (event) => {
   if (npcOpen && key === 'escape') { npcOpen = false; renderGame(); return }
   if (secondNpcOpen && key === 'escape') { secondNpcOpen = false; renderGame(); return }
   if (hiddenNpcOpen && key === 'escape') { hiddenNpcOpen = false; renderGame(); return }
+  if (merchantOpen && key === 'escape') { merchantOpen = false; renderGame(); return }
   if (bagOpen && key === 'escape') { bagOpen = false; renderGame(); return }
   if (attributesOpen && key === 'escape') { attributesOpen = false; renderGame(); return }
   if (craftingOpen && key === 'escape') { craftingOpen = false; renderGame(); return }
-  if (bagOpen || hornPickerOpen || craftingOpen || attributesOpen || npcOpen || secondNpcOpen || hiddenNpcOpen || lotteryOpen || stageCircleOpen || settingsOpen || mailOpen || sellConfirmId || gameMenuOpen || creditsOpen || storyLogOpen || skillPanelOpen) return
+  if (bagOpen || hornPickerOpen || craftingOpen || attributesOpen || npcOpen || secondNpcOpen || hiddenNpcOpen || merchantOpen || lotteryOpen || stageCircleOpen || settingsOpen || mailOpen || sellConfirmId || gameMenuOpen || creditsOpen || storyLogOpen || skillPanelOpen) return
   if (lootReveal) return
   if (bossVictory) {
     if (key === ' ' || key === 'enter') event.preventDefault()
@@ -6523,6 +7052,20 @@ window.addEventListener('keyup', (event) => {
   if (key === 'l') shieldLocked = false
 })
 window.addEventListener('blur', () => { keys.clear(); touchPointers.clear(); shieldActive = false; shieldLocked = false; bowCharging = false; bowCharge = 0; bowChargeSource = null; partnerAttackHeld = false; partnerShieldHeld = false; partner.shieldLocked = false; partnerRunActive = false })
+// 页面隐藏/关闭前把待写入的存档立即落盘。
+window.addEventListener('beforeunload', flushSave)
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushSave() })
+// 通过实例访问器限制 shadowBlur：低画质下直接关闭阴影，避免软件渲染时严重掉帧。
+function applyShadowCap(context: CanvasRenderingContext2D) {
+  const proto = Object.getPrototypeOf(context) as CanvasRenderingContext2D
+  const desc = Object.getOwnPropertyDescriptor(proto, 'shadowBlur')
+  if (!desc?.get || !desc?.set) return
+  Object.defineProperty(context, 'shadowBlur', {
+    configurable: true,
+    get() { return desc.get!.call(this) },
+    set(value: number) { desc.set!.call(this, Math.min(Number(value) || 0, shadowCap)) },
+  })
+}
 function setupCanvas() {
   canvas = document.querySelector<HTMLCanvasElement>('#arena')
   if (!canvas) return
@@ -6530,11 +7073,19 @@ function setupCanvas() {
   const ratio = rect.width > 1 ? rect.height / rect.width : world.height / world.width
   viewHeight = Math.max(world.height, Math.min(2600, Math.round(world.width * ratio)))
   const dpr = window.devicePixelRatio || 1
-  renderScale = dpr > 1 ? Math.min(2.5, dpr) : 2
+  const quality = renderQuality === 'high'
+    ? { cap: 2.5, base: 2, shadow: 24, fx: 1 }
+    : renderQuality === 'balanced'
+      ? { cap: 1.75, base: 1.5, shadow: 10, fx: .75 }
+      : { cap: 1, base: 1, shadow: 0, fx: .45 }
+  renderScale = dpr > 1 ? Math.min(quality.cap, dpr) : quality.base
+  shadowCap = quality.shadow
+  fxScale = quality.fx
   canvas.width = Math.round(world.width * renderScale)
   canvas.height = Math.round(viewHeight * renderScale)
   viewOffsetY = Math.round((viewHeight - world.height) / 2)
   ctx = canvas.getContext('2d')
+  if (ctx) applyShadowCap(ctx)
 }
 function nearestFoeTo(x: number): Foe | undefined {
   return foes.filter((foe) => !foe.tutorial).sort((a, b) => Math.abs(a.x - x) - Math.abs(b.x - x))[0]
@@ -6729,6 +7280,34 @@ function update(dt: number) {
     if (bossVictory.time <= 0) finishBossVictory()
   } else if (scene === 'battle' && game) {
     battleTime += dt
+    vampireFxWait = Math.max(0, vampireFxWait - dt)
+    // 霸体时装：按阶级间隔触发 5 秒，期间连击不会因受击中断。
+    if (activeFashionEffect() === 'superArmor') {
+      if (superArmorActive > 0) {
+        superArmorActive = Math.max(0, superArmorActive - dt)
+        if (superArmorActive <= 0) { superArmorCycle = fashionArmorCooldown(activeFashionTier() || 1); setLog('霸体结束。') }
+      } else {
+        superArmorCycle = Math.max(0, superArmorCycle - dt)
+        if (superArmorCycle <= 0) {
+          superArmorActive = 5
+          setLog('时装·霸体激活：5 秒内被攻击不会中断连击。')
+          effects.push({ kind: 'arcane-blessing', x: heroX, y: world.floor - 88 + heroY, direction: facing, life: .8, color: '#ffd27a' })
+          playSfx('double-jump')
+        }
+      }
+    } else { superArmorActive = 0; superArmorCycle = fashionArmorCooldown(activeFashionTier() || 1) }
+    // 脱战 8 秒后自动回血，每秒 1% 生命上限；受到伤害立即中断。
+    noDamageTimer += dt
+    if (noDamageTimer >= 8 && game.hp > 0 && game.hp < stats().hp) {
+      regenAccum += dt
+      if (regenAccum >= 1) {
+        regenAccum -= 1
+        const maxHp = stats().hp
+        game.hp = Math.min(maxHp, game.hp + Math.max(1, Math.ceil(maxHp * .01)))
+      }
+    } else if (noDamageTimer < 8) {
+      regenAccum = 0
+    }
     // 宝箱开启动画结束后发放奖励。
     if (bossChest && !bossChest.opened && bossChest.opening > 0) {
       bossChest.opening -= dt
@@ -6762,7 +7341,7 @@ function update(dt: number) {
     if (myriadImpactTimer > 0) {
       myriadImpactTimer = Math.max(0, myriadImpactTimer - dt)
       if (myriadImpactTimer <= 0) {
-        strikeNearby(myriadImpactPower, '万剑归宗 · 落剑', 220, true)
+        strikeMyriad(myriadImpactPower, '万剑归宗 · 落剑', myriadImpactDir)
         addSparks(heroX + facing * 150, world.floor - 10, 34, [weaponFxColor(), '#fff6d0', '#d8b96c'], 320)
         addShake(14)
         addFlash(.28, weaponFxColor())
@@ -6960,7 +7539,18 @@ function update(dt: number) {
         foe.rangedTimer = Math.max(0, foe.rangedTimer - dt)
         if (Math.abs(distance) > 78) foe.x = Math.max(MAP_LEFT, Math.min(unlockedWidth - 30, foe.x + directionToHero * Math.min(Math.abs(distance) - 78, (foe.boss ? 44 : 82) * dt)))
         foe.timer -= dt
-        if (Math.abs(distance) < (foe.boss ? 138 : 112) && foe.timer <= 0 && (taunted || heroY > -36)) {
+        const meleeRange = Math.abs(distance) < (foe.boss ? 138 : 112)
+        // 小怪第一次贴近时先抬手预警，不再瞬发攻击。
+        if (!foe.boss && meleeRange && !foe.inMeleeRange && foe.timer <= 0) {
+          foe.timer = .52
+          foe.attackAnim = .45
+          foe.flash = .12
+          const theme = STAGE_THEMES[stageIndex]
+          addFx('mob-skill-lunge', foe.x, foeWorldY(foe) - 16, directionToHero, .5, theme.glow)
+          setLog('遗迹守卫举起武器，准备攻击…')
+        }
+        foe.inMeleeRange = meleeRange
+        if (meleeRange && foe.timer <= 0 && (taunted || heroY > -36)) {
           foe.timer = foe.boss ? Math.max(1, 1.5 - game.stage * .035) : 1.7 + Math.random() * .5
           foe.attackAnim = .35
           const theme = STAGE_THEMES[stageIndex]
@@ -7111,7 +7701,8 @@ function update(dt: number) {
   }
   effects = effects.filter((fx) => (fx.life -= dt) > 0)
   // 限制同时存在的特效数量，避免长时间战斗或隐藏关卡掉帧。
-  if (effects.length > 160) effects.splice(0, effects.length - 160)
+  const maxEffects = renderQuality === 'high' ? 200 : renderQuality === 'balanced' ? 140 : 80
+  if (effects.length > maxEffects) effects.splice(0, effects.length - maxEffects)
   noticeTime = Math.max(0, noticeTime - dt)
 }
 function sceneBackground() {
@@ -8425,10 +9016,10 @@ function drawFx(c: CanvasRenderingContext2D, fx: Fx) {
     const color = fx.color ?? '#ffe08a'
     const now = performance.now()
     c.shadowColor = color; c.shadowBlur = 22
-    // 十余把剑交叉着从天而降，同时插进地面。
-    const swords = 12
+    // 十余把剑交叉着从天而降，同时插进地面；范围覆盖前方远程目标。
+    const swords = 16
     for (let i = 0; i < swords; i += 1) {
-      const spread = (i - (swords - 1) / 2) * 26
+      const spread = (i - (swords - 1) / 2) * 30
       const x = fx.x + spread
       const delay = i * .035
       const land = Math.min(1, Math.max(0, (progress - delay) / .55))
@@ -9830,7 +10421,7 @@ function draw() {
   if (scene === 'battle') drawBossChest(ctx)
   for (const foe of foes) drawFoe(ctx, foe)
   drawPrisonEffect(ctx)
-  if (scene === 'town') { drawTownWaypoint(ctx); drawTownNpc(ctx); drawTownCompanions(ctx); drawSecondNpc(ctx); drawHiddenNpc(ctx) }
+  if (scene === 'town') { drawTownWaypoint(ctx); drawTownNpc(ctx); drawTownCompanions(ctx); drawSecondNpc(ctx); drawHiddenNpc(ctx); drawTravelMerchant(ctx) }
   ctx.save(); if (invisibleTimer > 0) ctx.globalAlpha = .16
   drawHero(ctx)
   drawPartner(ctx)
@@ -9841,6 +10432,17 @@ function draw() {
   drawBombClone(ctx)
   drawArcaneOrb(ctx)
   drawShield(ctx)
+  // 霸体时装：角色脚下金色光环。
+  if (superArmorActive > 0 && scene === 'battle') {
+    const pulse = .8 + Math.sin(performance.now() / 120) * .2
+    ctx.save(); ctx.translate(heroX, world.floor - 6 + heroY)
+    ctx.globalAlpha = .55 + .25 * pulse
+    ctx.strokeStyle = '#ffd27a'; ctx.lineWidth = 2.5
+    ctx.beginPath(); ctx.ellipse(0, 0, 42 * pulse, 13 * pulse, 0, 0, Math.PI * 2); ctx.stroke()
+    ctx.globalAlpha = .18; ctx.fillStyle = '#ffd27a'
+    ctx.beginPath(); ctx.ellipse(0, -46, 30 * pulse, 58 * pulse, 0, 0, Math.PI * 2); ctx.fill()
+    ctx.restore()
+  }
   drawBowCharge(ctx)
   for (const projectile of projectiles) {
     const projectileColor = weaponFxColor()
@@ -9905,7 +10507,30 @@ function draw() {
       ctx.restore()
     }
   }
-  for (const fx of effects) drawFx(ctx, fx)
+  // 火花按颜色与透明度合并成一次路径绘制，避免技能爆发时几十次 save/restore。
+  const sparkBuckets = new Map<string, Fx[]>()
+  for (const fx of effects) {
+    if (fx.kind !== 'spark') { drawFx(ctx, fx); continue }
+    const alpha = Math.round(Math.min(1, fx.life / (fx.duration ?? .7)) * 4) / 4
+    if (alpha <= 0) continue
+    const key = `${fx.color ?? '#ffe09a'}|${alpha}`
+    const list = sparkBuckets.get(key)
+    if (list) list.push(fx)
+    else sparkBuckets.set(key, [fx])
+  }
+  for (const [key, list] of sparkBuckets) {
+    const separator = key.lastIndexOf('|')
+    const color = key.slice(0, separator)
+    const alpha = Number(key.slice(separator + 1))
+    ctx.save(); ctx.globalAlpha = alpha; ctx.fillStyle = color
+    ctx.beginPath()
+    for (const fx of list) {
+      const radius = fx.radius ?? 2
+      ctx.moveTo(fx.x + radius, fx.y)
+      ctx.arc(fx.x, fx.y, radius, 0, Math.PI * 2)
+    }
+    ctx.fill(); ctx.restore()
+  }
   drawHiddenUltimate(ctx)
   if (game?.role === 'mage' && buffTime > 0) {
     const buffY = world.floor - Math.max(0, -heroY) - 118
@@ -9935,4 +10560,40 @@ document.querySelector('#rotate-lock')?.addEventListener('click', () => { void e
 window.addEventListener('resize', () => { if (canvas && scene !== 'title') { setupCanvas(); paintHudPortrait(); if (coopRuntime && scene === 'battle' && partner.active) paintPartnerHudPortrait() } })
 window.addEventListener('pointerdown', () => document.querySelector('#rotate-hint')?.classList.add('dismissed'), { once: true })
 document.querySelector('#rotate-dismiss')?.addEventListener('click', () => document.querySelector('#rotate-hint')?.classList.add('dismissed'))
+// 开发调试钩子：仅 dev 构建可用，正式包会被移除。
+if (import.meta.env.DEV) {
+  (window as unknown as { __cwDebug?: unknown }).__cwDebug = {
+    get game() { return game },
+    get scene() { return scene },
+    get foes() { return foes },
+    get heroX() { return heroX },
+    get unlockedWidth() { return unlockedWidth },
+    get waveArenaRight() { return waveArenaRight },
+    get superArmorActive() { return superArmorActive },
+    get superArmorCycle() { return superArmorCycle },
+    get noDamageTimer() { return noDamageTimer },
+    set noDamageTimer(value: number) { noDamageTimer = value },
+    get lastLog() { return logText },
+    get comboCount() { return comboCount },
+    get stats() { return stats() },
+    get shieldActive() { return shieldActive },
+    set shieldActive(value: boolean) { shieldActive = value },
+    set hp(value: number) { if (game) game.hp = value },
+    platformsForStage,
+    clampHeroX,
+    openTravelMerchant,
+    buyTravelMerchantOffer,
+    rollTravelMerchantOffer,
+    isTravelMerchantDay,
+    fashionVampirePct,
+    fashionArmorCooldown,
+    fashionGuardReduction,
+    activeFashionEffect,
+    shieldDamageMultiplier,
+    strike,
+    addComboHit,
+    takeComboHit,
+    cast,
+  }
+}
 void boot(); requestAnimationFrame(frame)
