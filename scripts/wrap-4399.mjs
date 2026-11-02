@@ -53,7 +53,63 @@ const wrapper = `<!doctype html>
         if (!frame.contentWindow || event.source !== frame.contentWindow) return;
         var data = event.data || {};
         if (!data || data.source !== 'cwzl-game') return;
-        if (data.type === 'rewarded-ad') {
+        var send = function (type, payload) {
+          try {
+            event.source.postMessage(Object.assign({ source: 'cwzl-host', type: type }, payload || {}), '*');
+          } catch (e) { /* ignore */ }
+        };
+        if (data.type === 'save-read') {
+          if (window.h5api && typeof window.h5api.save === 'function') {
+            try {
+              window.h5api.save({
+                type: 'read',
+                more: false,
+                title: data.title,
+                callback: function (res) {
+                  send('save-read-result', { code: res && res.code, data: res && res.data, message: res && (res.msg || res.message) });
+                },
+              });
+            } catch (err) {
+              send('save-read-result', { code: -1, data: null, message: String(err) });
+            }
+          } else {
+            send('save-read-result', { code: -1, data: null, message: '存档接口未加载' });
+          }
+        } else if (data.type === 'save-write') {
+          if (window.h5api && typeof window.h5api.save === 'function') {
+            try {
+              window.h5api.save({
+                type: 'write',
+                more: false,
+                title: data.title,
+                data: data.data,
+                callback: function (res) {
+                  send('save-write-result', { code: res && res.code, message: res && (res.msg || res.message) });
+                },
+              });
+            } catch (err) {
+              send('save-write-result', { code: -1, message: String(err) });
+            }
+          } else {
+            send('save-write-result', { code: -1, message: '存档接口未加载' });
+          }
+        } else if (data.type === 'rank-show') {
+          if (window.h5api && typeof window.h5api.showRankList === 'function') {
+            try { window.h5api.showRankList(); } catch (e) { /* ignore */ }
+          }
+        } else if (data.type === 'rank-submit') {
+          if (window.h5api && typeof window.h5api.submitRankScore === 'function') {
+            try {
+              window.h5api.submitRankScore(Number(data.rankId), Number(data.score), function (res) {
+                send('rank-submit-result', { code: res && res.code, data: res && res.data, message: res && (res.msg || res.message) });
+              });
+            } catch (err) {
+              send('rank-submit-result', { code: -1, message: String(err) });
+            }
+          } else {
+            send('rank-submit-result', { code: -1, message: '排行榜接口未加载' });
+          }
+        } else if (data.type === 'rewarded-ad') {
           var reply = function (code, message) {
             try {
               event.source.postMessage({ source: 'cwzl-host', type: 'rewarded-ad-result', code: code, message: message }, '*');
