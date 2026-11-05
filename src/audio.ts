@@ -135,6 +135,17 @@ const LONG_PROGRESSIONS: number[][] = [
   [0, 3, 5, 4, 2, 5, 3, 0, 4, 2],
   [0, 5, 3, 4, 2, 0, 5, 3, 4, 2],
 ]
+// 通用扩展：把只有一小节的标题/小镇音乐也换成 192 步长旋律与长和弦走向，
+// 循环长度从 3~4 秒提升到 30 秒以上，避免短循环的单调感。
+function lengthenMusic(cfg: MusicCfg, seed: number) {
+  cfg.leadLine = buildLongLeadLine(seed, cfg.scale)
+  cfg.counterLine = buildLongLeadLine(seed + 30, cfg.scale)
+  cfg.counterSteps = [4, 12]
+  cfg.progression = LONG_PROGRESSIONS[seed % LONG_PROGRESSIONS.length]
+  cfg.padSteps = [0, 8]
+}
+lengthenMusic(TITLE_MUSIC, 2)
+lengthenMusic(TOWN_MUSIC, 4)
 // 十个关卡各自的主旋律：不同调式、速度、和弦走向与节奏型。
 const STAGE_MUSIC: MusicCfg[] = [
   {
