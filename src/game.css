@@ -229,6 +229,30 @@ button, .mobile-pad, .mobile-skill, [data-move], [data-shield] {
 .delete-confirm-actions .slot-cancel, .delete-confirm-button { min-width: 86px; padding: 0 12px; border-radius: 2px; font-size: 10px; }
 .delete-confirm-button { min-height: 36px; border: 1px solid rgba(220, 130, 103, .55); background: rgba(126, 57, 49, .48); color: #ffd0bd; cursor: pointer; }
 .delete-confirm-button:hover { border-color: #e18a70; background: rgba(150, 65, 53, .7); }
+/* 标题页两步入口：继续存档 / 新建存档 */
+.title-entries { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; max-width: none; }
+.title-entry { min-height: 96px; display: flex; align-items: center; gap: 16px; padding: 16px 18px; border: 1px solid rgba(198, 202, 175, .19); border-radius: 3px; background: rgba(31, 49, 48, .76); color: #dfe0d0; text-align: left; cursor: pointer; transition: border-color .2s, transform .2s, background .2s; }
+.title-entry:hover:not(:disabled) { transform: translateY(-2px); border-color: #b7b78e; background: #263b37; }
+.title-entry.continue { border-color: rgba(201, 178, 115, .5); background: rgba(86, 73, 38, .32); }
+.title-entry:disabled { opacity: .45; cursor: not-allowed; }
+.title-entry b { width: 48px; height: 48px; display: grid; place-items: center; border: 1px solid rgba(218, 193, 131, .38); color: #d7bf83; font-size: 22px; font-weight: 400; }
+.title-entry span { flex: 1; display: grid; gap: 5px; }
+.title-entry strong { font-size: 18px; font-weight: 500; }
+.title-entry small { color: #95a198; font-size: 11px; }
+.title-entry i { color: #c4b273; font-style: normal; }
+.title-new-head { display: flex; align-items: center; gap: 12px; margin: 0 0 12px; color: #c9b273; font-size: 12px; }
+.title-new-head .secondary { min-height: 34px; padding: 0 12px; font-size: 11px; }
+/* 独立存档面板：6 个槽位双列排布，无需滚动 */
+.slot-panel { width: min(880px, 94vw); max-height: none; }
+.slot-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.slot-grid .save-slot { min-height: 56px; }
+.slot-grid .save-slot.is-empty { border-style: dashed; opacity: .72; }
+.slot-panel-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 2px; }
+.slot-panel-actions .primary, .slot-panel-actions .slot-cancel { min-width: 104px; padding: 0 16px; border-radius: 2px; font-size: 11px; }
+@media (max-width: 760px) {
+  .title-entries, .slot-grid { grid-template-columns: 1fr; }
+  .slot-panel { max-height: calc(100dvh - 24px); overflow-y: auto; }
+}
 .bag-button { min-height: 31px; margin-left: 15px; padding: 0 10px; border: 1px solid var(--line); border-radius: 2px; background: #203332; color: #d4d3c0; font-size: 10px; cursor: pointer; }
 .bag-button span { margin-left: 5px; color: #cdb676; font-family: var(--mono); }
 .pause-button { min-height: 31px; margin-left: 9px; padding: 0 9px; border: 1px solid var(--line); border-radius: 2px; background: #203332; color: #d4d3c0; font-size: 9px; cursor: pointer; }
@@ -880,16 +904,16 @@ body { background: #0d1717; }
 .hud-bag .item-icon, .hud-forge .item-icon { width: 30px; height: 30px; }
 .hud-bag b, .hud-forge b { color: #e4dfc8; font-size: 14px; font-weight: 600; }
 .hud-bag > #hud-bag-count { top: -8px; right: -8px; min-width: 22px; height: 22px; line-height: 22px; font-size: 11px; }
-/* 右上移开，避免被 4399 测试角标等平台浮层挡住 */
-.hud-rank-fab { position: absolute; right: 16px; bottom: 86px; z-index: 4; display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 0 16px; border: 1px solid rgba(201, 178, 115, .5); border-radius: 6px; background: rgba(18, 34, 32, .82); color: #e8d7a0; font-size: 12px; cursor: pointer; backdrop-filter: blur(8px); box-shadow: 0 10px 28px rgba(0, 0, 0, .35); }
+/* 与左下角炉子按钮同尺寸、同一水平线 */
+.hud-rank-fab { position: absolute; right: 16px; bottom: 16px; z-index: 4; width: 116px; min-height: 96px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 10px 8px; border: 1px solid rgba(201, 178, 115, .5); border-radius: 6px; background: rgba(18, 34, 32, .82); color: #e8d7a0; font-size: 28px; line-height: 1; cursor: pointer; backdrop-filter: blur(8px); box-shadow: 0 10px 28px rgba(0, 0, 0, .35); }
 .hud-rank-fab:hover { border-color: #c9b273; background: #29423c; }
-.hud-rank-fab b { color: #e4dfc8; font-size: 12px; font-weight: 500; }
+.hud-rank-fab b { color: #e4dfc8; font-size: 14px; font-weight: 600; line-height: 1.2; }
 @media (max-width: 760px) {
-  .hud-rank-fab { right: 10px; bottom: 176px; min-height: 38px; padding: 0 11px; font-size: 10px; }
+  .hud-rank-fab { right: 10px; bottom: 176px; width: 50px; min-height: 64px; padding: 5px 3px; font-size: 19px; }
   .hud-rank-fab b { font-size: 10px; }
 }
 @media (pointer: coarse) and (orientation: landscape) and (max-height: 560px) {
-  .hud-rank-fab { right: 10px; bottom: 120px; }
+  .hud-rank-fab { right: 8px; bottom: 142px; width: 44px; min-height: 58px; font-size: 17px; }
 }
 .bag-dialog { width: min(92vw, 920px); max-height: 96dvh; padding: 22px; overflow-y: auto; }
 .bag-scrim { padding: 10px; }
@@ -1179,6 +1203,29 @@ body { background: #0d1717; }
   .equip-slot-copy b { font-size: 10px; }
 }
 .bag-content .bag-list { overflow: visible; padding-right: 0; }
+/* 背包：一行 4 个装备框，每页 8 个，翻页不滚动 */
+.bag-content.is-paged { overflow: hidden; }
+.gear-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.gear-card { display: flex; flex-direction: column; gap: 5px; min-width: 0; min-height: 116px; padding: 8px; border: 1px solid rgba(198, 202, 175, .17); background: rgba(31, 49, 48, .78); cursor: grab; }
+.gear-card:hover { border-color: rgba(201, 178, 115, .55); background: rgba(42, 60, 52, .92); }
+.gear-card.is-equipped { border-color: rgba(226, 197, 126, .62); background: rgba(66, 56, 30, .38); }
+.gear-card-head { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+.gear-card .gear-glyph { width: 32px; height: 32px; }
+.gear-card .gear-glyph .item-icon { width: 22px; height: 22px; }
+.gear-card-badge { color: #9ba79d; font-family: var(--mono); font-size: 8px; white-space: nowrap; }
+.gear-card-name { overflow: hidden; color: #e6e2d2; font-size: 11px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+.gear-card-stats { overflow: hidden; color: #93a297; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+.gear-card-actions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: auto; }
+.gear-card-actions button { flex: 1 1 auto; min-width: 34px; min-height: 24px; padding: 0 4px; border: 1px solid rgba(188, 192, 159, .23); border-radius: 2px; background: transparent; color: #d7d3bc; font-size: 8px; cursor: pointer; }
+.gear-card-actions button:hover:not(:disabled) { border-color: #b7b78e; background: #263b37; }
+.gear-card-actions button:disabled { opacity: .5; cursor: not-allowed; }
+.gear-card-actions .gear-sell { border-color: rgba(220, 130, 103, .4); color: #e8b39e; }
+.gear-card-actions .gear-status { flex: 1 1 auto; padding: 4px 0; color: #c9b273; font-size: 8px; font-style: normal; }
+.page-flip { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 8px; }
+.page-flip button { width: 32px; height: 28px; border: 1px solid rgba(201, 178, 115, .45); background: rgba(31, 49, 48, .55); color: #e4d6a8; font-size: 16px; line-height: 1; cursor: pointer; }
+.page-flip button:hover:not(:disabled) { border-color: #e2c57e; background: rgba(66, 56, 30, .55); }
+.page-flip button:disabled { opacity: .3; cursor: not-allowed; }
+.page-flip span { color: #a99a6e; font-family: var(--mono); font-size: 10px; letter-spacing: .1em; }
 .bag-figure .bag-preview canvas { max-height: 52dvh; width: auto; max-width: 100%; }
 /* ── 1.76 装备点击 / 武器图标 / 左下角快捷入口 ─────────── */
 .equip-slot.filled { cursor: pointer; }
@@ -1286,6 +1333,25 @@ body { background: #0d1717; }
 .quest-book-nav button:hover:not(:disabled) { border-color: #e2c57e; background: rgba(66, 56, 30, .55); }
 .quest-book-nav button:disabled { opacity: .3; cursor: not-allowed; }
 .quest-book-nav span { color: #a99a6e; font-family: var(--mono); font-size: 12px; letter-spacing: .12em; }
+/* 商店：双页书本 + 翻页，1280×720 内不滚动 */
+.shop-dialog { width: min(96vw, 1040px); overflow: hidden; }
+.shop-book { margin-top: 0; }
+.shop-book .quest-book-page { min-height: 0; gap: 7px; padding: 20px 24px 14px; }
+.shop-book-left .shop-categories { margin: 2px 0 0; }
+.shop-book-left .ad-reward-panel { margin: 0; }
+.shop-book-left .purchase-result { margin: 0; }
+.shop-currency { flex-wrap: wrap; }
+.shop-book-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.shop-book-head span { color: #8fa79a; font-family: var(--mono); font-size: 10px; }
+.shop-book-list { flex: 1; min-height: 0; display: grid; align-content: center; gap: 6px; }
+.shop-book-list .shop-row { min-height: 56px; padding: 7px 9px; grid-template-columns: 30px minmax(0, 1fr) auto auto; }
+.shop-book-list .shop-row .gear-glyph { width: 30px; height: 30px; }
+.shop-book-list .shop-row .gear-glyph .item-icon { width: 20px; height: 20px; }
+.shop-book-list .shop-row .gear-copy b { font-size: 11px; }
+.shop-book-list .shop-row .gear-copy small { font-size: 9px; }
+.shop-book-list .shop-row button { min-width: 46px; min-height: 28px; font-size: 9px; }
+.shop-book-list .empty-gear { align-self: center; }
+.shop-book + .quest-book-nav { margin: 6px 0 8px; }
 .quest-book-action { gap: 8px; }
 .quest-book-action .quest-abandon { flex: 0 0 auto; padding: 0 16px; border-color: rgba(200, 120, 100, .4); background: transparent; color: #e0a090; }
 /* ── 排行榜 ───────────────────────────────────────── */
@@ -1600,6 +1666,9 @@ body { background: #0d1717; }
 }
 
 @media (max-height: 800px) and (min-width: 761px) {
+  /* 4399 固定 1280×720：页面本身不滚动，所有面板用内部翻页/固定布局。 */
+  html, body { overflow: hidden; }
+  .title-screen { overflow-y: hidden; }
   .title-copy { justify-content: center; padding-top: 20px; padding-bottom: 20px; }
   .title-copy h1 { margin: 14px 0 10px; font-size: clamp(42px, 4.8vw, 60px); }
   .title-copy .intro { font-size: 18px; line-height: 1.6; margin-bottom: 10px; }
@@ -1618,8 +1687,10 @@ body { background: #0d1717; }
   .class-card strong { font-size: 16px; }
   .class-card small { font-size: 12px; }
   .title-copy footer { margin-top: 22px; font-size: 10px; }
-  .saved-slots { max-height: 128px; overflow-y: auto; margin-top: 12px; }
-  .save-slot { min-height: 56px; padding: 9px 12px; }
+  /* 存档槽位改为双列，最多 6 个也能在 1280×720 内一次显示完，不需要滚动。 */
+  .saved-slots { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px 8px; max-height: none; overflow: visible; margin-top: 12px; }
+  .saved-slots .slots-heading { grid-column: 1 / -1; }
+  .save-slot { min-height: 50px; padding: 7px 10px; }
   .save-slot b { font-size: 13px; }
   .save-slot small { font-size: 10px; }
   .save-resume, .save-delete { min-height: 34px; font-size: 11px; }
@@ -2041,3 +2112,59 @@ body { background: #0d1717; }
 .mail-entry .mail-delete:hover { border-color: #ffb9a3; background: rgba(140, 70, 58, .42); }
 
 .craft-dialog { position: relative; }
+/* 体验版天气选择器 */
+.demo-weather-picker { display: flex; gap: 8px; margin: 6px 0 9px; }
+.demo-weather-picker label { flex: 1; display: flex; flex-direction: column; gap: 3px; color: #9fb0a3; font-size: 10px; }
+.demo-weather-picker select { min-height: 30px; padding: 0 8px; border: 1px solid rgba(201, 178, 115, .4); background: rgba(12, 24, 26, .82); color: #e8d7a0; font-size: 11px; }
+/* 高阶武器图标：阶级越高，光效越强 */
+.item-icon.weapon-tier-3 { filter: drop-shadow(0 0 3px rgba(255, 220, 140, .45)); }
+.item-icon.weapon-tier-4 { filter: drop-shadow(0 0 4px rgba(255, 214, 120, .6)) drop-shadow(0 0 8px rgba(255, 170, 90, .25)); }
+.item-icon.weapon-tier-5 { filter: drop-shadow(0 0 6px rgba(255, 228, 160, .75)) drop-shadow(0 0 12px rgba(255, 170, 90, .4)); }
+.item-icon.weapon-tier-6 { filter: drop-shadow(0 0 8px rgba(255, 242, 190, .9)) drop-shadow(0 0 16px rgba(200, 150, 255, .55)); }
+/* 宝石背包为空时只显示孔位面板，避免右侧大片留白 */
+.gem-layout.gem-layout-empty { grid-template-columns: 1fr; }
+.gem-empty-note { margin-top: 10px; text-align: center; color: #9fb0a3; }
+/* 小镇天气预报板 */
+.forecast-dialog { width: min(760px, 92vw); max-height: 88vh; overflow-y: auto; }
+.forecast-now { margin: 6px 0 10px; color: #d7c79a; font-size: 13px; }
+.forecast-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 7px; margin: 12px 0; }
+.forecast-cell { display: grid; gap: 3px; padding: 8px 6px; border: 1px solid rgba(191, 202, 169, .2); border-radius: 3px; background: rgba(20, 35, 35, .6); text-align: center; }
+.forecast-cell small { color: #9fb0a3; font-family: var(--mono); font-size: 10px; }
+.forecast-cell b { color: #e4d6a8; font-size: 11px; font-weight: 500; }
+.forecast-cell.now { border-color: rgba(226, 197, 126, .68); background: rgba(80, 64, 32, .58); }
+@media (max-width: 760px) { .forecast-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+/* 技能觉醒界面 */
+.awaken-dialog { width: min(680px, 92vw); }
+.awaken-weapon { margin: 4px 0 10px; color: #d7c79a; font-size: 12px; }
+.awaken-list { display: grid; gap: 8px; margin: 10px 0 12px; }
+.awaken-row { display: grid; grid-template-columns: 30px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid rgba(191, 202, 169, .22); border-radius: 5px; background: rgba(20, 35, 35, .6); }
+.awaken-row > b { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(201, 178, 115, .5); color: #e8d7a0; font-family: var(--mono); font-size: 12px; }
+.awaken-row strong { display: block; color: #e4d6a8; font-size: 13px; }
+.awaken-row small { display: block; margin-top: 3px; color: #9fb0a3; font-size: 11px; line-height: 1.45; }
+.awaken-row.is-awakened { border-color: rgba(226, 197, 126, .55); background: rgba(80, 64, 32, .5); }
+.awaken-row .awakened, .awaken-row .locked { color: #e8d7a0; font-size: 11px; font-style: normal; }
+.awaken-row .locked { color: #7f8c84; }
+.awaken-row button { min-height: 32px; padding: 0 14px; border: 1px solid rgba(201, 178, 115, .5); background: rgba(18, 34, 32, .82); color: #e8d7a0; font-size: 12px; cursor: pointer; }
+.awaken-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.awaken-actions .secondary { flex: 1; }
+@media (max-width: 760px) { .awaken-row { grid-template-columns: 26px 1fr; } .awaken-row > button, .awaken-row > i { grid-column: 1 / -1; justify-self: start; } }
+.awaken-row .progress { color: #9fc8e8; font-size: 11px; font-style: normal; font-family: var(--mono); }
+/* 时间回廊：觉醒任务追踪与目标行 */
+.awaken-tracker { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); display: grid; gap: 2px; justify-items: center; padding: 8px 18px; border: 1px solid rgba(191, 202, 169, .45); border-radius: 5px; background: rgba(12, 24, 30, .85); text-align: center; z-index: 5; pointer-events: none; }
+.awaken-tracker small { color: #9fb0a3; font-size: 9px; letter-spacing: .12em; }
+.awaken-tracker b { color: #e8d7a0; font-size: 14px; }
+.awaken-tracker span { color: #9fc8e8; font-family: var(--mono); font-size: 13px; }
+.awaken-tracker i { color: #8a9a90; font-size: 9px; font-style: normal; }
+.awaken-target { margin: 4px 0 10px; padding: 6px 10px; border-left: 2px solid #c9b273; background: rgba(80, 64, 32, .35); color: #d7c79a; font-size: 11px; }
+.awaken-state { display: flex; align-items: center; gap: 8px; }
+.awaken-row button.off { opacity: .72; }
+.awaken-row.is-target { border-color: rgba(159, 200, 232, .6); background: rgba(24, 46, 64, .6); }
+/* 技能面板：觉醒状态 */
+.skill-awaken-tag { display: inline-block; margin-left: 6px; padding: 1px 5px; border: 1px solid rgba(226, 197, 126, .6); border-radius: 3px; color: #e8d7a0; font-size: 9px; font-style: normal; vertical-align: middle; }
+.skill-awaken-tag.off { border-color: rgba(140, 150, 140, .35); color: #8a9a90; }
+.skill-card.is-awakened-skill { border-color: rgba(226, 197, 126, .5); box-shadow: inset 0 0 30px rgba(226, 197, 126, .08); }
+/* 后羿 / 云朵剩余时间 */
+.hud-sky-buffs { position: absolute; top: 56px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 4; pointer-events: none; }
+.sky-buff { padding: 3px 10px; border-radius: 999px; font-size: 11px; font-family: var(--mono); backdrop-filter: blur(6px); }
+.sky-buff.houyi { border: 1px solid rgba(255, 207, 106, .65); background: rgba(80, 52, 18, .78); color: #ffe6a8; }
+.sky-buff.cloud { border: 1px solid rgba(160, 210, 255, .6); background: rgba(24, 46, 64, .78); color: #d6ecff; }
