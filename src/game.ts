@@ -69,6 +69,7 @@ const UPDATE_NOTES = [
   '存档槽位由 4 个增加到 6 个；已有存档原样保留，可继续新建到 6 个。',
   '新增独立存档界面：标题页可选择「继续存档」或「新建存档」，存档面板双列展示全部槽位，无需滚动。',
   '商店改为双页书页式界面，商品每页 4 件、可翻页；背包改为一格一件装备、每行 4 格、每页 8 件，可翻页查看。',
+  '背包角色属性移到左侧立绘下方，装备卡片文字放大并显示两行详情。',
   '旅行商人移到小镇地图最右侧，不再与天气预报板重叠；「换一件」每天最多 2 次，重新打开商人不会免费换货。',
   '第 1 关难度下调，小怪与 Boss 血量、攻击、防御降低；1~10 关血量曲线改为前期平缓、后期涨幅更大。',
   'Boss 的命中成长略高于闪避成长（约 1.1 倍），高闪避角色仍会被少量命中。',
@@ -85,7 +86,7 @@ const PUBLIC_UPDATE_NOTES = [
   '战斗平台、空中/地面命中判定与复活规则优化。',
   '新增更新赠礼邮件：硬币 ×1000 与复活币 ×1。',
   '存档槽位增加到 6 个，并新增「继续存档 / 新建存档」两步界面。',
-  '商店改为书页翻页，背包改为一格一件装备、每行 4 格并可翻页。',
+  '商店改为书页翻页，背包改为一格一件装备、每行 4 格并可翻页；属性移到立绘下方，卡片文字放大。',
   '旅行商人移至小镇最右侧，换货每天最多 2 次。',
   '第 1 关难度下调，1~10 关血量曲线前期平缓、后期涨幅更大。',
   'Boss 命中成长略高于闪避成长。',
@@ -5523,7 +5524,7 @@ function bagMarkup() {
     : ''
   const hpNow = p2Active ? partner.hp : game.hp
   const mpNow = p2Active ? partner.mp : game.mp
-  return `<div class="bag-scrim"><section class="bag-dialog bag-dialog-wide"><header><div><small>INVENTORY · ${game.gear.length} 件物品${p2Active ? ' · 玩家二' : ''}</small><h2>${p2Active ? '玩家二背包' : '远征背包'}</h2>${playerSwitch}</div><button data-action="close-bag" aria-label="关闭背包">×</button></header><div class="bag-body"><section class="bag-figure"><div class="bag-preview"><canvas id="bag-portrait" width="300" height="420" aria-label="角色全身预览"></canvas></div><div class="equip-slots">${bagEquipSlot('weapon', main, '主武器', '拖入武器')}${bagEquipSlot('armor', armor, '护甲', '拖入护甲')}${bagEquipSlot('fashion', fashion, '时装', '拖入时装')}${p2Active ? '' : bagEquipSlot('ring', ring, '戒指', '拖入戒指')}${extraUnlocked ? bagEquipSlot('extra', extraGear, extraLabel, '拖入装备（仅属性）') : ''}</div></section><section class="bag-side"><div class="bag-stats"><span>♥ 生命 ${displayNumber(hpNow)} / ${displayNumber(s.hp)}</span><span>✦ 法力 ${displayNumber(mpNow)} / ${displayNumber(s.mp)}</span><span>⚔ 攻击 ${displayNumber(s.attack)}</span><span>▰ 防御 ${displayNumber(s.defense)}</span><span>◎ 命中 ${displayNumber(s.hit ?? 0)}</span><span>◇ 闪避 ${displayNumber(s.dodge ?? 0)}</span><span>★ 等级 ${game.level ?? 1}</span></div><div class="bag-equipped">${chips}</div><div class="bag-tabs">${tabButtons}</div><div class="bag-content${bagTab === 'gear' ? ' is-paged' : ''}">${content}</div></section></div></section></div>`
+  return `<div class="bag-scrim"><section class="bag-dialog bag-dialog-wide"><header><div><small>INVENTORY · ${game.gear.length} 件物品${p2Active ? ' · 玩家二' : ''}</small><h2>${p2Active ? '玩家二背包' : '远征背包'}</h2>${playerSwitch}</div><button data-action="close-bag" aria-label="关闭背包">×</button></header><div class="bag-body"><section class="bag-figure"><div class="bag-portrait-column"><div class="bag-preview"><canvas id="bag-portrait" width="300" height="420" aria-label="角色全身预览"></canvas></div><div class="bag-stats"><span>♥ 生命 ${displayNumber(hpNow)} / ${displayNumber(s.hp)}</span><span>✦ 法力 ${displayNumber(mpNow)} / ${displayNumber(s.mp)}</span><span>⚔ 攻击 ${displayNumber(s.attack)}</span><span>▰ 防御 ${displayNumber(s.defense)}</span><span>◎ 命中 ${displayNumber(s.hit ?? 0)}</span><span>◇ 闪避 ${displayNumber(s.dodge ?? 0)}</span><span>★ 等级 ${game.level ?? 1}</span></div></div><div class="equip-slots">${bagEquipSlot('weapon', main, '主武器', '拖入武器')}${bagEquipSlot('armor', armor, '护甲', '拖入护甲')}${bagEquipSlot('fashion', fashion, '时装', '拖入时装')}${p2Active ? '' : bagEquipSlot('ring', ring, '戒指', '拖入戒指')}${extraUnlocked ? bagEquipSlot('extra', extraGear, extraLabel, '拖入装备（仅属性）') : ''}</div></section><section class="bag-side"><div class="bag-equipped">${chips}</div><div class="bag-tabs">${tabButtons}</div><div class="bag-content${bagTab === 'gear' ? ' is-paged' : ''}">${content}</div></section></div></section></div>`
 }
 // 将右侧装备拖入左侧装备框：武器 / 护甲 / 时装 / 高级天赋的额外属性框。
 function dropGearToSlot(id: string | undefined, slot: string | undefined) {

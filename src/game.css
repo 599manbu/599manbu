@@ -319,7 +319,7 @@ button, .mobile-pad, .mobile-skill, [data-move], [data-shield] {
 .bag-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
 .bag-stats span { color: #b9c3b3; font-family: var(--mono); font-size: 8px; white-space: nowrap; }
 .bag-equipped { display: flex; flex-wrap: wrap; gap: 5px; }
-.bag-equipped span { display: inline-flex; align-items: center; gap: 4px; padding: 3px 6px; border: 1px solid rgba(198, 202, 175, .16); color: #aeb8a6; font-size: 8px; }
+.bag-equipped span { display: inline-flex; align-items: center; gap: 4px; padding: 4px 7px; border: 1px solid rgba(198, 202, 175, .16); color: #b9c4b2; font-size: 10px; }
 .bag-equipped .item-icon { width: 12px; height: 12px; }
 .bag-info-list { display: grid; gap: 7px; margin-top: 8px; }
 .info-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px; border: 1px solid rgba(198, 202, 175, .16); background: rgba(43, 60, 54, .44); color: #b9c3b3; font-size: 10px; }
@@ -1168,6 +1168,10 @@ body { background: #0d1717; }
 .bag-dialog-wide { width: min(96vw, 1120px); overflow: hidden; }
 .bag-body { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr); gap: 16px; flex: 1; min-height: 0; margin-top: 12px; }
 .bag-figure { display: grid; grid-template-columns: minmax(0, 1fr) 170px; gap: 10px; align-items: start; padding: 10px; border: 1px solid var(--line); background: rgba(43, 60, 54, .35); }
+.bag-portrait-column { display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 0; }
+.bag-portrait-column .bag-preview { min-height: 0; }
+.bag-portrait-column .bag-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px 12px; padding: 9px 11px; border: 1px solid rgba(201, 178, 115, .22); background: rgba(12, 24, 24, .42); }
+.bag-portrait-column .bag-stats span { color: #ccd5c7; font-size: 11px; }
 .bag-figure .bag-preview { min-height: 100%; }
 .bag-figure .bag-preview canvas { width: 100%; height: auto; }
 .equip-slots { display: grid; gap: 8px; }
@@ -1206,21 +1210,21 @@ body { background: #0d1717; }
 /* 背包：一行 4 个装备框，每页 8 个，翻页不滚动 */
 .bag-content.is-paged { overflow: hidden; }
 .gear-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.gear-card { display: flex; flex-direction: column; gap: 5px; min-width: 0; min-height: 116px; padding: 8px; border: 1px solid rgba(198, 202, 175, .17); background: rgba(31, 49, 48, .78); cursor: grab; }
+.gear-card { display: flex; flex-direction: column; gap: 6px; min-width: 0; min-height: 136px; padding: 10px; border: 1px solid rgba(198, 202, 175, .17); background: rgba(31, 49, 48, .78); cursor: grab; }
 .gear-card:hover { border-color: rgba(201, 178, 115, .55); background: rgba(42, 60, 52, .92); }
 .gear-card.is-equipped { border-color: rgba(226, 197, 126, .62); background: rgba(66, 56, 30, .38); }
 .gear-card-head { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
-.gear-card .gear-glyph { width: 32px; height: 32px; }
-.gear-card .gear-glyph .item-icon { width: 22px; height: 22px; }
-.gear-card-badge { color: #9ba79d; font-family: var(--mono); font-size: 8px; white-space: nowrap; }
-.gear-card-name { overflow: hidden; color: #e6e2d2; font-size: 11px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
-.gear-card-stats { overflow: hidden; color: #93a297; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+.gear-card .gear-glyph { width: 36px; height: 36px; }
+.gear-card .gear-glyph .item-icon { width: 24px; height: 24px; }
+.gear-card-badge { color: #aeb9ac; font-family: var(--mono); font-size: 9px; white-space: nowrap; }
+.gear-card-name { overflow: hidden; color: #e6e2d2; font-size: 13px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+.gear-card-stats { display: -webkit-box; overflow: hidden; color: #a7b3a8; font-size: 10px; line-height: 1.35; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .gear-card-actions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: auto; }
-.gear-card-actions button { flex: 1 1 auto; min-width: 34px; min-height: 24px; padding: 0 4px; border: 1px solid rgba(188, 192, 159, .23); border-radius: 2px; background: transparent; color: #d7d3bc; font-size: 8px; cursor: pointer; }
+.gear-card-actions button { flex: 1 1 auto; min-width: 34px; min-height: 28px; padding: 0 6px; border: 1px solid rgba(188, 192, 159, .23); border-radius: 2px; background: transparent; color: #d7d3bc; font-size: 10px; cursor: pointer; }
 .gear-card-actions button:hover:not(:disabled) { border-color: #b7b78e; background: #263b37; }
 .gear-card-actions button:disabled { opacity: .5; cursor: not-allowed; }
 .gear-card-actions .gear-sell { border-color: rgba(220, 130, 103, .4); color: #e8b39e; }
-.gear-card-actions .gear-status { flex: 1 1 auto; padding: 4px 0; color: #c9b273; font-size: 8px; font-style: normal; }
+.gear-card-actions .gear-status { flex: 1 1 auto; padding: 5px 0; color: #c9b273; font-size: 10px; font-style: normal; }
 .page-flip { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 8px; }
 .page-flip button { width: 32px; height: 28px; border: 1px solid rgba(201, 178, 115, .45); background: rgba(31, 49, 48, .55); color: #e4d6a8; font-size: 16px; line-height: 1; cursor: pointer; }
 .page-flip button:hover:not(:disabled) { border-color: #e2c57e; background: rgba(66, 56, 30, .55); }
@@ -1262,7 +1266,7 @@ body { background: #0d1717; }
 .story-log-note { margin: 0; padding: 8px 11px; border: 1px dashed rgba(191, 202, 169, .25); color: #9fb0a3; font-size: 10px; line-height: 1.7; }
 /* ── 背包分类 / 独立技能面板 ─────────────────────── */
 .bag-filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
-.bag-filters button { flex: 1 1 60px; min-height: 30px; border: 1px solid var(--line); background: rgba(31, 49, 48, .5); color: #9ba79d; font-size: 10px; cursor: pointer; }
+.bag-filters button { flex: 1 1 60px; min-height: 32px; border: 1px solid var(--line); background: rgba(31, 49, 48, .5); color: #9ba79d; font-size: 11px; cursor: pointer; }
 .bag-filters button:hover { border-color: #b7b78e; }
 .bag-filters button.active { border-color: rgba(201, 178, 115, .65); background: rgba(201, 178, 115, .16); color: #f0dfb2; }
 .skill-panel-dialog { width: min(96vw, 980px); max-height: 96dvh; overflow-y: auto; }
