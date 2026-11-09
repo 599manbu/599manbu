@@ -70,6 +70,7 @@ const UPDATE_NOTES = [
   '新增独立存档界面：标题页可选择「继续存档」或「新建存档」，存档面板双列展示全部槽位，无需滚动。',
   '商店改为双页书页式界面，商品每页 4 件、可翻页；背包改为一格一件装备、每行 4 格、每页 8 件，可翻页查看。',
   '背包角色属性移到左侧立绘下方，装备卡片文字放大并显示两行详情。',
+  '背包取消「天赋币」分页，天赋币与碎片合并到「其他」；「宝石」与「其他」也改为卡片网格并显示各自图标。',
   '旅行商人移到小镇地图最右侧，不再与天气预报板重叠；「换一件」每天最多 2 次，重新打开商人不会免费换货。',
   '第 1 关难度下调，小怪与 Boss 血量、攻击、防御降低；1~10 关血量曲线改为前期平缓、后期涨幅更大。',
   'Boss 的命中成长略高于闪避成长（约 1.1 倍），高闪避角色仍会被少量命中。',
@@ -87,6 +88,7 @@ const PUBLIC_UPDATE_NOTES = [
   '新增更新赠礼邮件：硬币 ×1000 与复活币 ×1。',
   '存档槽位增加到 6 个，并新增「继续存档 / 新建存档」两步界面。',
   '商店改为书页翻页，背包改为一格一件装备、每行 4 格并可翻页；属性移到立绘下方，卡片文字放大。',
+  '天赋币与碎片并入「其他」，宝石与其他页也改为卡片网格。',
   '旅行商人移至小镇最右侧，换货每天最多 2 次。',
   '第 1 关难度下调，1~10 关血量曲线前期平缓、后期涨幅更大。',
   'Boss 命中成长略高于闪避成长。',
@@ -1180,12 +1182,13 @@ let bagOpen = false
 let hornPickerOpen = false
 let hornAnimUntil = 0
 let hornAnimTimeout: number | null = null
-let bagTab: 'gear' | 'gems' | 'talent' | 'other' = 'gear'
+let bagTab: 'gear' | 'gems' | 'other' = 'gear'
 let bagGearFilter: 'all' | 'weapon' | 'armor' | 'fashion' | 'ring' = 'all'
 // 背包装备每行 4 个框，每页 2 行；商店书页每页 5 件商品。
 const GEAR_PAGE_SIZE = 8
 const SHOP_PAGE_SIZE = 4
 let bagGearPage = 0
+let bagGemPage = 0
 let craftingOpen = false
 let forgeSlots: string[] = []
 let forgeTab: 'gear' | 'special' | 'stone' | 'punch' = 'gear'
@@ -5506,7 +5509,7 @@ function bagMarkup() {
     `${gearIcon(fashion)} ${fashion ? `${fashion.name}${fashion.fashionEffect ? ` · ${fashionEffectName(fashion.fashionEffect)}` : ''}` : '无时装'}`,
     ring ? `${gearIcon(ring)} ${ring.name} · 命中 +${ring.hit ?? 0} · 闪避 +${ring.dodge ?? 0}` : '',
   ].filter(Boolean).map((text) => `<span>${text}</span>`).join('')
-  const tabs = [['gear', `${itemIcon('weapon')} 装备`], ['gems', `${itemIcon('gem')} 宝石`], ['talent', `${itemIcon('coin')} 天赋币`], ['other', `${itemIcon('soul')} 其他`]] as const
+  const tabs = [['gear', `${itemIcon('weapon')} 装备`], ['gems', `${itemIcon('gem')} 宝石`], ['other', `${itemIcon('soul')} 其他`]] as const
   const tabButtons = tabs.map(([id, label]) => `<button class="${bagTab === id ? 'active' : ''}" data-action="bag-tab" data-tab="${id}" type="button">${label}</button>`).join('')
   const filters: Array<{ id: 'all' | 'weapon' | 'armor' | 'fashion' | 'ring'; label: string }> = [
     { id: 'all', label: '全部' }, { id: 'weapon', label: '武器' }, { id: 'armor', label: '护甲' }, { id: 'ring', label: '戒指' }, { id: 'fashion', label: '时装' },
@@ -5514,7 +5517,7 @@ function bagMarkup() {
   const filterMarkup = `<div class="bag-filters">${filters.map((entry) => `<button class="${bagGearFilter === entry.id ? 'active' : ''}" data-action="bag-filter" data-filter="${entry.id}" type="button">${entry.label}</button>`).join('')}</div>`
   const content = bagTab === 'gear'
     ? `${filterMarkup}${gearMarkup(scene === 'town', bagGearFilter)}`
-    : bagTab === 'gems' ? gemBagMarkup() : bagTab === 'talent' ? talentBagMarkup() : otherBagMarkup()
+    : bagTab === 'gems' ? gemBagMarkup() : otherBagMarkup()
   // 高级天赋（双持专精）额外开放第 4 个装备框；玩家二没有额外槽位。
   const extraUnlocked = !p2Active && game.advancedTalent === 3 && advancedTalentLevel() >= 1
   const extraGear = game.extraSlot === 'armor' ? armor2 : (game.extraSlot === 'weapon' && dualWieldUnlocked() ? off : undefined)
@@ -5524,7 +5527,7 @@ function bagMarkup() {
     : ''
   const hpNow = p2Active ? partner.hp : game.hp
   const mpNow = p2Active ? partner.mp : game.mp
-  return `<div class="bag-scrim"><section class="bag-dialog bag-dialog-wide"><header><div><small>INVENTORY · ${game.gear.length} 件物品${p2Active ? ' · 玩家二' : ''}</small><h2>${p2Active ? '玩家二背包' : '远征背包'}</h2>${playerSwitch}</div><button data-action="close-bag" aria-label="关闭背包">×</button></header><div class="bag-body"><section class="bag-figure"><div class="bag-portrait-column"><div class="bag-preview"><canvas id="bag-portrait" width="300" height="420" aria-label="角色全身预览"></canvas></div><div class="bag-stats"><span>♥ 生命 ${displayNumber(hpNow)} / ${displayNumber(s.hp)}</span><span>✦ 法力 ${displayNumber(mpNow)} / ${displayNumber(s.mp)}</span><span>⚔ 攻击 ${displayNumber(s.attack)}</span><span>▰ 防御 ${displayNumber(s.defense)}</span><span>◎ 命中 ${displayNumber(s.hit ?? 0)}</span><span>◇ 闪避 ${displayNumber(s.dodge ?? 0)}</span><span>★ 等级 ${game.level ?? 1}</span></div></div><div class="equip-slots">${bagEquipSlot('weapon', main, '主武器', '拖入武器')}${bagEquipSlot('armor', armor, '护甲', '拖入护甲')}${bagEquipSlot('fashion', fashion, '时装', '拖入时装')}${p2Active ? '' : bagEquipSlot('ring', ring, '戒指', '拖入戒指')}${extraUnlocked ? bagEquipSlot('extra', extraGear, extraLabel, '拖入装备（仅属性）') : ''}</div></section><section class="bag-side"><div class="bag-equipped">${chips}</div><div class="bag-tabs">${tabButtons}</div><div class="bag-content${bagTab === 'gear' ? ' is-paged' : ''}">${content}</div></section></div></section></div>`
+  return `<div class="bag-scrim"><section class="bag-dialog bag-dialog-wide"><header><div><small>INVENTORY · ${game.gear.length} 件物品${p2Active ? ' · 玩家二' : ''}</small><h2>${p2Active ? '玩家二背包' : '远征背包'}</h2>${playerSwitch}</div><button data-action="close-bag" aria-label="关闭背包">×</button></header><div class="bag-body"><section class="bag-figure"><div class="bag-portrait-column"><div class="bag-preview"><canvas id="bag-portrait" width="300" height="420" aria-label="角色全身预览"></canvas></div><div class="bag-stats"><span>♥ 生命 ${displayNumber(hpNow)} / ${displayNumber(s.hp)}</span><span>✦ 法力 ${displayNumber(mpNow)} / ${displayNumber(s.mp)}</span><span>⚔ 攻击 ${displayNumber(s.attack)}</span><span>▰ 防御 ${displayNumber(s.defense)}</span><span>◎ 命中 ${displayNumber(s.hit ?? 0)}</span><span>◇ 闪避 ${displayNumber(s.dodge ?? 0)}</span><span>★ 等级 ${game.level ?? 1}</span></div></div><div class="equip-slots">${bagEquipSlot('weapon', main, '主武器', '拖入武器')}${bagEquipSlot('armor', armor, '护甲', '拖入护甲')}${bagEquipSlot('fashion', fashion, '时装', '拖入时装')}${p2Active ? '' : bagEquipSlot('ring', ring, '戒指', '拖入戒指')}${extraUnlocked ? bagEquipSlot('extra', extraGear, extraLabel, '拖入装备（仅属性）') : ''}</div></section><section class="bag-side"><div class="bag-equipped">${chips}</div><div class="bag-tabs">${tabButtons}</div><div class="bag-content is-paged">${content}</div></section></div></section></div>`
 }
 // 将右侧装备拖入左侧装备框：武器 / 护甲 / 时装 / 高级天赋的额外属性框。
 function dropGearToSlot(id: string | undefined, slot: string | undefined) {
@@ -5564,14 +5567,6 @@ function dropGearToSlot(id: string | undefined, slot: string | undefined) {
     }
   }
 }
-function talentBagMarkup() {
-  if (!game) return ''
-  const levels = normalTalentLevels()
-  const normalText = NORMAL_TALENTS.filter((talent) => (levels[talent.id - 1] ?? 0) > 0).map((talent) => `${talent.name} Lv.${levels[talent.id - 1]}`).join('、') || '未激活'
-  const advanced = ADVANCED_TALENTS.find((talent) => talent.id === game?.advancedTalent)
-  const advancedText = advanced ? `${advanced.name} Lv.${advancedTalentLevel()}` : '未激活'
-  return `<div class="bag-info-list"><article class="info-row"><span>${itemIcon('fragment')} 天赋币碎片</span><b>${displayCurrency(game.talentFragments ?? 0)}</b></article><article class="info-row"><span>${itemIcon('coin')} 天赋币</span><b>${displayCurrency(game.talentCoins ?? 0)}</b></article><article class="info-row"><span>${itemIcon('attribute')} 普通天赋</span><b>${normalText}</b></article><article class="info-row"><span>${itemIcon('coin')} 高级天赋</span><b>${advancedText}</b></article></div><p class="bag-note">普通天赋可以全部激活并分别升级；高级天赋只能激活一个。前往小镇商人处研究、升级或撤销天赋。</p>`
-}
 function gemBagMarkup() {
   if (!game) return ''
   const groups = new Map<string, Gem[]>()
@@ -5581,19 +5576,34 @@ function gemBagMarkup() {
     list.push(gem)
     groups.set(key, list)
   }
-  const rows = [...groups.entries()]
+  const list = [...groups.entries()]
     .sort((a, b) => (a[1][0].tier - b[1][0].tier) || a[1][0].kind.localeCompare(b[1][0].kind))
-    .map(([, list]) => {
-      const gem = list[0]
-      return `<article class="gem-row"><span class="gear-glyph">${gemIcon(gem)}</span><span class="gear-copy"><b>${gemName(gem)} ×${list.length}</b><small>${gemSummary(gem)} · ${gemSlotForKind(gem.kind) === 'armor' ? '护甲孔位' : '武器孔位'}</small></span></article>`
-    }).join('')
-  return `<div class="forge-bag-list">${rows || '<div class="empty-gear">还没有宝石<small>噩梦副本的守关者会掉落宝石</small></div>'}</div><p class="bag-note">前往铸魂师·霍恩处可以镶嵌、取出和合成宝石。</p>`
+    .map(([, gems]) => ({ gem: gems[0], count: gems.length }))
+  if (!list.length) return `<div class="empty-gear">还没有宝石<small>噩梦副本的守关者会掉落宝石</small></div>`
+  const totalPages = Math.max(1, Math.ceil(list.length / GEAR_PAGE_SIZE))
+  bagGemPage = Math.min(Math.max(0, bagGemPage), totalPages - 1)
+  const page = bagGemPage
+  const cards = list.slice(page * GEAR_PAGE_SIZE, (page + 1) * GEAR_PAGE_SIZE).map(({ gem, count }) =>
+    `<article class="gear-card is-item gem-card"><div class="gear-card-head"><span class="gear-glyph">${gemIcon(gem)}</span><span class="gear-card-badge">×${count}</span></div><b class="gear-card-name">${gemName(gem)}</b><small class="gear-card-stats">${gemSummary(gem)} · ${gemSlotForKind(gem.kind) === 'armor' ? '护甲孔位' : '武器孔位'}</small></article>`
+  ).join('')
+  return `<div class="gear-grid">${cards}</div><div class="page-flip"><button data-action="bag-gem-page" data-delta="-1" ${page <= 0 ? 'disabled' : ''} aria-label="上一页">‹</button><span>第 ${String(page + 1).padStart(2, '0')} / ${String(totalPages).padStart(2, '0')} 页</span><button data-action="bag-gem-page" data-delta="1" ${page >= totalPages - 1 ? 'disabled' : ''} aria-label="下一页">›</button></div><p class="bag-note">前往铸魂师·霍恩处可以镶嵌、取出和合成宝石。</p>`
 }
 function otherBagMarkup() {
   if (!game) return ''
   const horns = game.horns ?? 0
   const hornActive = game.hornBuff && hornBuffRemaining() > 0 ? HORN_BUFFS[game.hornBuff] : null
-  return `<div class="bag-info-list"><article class="info-row"><span>${itemIcon('soul')} 硬币</span><b>${displayCurrency(game.soul ?? 0)}</b></article><article class="info-row"><span>${itemIcon('revive')} 复活币</span><b>${displayCurrency(game.reviveCoins ?? 0)}</b></article><article class="info-row horn-row"><span>${itemIcon('horn')} 号角</span><b>×${horns}${horns > 0 ? ` <button class="horn-use" data-action="use-horn">使用</button>` : ''}</b></article>${hornActive ? `<article class="info-row"><span>${itemIcon('horn')} 当前号角增益</span><b>${hornActive.name} · ${formatHornTime(hornBuffRemaining())}</b></article>` : ''}<article class="info-row"><span>${itemIcon('punch')} 打孔石</span><b>${game.punchStones ?? 0}</b></article><article class="info-row"><span>${itemIcon('attribute')} 属性点</span><b>${displayCurrency(game.attributePoints ?? 0)}</b></article></div><p class="bag-note">硬币可以在小镇商人处购买装备、材料和复活币；集齐 ${STAMP_UNLOCK} 枚王印印章可开启隐藏关卡。</p>`
+  const card = (icon: string, name: string, value: string, desc: string, action = '') => `<article class="gear-card is-item item-card"><div class="gear-card-head"><span class="gear-glyph">${icon}</span><span class="gear-card-badge">${value}</span></div><b class="gear-card-name">${name}</b><small class="gear-card-stats">${desc}</small>${action ? `<div class="gear-card-actions">${action}</div>` : ''}</article>`
+  const cards = [
+    card(itemIcon('fragment'), '天赋币碎片', displayCurrency(game.talentFragments ?? 0), '用于合成天赋币'),
+    card(itemIcon('coin'), '天赋币', displayCurrency(game.talentCoins ?? 0), '在小镇阿岩处研究天赋'),
+    card(itemIcon('soul'), '硬币', displayCurrency(game.soul ?? 0), '购买装备、材料与复活币'),
+    card(itemIcon('revive'), '复活币', displayCurrency(game.reviveCoins ?? 0), '战斗死亡后满状态复活'),
+    card(itemIcon('horn'), '号角', `×${horns}`, '使用后获得 30 分钟增益', horns > 0 ? '<button data-action="use-horn">使用</button>' : ''),
+    card(itemIcon('punch'), '打孔石', String(game.punchStones ?? 0), '在炉子为装备打孔'),
+    card(itemIcon('attribute'), '属性点', displayCurrency(game.attributePoints ?? 0), '在阿岩处分配属性'),
+    hornActive ? card(itemIcon('horn'), '号角增益', formatHornTime(hornBuffRemaining()), hornActive.name) : '',
+  ].filter(Boolean).join('')
+  return `<div class="gear-grid">${cards}</div><p class="bag-note">硬币可以在小镇商人处购买装备、材料和复活币；集齐 ${STAMP_UNLOCK} 枚王印印章可开启隐藏关卡。</p>`
 }
 // ── 号角 ─────────────────────────────────────────────
 function hornPickerMarkup() {
@@ -10696,6 +10706,7 @@ function performAction(name: string, target: HTMLElement) {
       window.setTimeout(() => { if (game) save() }, 0)
     }
     bagGearPage = 0
+    bagGemPage = 0
     if (document.querySelector('.bag-scrim')) { resetPanels(); bagOpen = true; renderGame(); return }
     resetPanels(); bagOpen = true
     // 快速打开：只插入背包弹窗，不重建整个游戏界面，避免点击延迟。
@@ -10727,7 +10738,7 @@ function performAction(name: string, target: HTMLElement) {
   if (name === 'bag-player' && target.dataset.player) { bagPlayer = target.dataset.player === '2' ? 2 : 1; renderGame(); return }
   if (name === 'bag-tab' && target.dataset.tab) {
     const tab = target.dataset.tab
-    if (tab === 'gear' || tab === 'gems' || tab === 'talent' || tab === 'other') { bagTab = tab; bagOpen = true; renderGame() }
+    if (tab === 'gear' || tab === 'gems' || tab === 'other') { bagTab = tab; bagOpen = true; renderGame() }
   }
   if (name === 'bag-filter' && target.dataset.filter) {
     const filter = target.dataset.filter
@@ -10735,6 +10746,10 @@ function performAction(name: string, target: HTMLElement) {
   }
   if (name === 'bag-gear-page' && target.dataset.delta) {
     bagGearPage = Math.max(0, bagGearPage + Number(target.dataset.delta))
+    renderGame(); return
+  }
+  if (name === 'bag-gem-page' && target.dataset.delta) {
+    bagGemPage = Math.max(0, bagGemPage + Number(target.dataset.delta))
     renderGame(); return
   }
   if (name === 'equip' && target.dataset.id) equip(target.dataset.id)
