@@ -71,6 +71,7 @@ const UPDATE_NOTES = [
   '商店改为双页书页式界面，商品每页 4 件、可翻页；背包改为一格一件装备、每行 4 格、每页 8 件，可翻页查看。',
   '旅行商人移到小镇地图最右侧，不再与天气预报板重叠；「换一件」每天最多 2 次，重新打开商人不会免费换货。',
   '第 1 关难度下调，小怪与 Boss 血量、攻击、防御降低；1~10 关血量曲线改为前期平缓、后期涨幅更大。',
+  'Boss 的命中成长略高于闪避成长（约 1.1 倍），高闪避角色仍会被少量命中。',
   '角色死亡后重新战斗会清空全部状态技能，不再把强化、护盾、云朵、后羿、石化、法力封印等带入新战斗。',
   '优化天气、界面布局与战斗性能。',
 ]
@@ -87,6 +88,7 @@ const PUBLIC_UPDATE_NOTES = [
   '商店改为书页翻页，背包改为一格一件装备、每行 4 格并可翻页。',
   '旅行商人移至小镇最右侧，换货每天最多 2 次。',
   '第 1 关难度下调，1~10 关血量曲线前期平缓、后期涨幅更大。',
+  'Boss 命中成长略高于闪避成长。',
   '死亡重开后清空全部状态技能。',
   '优化界面、天气表现与整体性能。',
 ]
@@ -2224,12 +2226,15 @@ function enemyScaling(isBoss: boolean) {
   return isBoss ? bossRate : bossRate * .65
 }
 function enemyDodgeRate(isBoss: boolean) { return enemyScaling(isBoss) }
+// Boss 的命中成长略高于闪避成长，避免高闪避角色完全压住 Boss 的攻击。
+const BOSS_HIT_MULTIPLIER = 1.1
+function enemyHitScaling(isBoss: boolean) { return enemyScaling(isBoss) * (isBoss ? BOSS_HIT_MULTIPLIER : 1) }
 function playerHitChance(foe: Foe) {
   return Math.max(.05, Math.min(1, playerHitRate() - enemyDodgeRate(Boolean(foe.boss))))
 }
 function enemyAttackLands(isBoss: boolean) {
   // 敌人基础命中 100%，再叠加关卡命中，减去玩家闪避。
-  const chance = Math.max(.05, Math.min(1, 1 + enemyScaling(isBoss) - playerDodgeRate()))
+  const chance = Math.max(.05, Math.min(1, 1 + enemyHitScaling(isBoss) - playerDodgeRate()))
   return Math.random() < chance
 }
 function showPlayerDodge() {
