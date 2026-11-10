@@ -16,7 +16,7 @@ type WorldDrop = { id: string; type: 'hp-potion' | 'mp-potion' | 'material' | 'g
 type AttributeStat = 'hp' | 'attack' | 'mp' | 'defense' | 'hit' | 'dodge' | 'crit' | 'antiCrit'
 type AttributeAllocation = Record<AttributeStat, number>
 type StageProgress = { kills: number; bossDefeated: boolean; pointsClaimed?: number }
-type Save = { role: Role; stage: number; unlockedStage: number; kills: number; stageProgress?: Record<string, StageProgress>; hp: number; mp: number; gear: Gear[]; equipped: string | null; weaponId?: string | null; weapon2Id?: string | null; armorId?: string | null; armor2Id?: string | null; fashionId?: string | null; ringId?: string | null; cloakId?: string | null; extraSlot?: 'weapon' | 'armor'; level?: number; exp?: number; drops?: WorldDrop[]; bossDefeated?: boolean; attributePoints?: number; attributeAllocation?: AttributeAllocation; soul?: number; normalTalent?: number; normalTalentLevels?: number[]; advancedTalent?: number; advancedTalentLevel?: number; talentFragments?: number; talentCoins?: number; lotteryChances?: number; shopFashionBought?: boolean; shopWeek?: string; shopBought?: string[]; travelMerchantDay?: string; travelMerchantOffer?: MerchantOffer | null; travelMerchantBoughtDay?: string; travelMerchantRerolls?: number; reviveCoins?: number; reviveUsed?: boolean; fragmentBuyDay?: string; reviveBuyAt?: number; materials?: Record<string, number>; stones?: number[]; enhance?: { weapon: number; armor: number; armor2: number; weapon2: number; ring: number; failWeapon: number; failArmor: number; failArmor2: number; failWeapon2: number; failRing: number }; nightmareCleared?: number[]; nightmareDay?: string; nightmareAttempts?: number; stamps?: number; stampTypes?: number[]; hiddenStake?: number; hiddenStakeTypes?: number[]; freeReviveDay?: string; tutorialDone?: boolean; hiddenCleared?: boolean; rivalTrust?: boolean; stage8Choice?: 'save' | 'chase' | 'together' | null; rescuedRock?: boolean; rescuedXiaoman?: boolean; rescuedZhou?: boolean; seenStories?: string[]; forgeIntroSeen?: boolean; shopIntroSeen?: boolean; lotteryIntroSeen?: boolean; townIntroSeen?: boolean; travelMerchantIntroSeen?: boolean; rankIntroSeen?: boolean; hazardIntroSeen?: boolean; treeClaimDay?: string; mainQuestsClaimed?: number[]; sideQuest?: { stage: number; clears: number } | null; sideQuestDay?: string; skillLevels?: Record<string, number>; awakenedSkills?: Record<string, boolean>; awakenPractice?: Record<string, number>; awakenDisabled?: Record<string, boolean>; awakenTarget?: { set: SkillSetKey; index: number } | null; gems?: Gem[]; punchStones?: number; punchBuyAt?: number; horns?: number; hornBuyAt?: number; hornBuff?: 'material' | 'attack' | 'gear' | null; hornBuffUntil?: number; name?: string; p2Name?: string; coop?: boolean; p2Role?: Role; p2WeaponId?: string | null; p2ArmorId?: string | null; p2FashionId?: string | null; mailClaimed?: boolean; mailClaimed2?: boolean; mailClaimed3?: boolean; deletedMails?: number[]; updateNoticeReadId?: string; bagUnread?: boolean; redeemedCodes?: string[]; redeemedCodes2?: string[]; combatData?: { attacks: number; skills: number; defends: number; skillUses: number[]; stages: number[] }; adDay?: string; adRewards?: string[]; adLongDay?: string; adLongRewards?: string[]; adReviveDay?: string; adReviveCount?: number; town: boolean; completed: boolean; dead: boolean }
+type Save = { role: Role; stage: number; unlockedStage: number; kills: number; stageProgress?: Record<string, StageProgress>; hp: number; mp: number; gear: Gear[]; equipped: string | null; weaponId?: string | null; weapon2Id?: string | null; armorId?: string | null; armor2Id?: string | null; fashionId?: string | null; ringId?: string | null; cloakId?: string | null; specialTarget?: GearType; specialPity?: boolean; extraSlot?: 'weapon' | 'armor'; level?: number; exp?: number; drops?: WorldDrop[]; bossDefeated?: boolean; attributePoints?: number; attributeAllocation?: AttributeAllocation; soul?: number; normalTalent?: number; normalTalentLevels?: number[]; advancedTalent?: number; advancedTalentLevel?: number; talentFragments?: number; talentCoins?: number; lotteryChances?: number; shopFashionBought?: boolean; shopWeek?: string; shopBought?: string[]; travelMerchantDay?: string; travelMerchantOffer?: MerchantOffer | null; travelMerchantBoughtDay?: string; travelMerchantRerolls?: number; reviveCoins?: number; reviveUsed?: boolean; fragmentBuyDay?: string; reviveBuyAt?: number; materials?: Record<string, number>; stones?: number[]; enhance?: { weapon: number; armor: number; armor2: number; weapon2: number; ring: number; failWeapon: number; failArmor: number; failArmor2: number; failWeapon2: number; failRing: number }; nightmareCleared?: number[]; nightmareDay?: string; nightmareAttempts?: number; stamps?: number; stampTypes?: number[]; hiddenStake?: number; hiddenStakeTypes?: number[]; freeReviveDay?: string; tutorialDone?: boolean; hiddenCleared?: boolean; rivalTrust?: boolean; stage8Choice?: 'save' | 'chase' | 'together' | null; rescuedRock?: boolean; rescuedXiaoman?: boolean; rescuedZhou?: boolean; seenStories?: string[]; forgeIntroSeen?: boolean; shopIntroSeen?: boolean; lotteryIntroSeen?: boolean; townIntroSeen?: boolean; travelMerchantIntroSeen?: boolean; rankIntroSeen?: boolean; hazardIntroSeen?: boolean; treeClaimDay?: string; mainQuestsClaimed?: number[]; sideQuest?: { stage: number; clears: number } | null; sideQuestDay?: string; skillLevels?: Record<string, number>; awakenedSkills?: Record<string, boolean>; awakenPractice?: Record<string, number>; awakenDisabled?: Record<string, boolean>; awakenTarget?: { set: SkillSetKey; index: number } | null; gems?: Gem[]; punchStones?: number; punchBuyAt?: number; horns?: number; hornBuyAt?: number; hornBuff?: 'material' | 'attack' | 'gear' | null; hornBuffUntil?: number; name?: string; p2Name?: string; coop?: boolean; p2Role?: Role; p2WeaponId?: string | null; p2ArmorId?: string | null; p2FashionId?: string | null; mailClaimed?: boolean; mailClaimed2?: boolean; mailClaimed3?: boolean; deletedMails?: number[]; updateNoticeReadId?: string; bagUnread?: boolean; redeemedCodes?: string[]; redeemedCodes2?: string[]; combatData?: { attacks: number; skills: number; defends: number; skillUses: number[]; stages: number[] }; adDay?: string; adRewards?: string[]; adLongDay?: string; adLongRewards?: string[]; adReviveDay?: string; adReviveCount?: number; town: boolean; completed: boolean; dead: boolean }
 type SaveSlot = { id: string; label: string; data: Save; updatedAt: number }
 type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; flyPhase?: number; flyAmplitude?: number; flySpeed?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number; specialTimer?: number; specialWindup?: number; specialKind?: 'pierce' | 'exclusive' | 'laser' | 'homing'; specialNext?: 'pierce' | 'exclusive' | 'laser' | 'homing'; specialDirection?: number; mobSkillTimer?: number; skillWindup?: number; skillKind?: 'lunge' | 'slam'; preferredAttack?: 'melee' | 'ranged'; spiralLiftTimer?: number; lift?: number; staggerTimer?: number; staggerHits?: number; staggerHitTimer?: number; staggerImmune?: number; superArmor?: number; inMeleeRange?: boolean; tutorial?: boolean; mirror?: boolean; mirrorRole?: Role; mirrorSet?: SkillSetKey; stationary?: boolean; scarecrow?: boolean; burnTimer?: number; burnTick?: number; burnDamage?: number; chillTimer?: number; anchorX?: number; summonCount?: number; summonTimer?: number; invulnTimer?: number; invulnCycle?: number; fieldTimer?: number; mp?: number; mirrorSkillTimer?: number; mirrorWindup?: number; mirrorSkill?: number; mirrorBuffTimer?: number; mirrorBurst?: number; mirrorBurstWait?: number; mirrorSwitch?: number; mirrorSwapTimer?: number; mirrorNextRole?: Role; mirrorNextSet?: SkillSetKey; mirrorGuard?: number; mirrorGuardCd?: number; mirrorBoltTimer?: number; wanderTimer?: number; wanderTargetX?: number | null; bossClone?: boolean; cloneExpire?: number; cloneSource?: number; permanentArmor?: boolean; hiddenTimer?: number; phase?: number; guardTimer?: number; guardCd?: number; modelIndex?: number; mobVariant?: number; scaleVariant?: number; teleport?: boolean; teleportTimer?: number; platformX?: number; platformW?: number; platformHeight?: number }
 type Fx = { x: number; y: number; life: number; kind: string; direction?: number; text?: string; damage?: number; duration?: number; vx?: number; vy?: number; color?: string; radius?: number }
@@ -77,6 +77,7 @@ const UPDATE_NOTES = [
   '新增暴击与防爆属性：每 10 点 = 1%，暴击造成双倍伤害；Boss 暴击第 10 关 35%、第 20 关 70%，Boss 防爆略高于暴击。',
   '新增披风装备，提供暴击与防爆，只能由专属材料合成；新增暴击/防爆宝石，装备孔位上限提升到 5 孔。',
   '属性点新增暴击与防爆；背包新增披风栏与属性显示。',
+  '专属合成可选择目标装备：50% 概率出目标，未出目标则下一次必定出当前选择的目标。',
   '角色死亡后重新战斗会清空全部状态技能，不再把强化、护盾、云朵、后羿、石化、法力封印等带入新战斗。',
   '优化天气、界面布局与战斗性能。',
 ]
@@ -96,6 +97,7 @@ const PUBLIC_UPDATE_NOTES = [
   '第 1 关难度下调，1~10 关血量曲线前期平缓、后期涨幅更大。',
   'Boss 命中成长略高于闪避成长。',
   '新增暴击/防爆属性、披风装备、暴击/防爆宝石与 5 孔上限。',
+  '专属合成可选择目标装备，未出目标则下次必出。',
   '死亡重开后清空全部状态技能。',
   '优化界面、天气表现与整体性能。',
 ]
@@ -1715,6 +1717,8 @@ function normalizeSave(data: Save): Save {
   if (data.fashionId && !data.gear.some((gear) => gear.id === data.fashionId && gear.type === 'fashion')) data.fashionId = null
   if (data.ringId && !data.gear.some((gear) => gear.id === data.ringId && gear.type === 'ring')) data.ringId = null
   if (data.cloakId && !data.gear.some((gear) => gear.id === data.cloakId && gear.type === 'cloak')) data.cloakId = null
+  data.specialTarget = data.specialTarget === 'armor' || data.specialTarget === 'ring' || data.specialTarget === 'cloak' ? data.specialTarget : 'weapon'
+  data.specialPity = Boolean(data.specialPity)
   data.stageProgress ??= {}
   data.stageProgress[String(data.stage)] ??= { kills: data.kills, bossDefeated: data.bossDefeated }
   for (const progress of Object.values(data.stageProgress)) progress.pointsClaimed ??= 0
@@ -3683,7 +3687,7 @@ function start(role: Role, previous?: Save) {
 function freshSave(role: Role, coop = false, p2Role?: Role, p1Name?: string, p2Name?: string): Save {
   const base = ROLE_BASE[role]
   const secondRole = p2Role ?? (role === 'warrior' ? 'mage' : 'warrior')
-  return { role, name: PLATFORM_4399 ? (coop ? '玩家一' : roleLabels[role]) : ((p1Name ?? '').trim().slice(0, 12) || roleLabels[role]), p2Name: PLATFORM_4399 ? '玩家二' : ((p2Name ?? '').trim().slice(0, 12) || roleLabels[secondRole]), coop, p2Role: p2Role ?? (role === 'warrior' ? 'mage' : 'warrior'), p2WeaponId: null, p2ArmorId: null, p2FashionId: null, stage: 1, unlockedStage: 1, kills: 0, hp: base.hp, mp: base.mp, gear: [], equipped: null, weaponId: null, weapon2Id: null, armorId: null, armor2Id: null, fashionId: null, ringId: null, cloakId: null, extraSlot: 'weapon', level: 1, exp: 0, drops: [], bossDefeated: false, attributePoints: 0, attributeAllocation: { hp: 0, attack: 0, mp: 0, defense: 0, hit: 0, dodge: 0, crit: 0, antiCrit: 0 }, soul: 0, normalTalent: 0, normalTalentLevels: [0, 0, 0, 0, 0, 0], advancedTalent: 0, advancedTalentLevel: 0, talentFragments: 0, talentCoins: 0, lotteryChances: 0, shopFashionBought: false, reviveCoins: 0, reviveUsed: false, fragmentBuyDay: '', reviveBuyAt: 0, freeReviveDay: '', materials: {}, stones: [0, 0, 0, 0, 0], enhance: { weapon: 0, armor: 0, armor2: 0, weapon2: 0, ring: 0, failWeapon: 0, failArmor: 0, failArmor2: 0, failWeapon2: 0, failRing: 0 }, nightmareCleared: [], nightmareDay: '', nightmareAttempts: 0, stamps: 0, tutorialDone: false, hiddenCleared: false, rivalTrust: false, stage8Choice: null, rescuedRock: false, rescuedXiaoman: false, rescuedZhou: false, seenStories: [], forgeIntroSeen: false, shopIntroSeen: false, lotteryIntroSeen: false, townIntroSeen: false, travelMerchantIntroSeen: false, rankIntroSeen: false, hazardIntroSeen: false, mainQuestsClaimed: [], sideQuest: null, sideQuestDay: '', skillLevels: {}, gems: [], punchStones: 0, punchBuyAt: 0, horns: 0, hornBuyAt: 0, hornBuff: null, hornBuffUntil: 0, mailClaimed: false, mailClaimed2: false, updateNoticeReadId: '', bagUnread: false, shopWeek: '', shopBought: [], travelMerchantDay: '', travelMerchantOffer: null, travelMerchantBoughtDay: '', travelMerchantRerolls: 0, redeemedCodes: [], redeemedCodes2: [], combatData: { attacks: 0, skills: 0, defends: 0, skillUses: [0, 0, 0, 0], stages: [] }, adDay: '', adRewards: [], adLongDay: '', adLongRewards: [], adReviveDay: '', adReviveCount: 0, town: true, completed: false, dead: false }
+  return { role, name: PLATFORM_4399 ? (coop ? '玩家一' : roleLabels[role]) : ((p1Name ?? '').trim().slice(0, 12) || roleLabels[role]), p2Name: PLATFORM_4399 ? '玩家二' : ((p2Name ?? '').trim().slice(0, 12) || roleLabels[secondRole]), coop, p2Role: p2Role ?? (role === 'warrior' ? 'mage' : 'warrior'), p2WeaponId: null, p2ArmorId: null, p2FashionId: null, stage: 1, unlockedStage: 1, kills: 0, hp: base.hp, mp: base.mp, gear: [], equipped: null, weaponId: null, weapon2Id: null, armorId: null, armor2Id: null, fashionId: null, ringId: null, cloakId: null, specialTarget: 'weapon', specialPity: false, extraSlot: 'weapon', level: 1, exp: 0, drops: [], bossDefeated: false, attributePoints: 0, attributeAllocation: { hp: 0, attack: 0, mp: 0, defense: 0, hit: 0, dodge: 0, crit: 0, antiCrit: 0 }, soul: 0, normalTalent: 0, normalTalentLevels: [0, 0, 0, 0, 0, 0], advancedTalent: 0, advancedTalentLevel: 0, talentFragments: 0, talentCoins: 0, lotteryChances: 0, shopFashionBought: false, reviveCoins: 0, reviveUsed: false, fragmentBuyDay: '', reviveBuyAt: 0, freeReviveDay: '', materials: {}, stones: [0, 0, 0, 0, 0], enhance: { weapon: 0, armor: 0, armor2: 0, weapon2: 0, ring: 0, failWeapon: 0, failArmor: 0, failArmor2: 0, failWeapon2: 0, failRing: 0 }, nightmareCleared: [], nightmareDay: '', nightmareAttempts: 0, stamps: 0, tutorialDone: false, hiddenCleared: false, rivalTrust: false, stage8Choice: null, rescuedRock: false, rescuedXiaoman: false, rescuedZhou: false, seenStories: [], forgeIntroSeen: false, shopIntroSeen: false, lotteryIntroSeen: false, townIntroSeen: false, travelMerchantIntroSeen: false, rankIntroSeen: false, hazardIntroSeen: false, mainQuestsClaimed: [], sideQuest: null, sideQuestDay: '', skillLevels: {}, gems: [], punchStones: 0, punchBuyAt: 0, horns: 0, hornBuyAt: 0, hornBuff: null, hornBuffUntil: 0, mailClaimed: false, mailClaimed2: false, updateNoticeReadId: '', bagUnread: false, shopWeek: '', shopBought: [], travelMerchantDay: '', travelMerchantOffer: null, travelMerchantBoughtDay: '', travelMerchantRerolls: 0, redeemedCodes: [], redeemedCodes2: [], combatData: { attacks: 0, skills: 0, defends: 0, skillUses: [0, 0, 0, 0], stages: [] }, adDay: '', adRewards: [], adLongDay: '', adLongRewards: [], adReviveDay: '', adReviveCount: 0, town: true, completed: false, dead: false }
 }
 function awardExperience(amount: number) {
   if (!game) return
@@ -4382,6 +4386,11 @@ function forgeGearMarkup() {
   return `<div class="forge-layout"><section class="forge-workbench"><h3>合成孔位</h3><div class="forge-slots" style="--slots:${slotLimit}">${slotMarkup}</div><div class="forge-arrow">▼</div><div class="forge-result ${recipe.valid ? 'ready' : ''}"><b>${recipe.resultName}</b><small>${recipe.reason}</small></div><div class="forge-meta"><span>材料 ${forgeSlots.length} / ${recipe.required}</span><span>消耗 ${cost} 硬币 · 成功率 <b>100%</b></span></div><button class="forge-combine" data-action="forge-combine" ${canForge ? '' : 'disabled'}>合 成</button></section><aside class="forge-bag"><header><h3>背包装备</h3><small>点击“放入”加入左侧孔位</small></header><div class="forge-categories">${categories}</div><div class="forge-quick-actions"><button class="secondary" data-action="forge-autofill" type="button">一键放入</button><button class="secondary" data-action="forge-quick" type="button" ${quickPlan.steps.length && (game.soul ?? 0) >= quickPlan.cost ? '' : 'disabled'}>${quickLabel}</button></div><div class="forge-bag-list">${bagRows}</div></aside></div>`
 }
 function specialSlotsMax() { return 3 }
+const SPECIAL_TARGET_TYPES: GearType[] = ['weapon', 'armor', 'ring', 'cloak']
+function specialTargetType(): GearType {
+  const target = game?.specialTarget
+  return target && SPECIAL_TARGET_TYPES.includes(target) ? target : 'weapon'
+}
 function specialAvailable(key: string) {
   const used = specialSlots.filter((slot) => slot === key).length
   return Math.max(0, materialCount(key) - used)
@@ -4403,13 +4412,17 @@ function specialRecipe() {
   const tier = maxGearTier(stage)
   const cost = stage * 1000
   const canPay = (game?.soul ?? 0) >= cost
+  const target = specialTargetType()
+  const targetLabel = FORGE_CATEGORY_LABELS[target]
   return {
     valid: canPay,
     maxStage: stage,
     cost,
     tiers: [tier],
-    resultText: `${tier} 阶装备 ×1（武器 / 护甲 / 戒指 / 披风随机）`,
-    reason: canPay ? `第 ${stage} 关专属合成 · 最高 ${tier} 阶 · 消耗 ${cost} 硬币` : `还需要 ${cost - (game?.soul ?? 0)} 硬币`,
+    resultText: `${tier} 阶${targetLabel}（目标装备）`,
+    reason: canPay
+      ? `第 ${stage} 关专属合成 · 最高 ${tier} 阶 · 消耗 ${cost} 硬币 · ${game?.specialPity ? `本次必定出${targetLabel}` : `50% 概率出${targetLabel}`}`
+      : `还需要 ${cost - (game?.soul ?? 0)} 硬币`,
   }
 }
 function specialAdd(key: string) {
@@ -4437,9 +4450,21 @@ function specialCombine() {
   const keys = [...specialSlots]
   game.soul = (game.soul ?? 0) - recipe.cost
   for (const key of keys) addMaterial(key, -1)
+  const target = specialTargetType()
   const results: Gear[] = []
   for (const tier of recipe.tiers) {
-    const roll = Math.random(); const type: GearType = roll < .4 ? 'weapon' : roll < .8 ? 'armor' : roll < .9 ? 'ring' : 'cloak'
+    // 目标的 50% 命中；未命中时下一次必定出当前选择的目标装备。
+    let type: GearType
+    if (game.specialPity) {
+      type = target
+      game.specialPity = false
+    } else if (Math.random() < .5) {
+      type = target
+    } else {
+      const others = SPECIAL_TARGET_TYPES.filter((entry) => entry !== target)
+      type = others[Math.floor(Math.random() * others.length)]
+      game.specialPity = true
+    }
     const gear = makeGear(type, Math.max(1, tier))
     game.gear.unshift(gear)
     markBagUnread()
@@ -4452,6 +4477,10 @@ function specialCombine() {
 function forgeSpecialMarkup() {
   if (!game) return ''
   const recipe = specialRecipe()
+  const target = specialTargetType()
+  const targetLabel = FORGE_CATEGORY_LABELS[target]
+  const targetButtons = SPECIAL_TARGET_TYPES.map((type) => `<button class="${target === type ? 'active' : ''}" data-action="special-target" data-type="${type}" type="button">${FORGE_CATEGORY_LABELS[type]}</button>`).join('')
+  const targetPanel = `<div class="special-target"><span>目标装备</span><div class="special-target-options">${targetButtons}</div><small>${game.specialPity ? `上次未出目标：本次 100% 出「${targetLabel}」` : `本次有 50% 概率直接出「${targetLabel}」`}</small></div>`
   const slotMarkup = Array.from({ length: 3 }, (_, index) => {
     const key = specialSlots[index]
     const info = key ? materialInfo(key) : null
@@ -4474,7 +4503,7 @@ function forgeSpecialMarkup() {
       rows.push(`<article class="forge-item ${canAdd ? '' : 'in-slot'}"><span class="gear-glyph">${materialIcon(key)}</span><span class="gear-copy"><b>${name}</b><small>${hint}</small></span><button data-action="special-add" data-key="${key}" ${canAdd ? '' : 'disabled'}>放入</button></article>`)
     })
   })
-  return `<div class="forge-layout"><section class="forge-workbench"><h3>专属合成孔位</h3><div class="forge-slots" style="--slots:3">${slotMarkup}</div><div class="forge-arrow">▼</div><div class="forge-result ${recipe.valid ? "ready" : ""}"><b>${recipe.resultText}</b>${recipe.valid ? "" : `<small>${recipe.reason}</small>`}</div><div class="forge-meta"><span>材料 ${specialSlots.length} / 3</span><span>消耗 ${recipe.cost || 0} 硬币 · 成功率 <b>100%</b></span></div><button class="forge-combine" data-action="special-combine" ${recipe.valid && specialSlots.length === 3 ? '' : 'disabled'}>合 成</button></section><aside class="forge-bag"><header><h3>专属材料</h3></header><div class="forge-bag-list">${rows.join('') || '<div class="empty-gear">还没有专属材料<small>击败各关小怪有概率掉落</small></div>'}</div></aside></div>`
+  return `<div class="forge-layout"><section class="forge-workbench"><h3>专属合成孔位</h3><div class="forge-slots" style="--slots:3">${slotMarkup}</div>${targetPanel}<div class="forge-arrow">▼</div><div class="forge-result ${recipe.valid ? "ready" : ""}"><b>${recipe.resultText}</b>${recipe.valid ? "" : `<small>${recipe.reason}</small>`}</div><div class="forge-meta"><span>材料 ${specialSlots.length} / 3</span><span>消耗 ${recipe.cost || 0} 硬币 · 成功率 <b>100%</b></span></div><button class="forge-combine" data-action="special-combine" ${recipe.valid && specialSlots.length === 3 ? '' : 'disabled'}>合 成</button></section><aside class="forge-bag"><header><h3>专属材料</h3></header><div class="forge-bag-list">${rows.join('') || '<div class="empty-gear">还没有专属材料<small>击败各关小怪有概率掉落</small></div>'}</div></aside></div>`
 }
 function stoneCombine(tier: number) {
   if (!game || tier < 1 || tier >= 6) return
@@ -10790,6 +10819,14 @@ function performAction(name: string, target: HTMLElement) {
   if (name === 'forge-combine') forgeCombine()
   if (name === 'special-add' && target.dataset.key) specialAdd(target.dataset.key)
   if (name === 'special-remove' && target.dataset.slot) specialRemove(Number(target.dataset.slot))
+  if (name === 'special-target' && target.dataset.type) {
+    const type = target.dataset.type
+    if (type === 'weapon' || type === 'armor' || type === 'ring' || type === 'cloak') {
+      if (game) { game.specialTarget = type; save() }
+      renderGame()
+    }
+    return
+  }
   if (name === 'special-combine') specialCombine()
   if (name === 'stone-combine' && target.dataset.tier) stoneCombine(Number(target.dataset.tier))
   if (name === 'punch-open' && target.dataset.id) punchGear(target.dataset.id)

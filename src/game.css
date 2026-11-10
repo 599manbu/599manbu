@@ -1142,6 +1142,14 @@ body { background: #0d1717; }
 }
 /* ── 1.73 专属合成 / 强化石 / 第二 NPC ─────────────── */
 .forge-note { margin: 0 0 4px; color: #d9c49a; font-size: 11px; line-height: 1.8; text-align: center; }
+/* 专属合成：目标装备选择与 50% / 保底提示 */
+.special-target { display: grid; gap: 6px; margin: 8px 0; }
+.special-target > span { color: #c9b273; font-size: 11px; }
+.special-target-options { display: flex; flex-wrap: wrap; gap: 6px; }
+.special-target-options button { flex: 1 1 60px; min-height: 32px; border: 1px solid rgba(191, 202, 169, .24); background: rgba(20, 35, 35, .66); color: #cfd8c8; font-size: 11px; cursor: pointer; }
+.special-target-options button:hover { border-color: #c9b273; }
+.special-target-options button.active { border-color: #e2c57e; background: rgba(66, 56, 30, .58); color: #ffe2a0; }
+.special-target small { color: #9fb0a3; font-size: 10px; }
 .stone-layout .forge-workbench { justify-content: center; }
 .second-npc-dialog { width: min(96vw, 1000px); }
 .enhance-slots { display: grid; gap: 7px; margin: 10px 0; }
