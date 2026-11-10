@@ -1170,7 +1170,7 @@ body { background: #0d1717; }
 .bag-figure { display: grid; grid-template-columns: minmax(0, 1fr) 170px; gap: 10px; align-items: start; padding: 10px; border: 1px solid var(--line); background: rgba(43, 60, 54, .35); }
 .bag-portrait-column { display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 0; }
 .bag-portrait-column .bag-preview { min-height: 0; }
-.bag-portrait-column .bag-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px 12px; padding: 9px 11px; border: 1px solid rgba(201, 178, 115, .22); background: rgba(12, 24, 24, .42); }
+.bag-portrait-column .bag-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px 10px; padding: 9px 11px; border: 1px solid rgba(201, 178, 115, .22); background: rgba(12, 24, 24, .42); }
 .bag-portrait-column .bag-stats span { color: #ccd5c7; font-size: 11px; }
 .bag-figure .bag-preview { min-height: 100%; }
 .bag-figure .bag-preview canvas { width: 100%; height: auto; }
@@ -1423,12 +1423,14 @@ body { background: #0d1717; }
 .gem-row.gem-kind-energy { border-left-color: #7fb8ff; }
 .gem-row.gem-kind-hit { border-left-color: #ffd27a; }
 .gem-row.gem-kind-dodge { border-left-color: #b8e8ff; }
+.gem-row.gem-kind-crit { border-left-color: #ff8a5c; }
+.gem-row.gem-kind-antiCrit { border-left-color: #c9a8ff; }
 .gem-row .gear-glyph .item-icon { width: 22px; height: 22px; filter: drop-shadow(0 0 6px currentColor); }
 .gem-row .gear-copy b { color: #eee9d7; font-size: 12px; font-weight: 500; }
 .gem-row .gear-copy b em { color: #9fb0a3; font-size: 10px; font-style: normal; font-weight: 400; }
 .gem-row .gear-copy small { color: #9fb0a3; font-size: 10px; }
 .gem-chip { display: inline-block; margin-right: 5px; padding: 1px 6px; border-radius: 2px; background: rgba(255, 255, 255, .08); color: #e4d6a8; font-size: 9px; font-style: normal; }
-.gem-actions { display: flex; gap: 5px; }
+.gem-actions { display: flex; flex-wrap: wrap; gap: 5px; }
 .gem-actions button { min-height: 30px; padding: 0 10px; border: 1px solid rgba(201, 178, 115, .35); border-radius: 2px; background: rgba(40, 60, 52, .55); color: #d9c49a; font-size: 10px; cursor: pointer; }
 .gem-actions button:hover:not(:disabled) { border-color: #e2c57e; background: rgba(66, 56, 30, .6); }
 .gem-actions button:disabled { opacity: .4; cursor: not-allowed; }
@@ -2058,6 +2060,8 @@ body { background: #0d1717; }
 /* 命中 / 闪避宝石颜色 */
 .item-icon.gem-hit { color: #ffd27a; }
 .item-icon.gem-dodge { color: #b8e8ff; }
+.item-icon.gem-crit { color: #ff8a5c; }
+.item-icon.gem-antiCrit { color: #c9a8ff; }
 
 /* 炉子整体字号放大 + 装备分类 / 一键放入 / 快速合成 */
 .craft-dialog .forge-workbench h3, .craft-dialog .forge-bag h3 { font-size: 18px; }
