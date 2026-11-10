@@ -56,6 +56,7 @@ const UPDATE_NOTES = [
   '商店界面整体放大；背包装备框顺序改为武器/护甲/戒指/披风/时装。',
   '第三章性能保护：限制小怪弹幕、Boss 机关与专属特效数量，减轻 21 关及后续关卡卡顿。',
   '所有章节战斗背景整体提亮，四周暗角大幅减弱，去掉偏灰/偏紫的滤镜观感。',
+  '所有怪物与 Boss 的闪避成长降低 10%，玩家攻击更容易命中。',
   '新增「技能觉醒」：救出小满后可进入时间回廊，在觉醒界面选择当前武器技能进行觉醒；普通与觉醒版本共享技能等级。',
   '觉醒条件：战士用目标技能对稻草人造成单次 ≥800 伤害（多段合计）计 1 次；法师靠近稻草人承受反击，每次受击计 1 次。',
   '每 10 次计数使觉醒碎片掉率 +1%；集齐 3 个碎片兑换觉醒书。返回小镇会清零计数、掉率与碎片。',
@@ -104,6 +105,7 @@ const PUBLIC_UPDATE_NOTES = [
   '小镇新增创世法阵，商店界面放大，背包槽位顺序调整。',
   '优化第三章弹幕与特效数量，减轻卡顿。',
   '战斗背景整体提亮，减弱暗角。',
+  '所有怪物闪避降低 10%。',
   '新增技能觉醒系统：四种武器各四个技能均可觉醒，觉醒后永久 +10% 伤害。',
   '时间回廊、觉醒碎片与觉醒书玩法上线；4399 版兑换觉醒书需观看广告。',
   '新增大量觉醒技能与专属特效，涵盖剑、弓、法杖与魔法书。',
@@ -2400,7 +2402,9 @@ function enemyScaling(isBoss: boolean) {
       : .5 + Math.min(1, (stage - CHAPTER_SIZE) / CHAPTER_SIZE) * .5
   return isBoss ? bossRate : bossRate * .65
 }
-function enemyDodgeRate(isBoss: boolean) { return enemyScaling(isBoss) }
+// 所有怪物的闪避成长降低 10%（Boss 第 20 关 100% → 90%，小怪同步下调）。
+const ENEMY_DODGE_MULTIPLIER = .9
+function enemyDodgeRate(isBoss: boolean) { return enemyScaling(isBoss) * ENEMY_DODGE_MULTIPLIER }
 // Boss 的命中成长略高于闪避成长，避免高闪避角色完全压住 Boss 的攻击。
 const BOSS_HIT_MULTIPLIER = 1.1
 function enemyHitScaling(isBoss: boolean) { return enemyScaling(isBoss) * (isBoss ? BOSS_HIT_MULTIPLIER : 1) }
