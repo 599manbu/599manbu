@@ -55,7 +55,7 @@ const UPDATE_NOTES = [
   '小镇新增第三座「创世法阵」，用于选择第三章 21~30 关；旅行商人移至更右侧。',
   '商店界面整体放大；背包装备框顺序改为武器/护甲/戒指/披风/时装。',
   '第三章性能保护：限制小怪弹幕、Boss 机关与专属特效数量，减轻 21 关及后续关卡卡顿。',
-  '所有章节战斗背景整体提亮，四周暗角大幅减弱，去掉偏灰/偏紫的滤镜观感。',
+  '战斗背景改为大晴天暖色滤镜：提高亮度、混入暖白并叠加淡暖光，保留各关原本色相差异；暗角大幅减弱。',
   '所有怪物与 Boss 的闪避成长降低 10%，玩家攻击更容易命中。',
   '宝石镶嵌改为左右布局：右侧点选装备与宝石，左侧显示所选装备孔位。',
   '新增「技能觉醒」：救出小满后可进入时间回廊，在觉醒界面选择当前武器技能进行觉醒；普通与觉醒版本共享技能等级。',
@@ -105,7 +105,7 @@ const PUBLIC_UPDATE_NOTES = [
   '第三章 Boss 攻击欲望与远程弹幕增强。',
   '小镇新增创世法阵，商店界面放大，背包槽位顺序调整。',
   '优化第三章弹幕与特效数量，减轻卡顿。',
-  '战斗背景整体提亮，减弱暗角。',
+  '战斗背景改为大晴天暖色滤镜，保留各关色相。',
   '所有怪物闪避降低 10%。',
   '宝石镶嵌改为左右点选布局。',
   '新增技能觉醒系统：四种武器各四个技能均可觉醒，觉醒后永久 +10% 伤害。',
@@ -1197,7 +1197,7 @@ const STAGE_BACKGROUNDS: BackgroundTheme[] = [
   { skyTop: '#0a0a1a', skyMid: '#1a1a3a', skyLow: '#34346a', far: '#12122a', near: '#1e1e44', ground: '#0c0c1a', line: '#5a5aa0', orb: '#e0e0ff', accent: '#b8a4f4' },
   { skyTop: '#1a1408', skyMid: '#3a2e12', skyLow: '#7a6028', far: '#2a200c', near: '#3a2e14', ground: '#1a160a', line: '#b09048', orb: '#fffbe0', accent: '#ffe6a8' },
 ]
-// 战斗背景整体提亮，减弱“蒙了一层灰/紫滤镜”的观感。
+// 战斗背景采用“大晴天”暖色滤镜：提高亮度并混入暖白，但保留每关原有色相差异。
 function brightenHex(hex: string, amount: number) {
   const match = /^#([0-9a-f]{6})$/i.exec(hex)
   if (!match) return hex
@@ -1208,9 +1208,19 @@ function brightenHex(hex: string, amount: number) {
   const b = lift(value & 255)
   return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`
 }
-const BRIGHT_STAGE_BACKGROUNDS: BackgroundTheme[] = STAGE_BACKGROUNDS.map((bg) => {
+function mixHex(hex: string, target: string, amount: number) {
+  const parse = (text: string) => {
+    const match = /^#([0-9a-f]{6})$/i.exec(text)
+    return match ? parseInt(match[1], 16) : 0
+  }
+  const a = parse(hex); const b = parse(target)
+  const mix = (shift: number) => Math.round(((a >> shift) & 255) + (((b >> shift) & 255) - ((a >> shift) & 255)) * amount)
+  return `#${((mix(16) << 16) | (mix(8) << 8) | mix(0)).toString(16).padStart(6, '0')}`
+}
+function sunnyGrade(hex: string) { return mixHex(brightenHex(hex, .32), '#fff1c8', .16) }
+const SUNNY_STAGE_BACKGROUNDS: BackgroundTheme[] = STAGE_BACKGROUNDS.map((bg) => {
   const out = { ...bg }
-  for (const key of Object.keys(out) as Array<keyof BackgroundTheme>) out[key] = brightenHex(bg[key], .2)
+  for (const key of Object.keys(out) as Array<keyof BackgroundTheme>) out[key] = sunnyGrade(bg[key])
   return out
 })
 function bossDashConfig(stage: number) { return { cooldown: Math.max(1.5, (4.2 - stage * .2) * .62), speed: 300 + stage * 18 } }
@@ -12924,7 +12934,7 @@ function sceneBackground() {
     if (awakenRealmActive) return AWAKEN_BACKGROUND
     return townWeatherNow().day ? TOWN_BACKGROUND : TOWN_NIGHT_BACKGROUND
   }
-  return BRIGHT_STAGE_BACKGROUNDS[stageIndex] ?? STAGE_BACKGROUNDS[stageIndex]
+  return SUNNY_STAGE_BACKGROUNDS[stageIndex] ?? STAGE_BACKGROUNDS[stageIndex]
 }
 // 全屏竖屏时在游戏世界上下补足天空与地面，避免拉伸画面。
 function fillExtendedBackdrop(c: CanvasRenderingContext2D) {
@@ -13066,6 +13076,15 @@ function drawBackground(c: CanvasRenderingContext2D) {
       c.restore()
     }
   } else drawStageBackdrop(c, stageIndex, bg)
+  // 大晴天暖光：在场景上方叠一层很淡的暖白，让每关保留色相但整体明亮。
+  if (!town && daylight) {
+    const sunny = c.createLinearGradient(0, 0, 0, world.floor)
+    sunny.addColorStop(0, 'rgba(255, 242, 196, .12)')
+    sunny.addColorStop(.55, 'rgba(255, 232, 170, .05)')
+    sunny.addColorStop(1, 'rgba(255, 220, 150, .02)')
+    c.fillStyle = sunny
+    c.fillRect(0, 0, world.width, world.floor)
+  }
   // 极轻的抗眩光暗角，只保留一点点边缘层次，不再像蒙了滤镜。
   if (!town) {
     const vignette = c.createRadialGradient(world.width / 2, 230, 180, world.width / 2, 230, 680)
