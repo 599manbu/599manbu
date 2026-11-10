@@ -18,7 +18,7 @@ type AttributeAllocation = Record<AttributeStat, number>
 type StageProgress = { kills: number; bossDefeated: boolean; pointsClaimed?: number }
 type Save = { role: Role; stage: number; unlockedStage: number; kills: number; stageProgress?: Record<string, StageProgress>; hp: number; mp: number; gear: Gear[]; equipped: string | null; weaponId?: string | null; weapon2Id?: string | null; armorId?: string | null; armor2Id?: string | null; fashionId?: string | null; ringId?: string | null; cloakId?: string | null; specialTarget?: GearType; specialPity?: boolean; extraSlot?: 'weapon' | 'armor'; level?: number; exp?: number; drops?: WorldDrop[]; bossDefeated?: boolean; attributePoints?: number; attributeAllocation?: AttributeAllocation; soul?: number; normalTalent?: number; normalTalentLevels?: number[]; advancedTalent?: number; advancedTalentLevel?: number; talentFragments?: number; talentCoins?: number; lotteryChances?: number; shopFashionBought?: boolean; shopWeek?: string; shopBought?: string[]; travelMerchantDay?: string; travelMerchantOffer?: MerchantOffer | null; travelMerchantBoughtDay?: string; travelMerchantRerolls?: number; reviveCoins?: number; reviveUsed?: boolean; fragmentBuyDay?: string; reviveBuyAt?: number; materials?: Record<string, number>; stones?: number[]; enhance?: { weapon: number; armor: number; armor2: number; weapon2: number; ring: number; failWeapon: number; failArmor: number; failArmor2: number; failWeapon2: number; failRing: number }; nightmareCleared?: number[]; nightmareDay?: string; nightmareAttempts?: number; stamps?: number; stampTypes?: number[]; hiddenStake?: number; hiddenStakeTypes?: number[]; freeReviveDay?: string; tutorialDone?: boolean; hiddenCleared?: boolean; rivalTrust?: boolean; stage8Choice?: 'save' | 'chase' | 'together' | null; rescuedRock?: boolean; rescuedXiaoman?: boolean; rescuedZhou?: boolean; seenStories?: string[]; forgeIntroSeen?: boolean; shopIntroSeen?: boolean; lotteryIntroSeen?: boolean; townIntroSeen?: boolean; travelMerchantIntroSeen?: boolean; rankIntroSeen?: boolean; hazardIntroSeen?: boolean; treeClaimDay?: string; mainQuestsClaimed?: number[]; sideQuest?: { stage: number; clears: number } | null; sideQuestDay?: string; skillLevels?: Record<string, number>; awakenedSkills?: Record<string, boolean>; awakenPractice?: Record<string, number>; awakenDisabled?: Record<string, boolean>; awakenTarget?: { set: SkillSetKey; index: number } | null; gems?: Gem[]; punchStones?: number; punchBuyAt?: number; horns?: number; hornBuyAt?: number; hornBuff?: 'material' | 'attack' | 'gear' | null; hornBuffUntil?: number; name?: string; p2Name?: string; coop?: boolean; p2Role?: Role; p2WeaponId?: string | null; p2ArmorId?: string | null; p2FashionId?: string | null; mailClaimed?: boolean; mailClaimed2?: boolean; mailClaimed3?: boolean; deletedMails?: number[]; updateNoticeReadId?: string; bagUnread?: boolean; redeemedCodes?: string[]; redeemedCodes2?: string[]; combatData?: { attacks: number; skills: number; defends: number; skillUses: number[]; stages: number[] }; adDay?: string; adRewards?: string[]; adLongDay?: string; adLongRewards?: string[]; adReviveDay?: string; adReviveCount?: number; town: boolean; completed: boolean; dead: boolean }
 type SaveSlot = { id: string; label: string; data: Save; updatedAt: number }
-type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; flyPhase?: number; flyAmplitude?: number; flySpeed?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number; specialTimer?: number; specialWindup?: number; specialKind?: 'pierce' | 'exclusive' | 'laser' | 'homing'; specialNext?: 'pierce' | 'exclusive' | 'laser' | 'homing'; specialDirection?: number; mobSkillTimer?: number; skillWindup?: number; skillKind?: 'lunge' | 'slam'; preferredAttack?: 'melee' | 'ranged'; spiralLiftTimer?: number; lift?: number; staggerTimer?: number; staggerHits?: number; staggerHitTimer?: number; staggerImmune?: number; superArmor?: number; inMeleeRange?: boolean; tutorial?: boolean; mirror?: boolean; mirrorRole?: Role; mirrorSet?: SkillSetKey; stationary?: boolean; scarecrow?: boolean; burnTimer?: number; burnTick?: number; burnDamage?: number; chillTimer?: number; anchorX?: number; summonCount?: number; summonTimer?: number; invulnTimer?: number; invulnCycle?: number; fieldTimer?: number; mp?: number; mirrorSkillTimer?: number; mirrorWindup?: number; mirrorSkill?: number; mirrorBuffTimer?: number; mirrorBurst?: number; mirrorBurstWait?: number; mirrorSwitch?: number; mirrorSwapTimer?: number; mirrorNextRole?: Role; mirrorNextSet?: SkillSetKey; mirrorGuard?: number; mirrorGuardCd?: number; mirrorBoltTimer?: number; wanderTimer?: number; wanderTargetX?: number | null; bossClone?: boolean; cloneExpire?: number; cloneSource?: number; permanentArmor?: boolean; hiddenTimer?: number; phase?: number; guardTimer?: number; guardCd?: number; modelIndex?: number; mobVariant?: number; scaleVariant?: number; teleport?: boolean; teleportTimer?: number; platformX?: number; platformW?: number; platformHeight?: number }
+type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; flyPhase?: number; flyAmplitude?: number; flySpeed?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number; specialTimer?: number; specialWindup?: number; specialKind?: 'pierce' | 'exclusive' | 'laser' | 'homing'; specialNext?: 'pierce' | 'exclusive' | 'laser' | 'homing'; specialDirection?: number; mobSkillTimer?: number; skillWindup?: number; skillKind?: 'lunge' | 'slam'; preferredAttack?: 'melee' | 'ranged'; spiralLiftTimer?: number; lift?: number; staggerTimer?: number; staggerHits?: number; staggerHitTimer?: number; staggerImmune?: number; superArmor?: number; revived?: boolean; twinIndex?: 0 | 1; permaStealth?: boolean; inMeleeRange?: boolean; tutorial?: boolean; mirror?: boolean; mirrorRole?: Role; mirrorSet?: SkillSetKey; stationary?: boolean; scarecrow?: boolean; burnTimer?: number; burnTick?: number; burnDamage?: number; chillTimer?: number; anchorX?: number; summonCount?: number; summonTimer?: number; invulnTimer?: number; invulnCycle?: number; fieldTimer?: number; mp?: number; mirrorSkillTimer?: number; mirrorWindup?: number; mirrorSkill?: number; mirrorBuffTimer?: number; mirrorBurst?: number; mirrorBurstWait?: number; mirrorSwitch?: number; mirrorSwapTimer?: number; mirrorNextRole?: Role; mirrorNextSet?: SkillSetKey; mirrorGuard?: number; mirrorGuardCd?: number; mirrorBoltTimer?: number; wanderTimer?: number; wanderTargetX?: number | null; bossClone?: boolean; cloneExpire?: number; cloneSource?: number; permanentArmor?: boolean; hiddenTimer?: number; phase?: number; guardTimer?: number; guardCd?: number; modelIndex?: number; mobVariant?: number; scaleVariant?: number; teleport?: boolean; teleportTimer?: number; platformX?: number; platformW?: number; platformHeight?: number }
 type Fx = { x: number; y: number; life: number; kind: string; direction?: number; text?: string; damage?: number; duration?: number; vx?: number; vy?: number; color?: string; radius?: number }
 type HazardKind = 'spike' | 'flame' | 'poison' | 'lightning' | 'void' | 'light'
 type Hazard = { id: number; x: number; kind: HazardKind; warn: number; warnTotal: number; active: number; activeTotal: number; hit: boolean; radius: number; fromBoss?: boolean }
@@ -40,9 +40,17 @@ const DEMO_MODE = import.meta.env.MODE === 'demo'
 // 由 vite.config.ts 的 define 在构建时替换为 true/false，便于摇树删除审核不需要的文案。
 declare const PLATFORM_4399: boolean
 const DEMO_SAVE_KEY = `${SAVE_KEY}:demo`
-const GAME_VERSION = '1.98'
+const GAME_VERSION = '1.99'
 // 每次版本更新时同步修改这里，邮件「更新公告」会显示最新内容。
 const UPDATE_NOTES = [
+  '关卡扩展到 30 关：新增第三章 21~30 关与独立场景、Boss 与专属材料；第 30 关为最终结局，后续不再更新。',
+  '高级天赋「双持专精」新增武器切换：原地按住 S 5 秒交换主副武器，技能组随主武器切换；战士仅限剑/弓，法师仅限法杖/魔法书。',
+  '第 21 关 Boss 第一次倒下后以 30% 生命复活一次。',
+  '第 22 关双 Boss 同时在场，技能循环错开；两名都倒下才通关。',
+  '第 23 关 Boss 出现后 4 分钟内未击杀会秒杀角色（可复活），Boss 血量略低于前一关。',
+  '第 24 关 Boss 全程隐身，只显示影子；出招前摇时短暂显示半透明轮廓。',
+  '第 30 关最终 Boss 不移动，周期性释放全屏 AOE。',
+  '第三章 Boss 攻击欲望提高，远程与专属技能更频繁。',
   '新增「技能觉醒」：救出小满后可进入时间回廊，在觉醒界面选择当前武器技能进行觉醒；普通与觉醒版本共享技能等级。',
   '觉醒条件：战士用目标技能对稻草人造成单次 ≥800 伤害（多段合计）计 1 次；法师靠近稻草人承受反击，每次受击计 1 次。',
   '每 10 次计数使觉醒碎片掉率 +1%；集齐 3 个碎片兑换觉醒书。返回小镇会清零计数、掉率与碎片。',
@@ -83,6 +91,10 @@ const UPDATE_NOTES = [
 ]
 // 邮件公告只展示概要，不公开具体平衡数值。
 const PUBLIC_UPDATE_NOTES = [
+  '新增 30 关与第三章；第 30 关为最终结局。',
+  '双持专精可按住 S 5 秒切换主副武器与技能组。',
+  '新增复活 Boss、双 Boss、4 分钟限时、全程隐身 Boss 与最终全屏 AOE。',
+  '第三章 Boss 攻击欲望与远程弹幕增强。',
   '新增技能觉醒系统：四种武器各四个技能均可觉醒，觉醒后永久 +10% 伤害。',
   '时间回廊、觉醒碎片与觉醒书玩法上线；4399 版兑换觉醒书需观看广告。',
   '新增大量觉醒技能与专属特效，涵盖剑、弓、法杖与魔法书。',
@@ -124,15 +136,17 @@ let fxScale = 1
 const stageNames = [
   '苔痕边境', '沉钟矿道', '赤岩峡谷', '风蚀高原', '幽蓝沼泽', '断星回廊', '灰烬王庭', '深渊裂谷', '苍白圣所', '终焉之门',
   '裂空回廊', '黑潮古城', '镜湖墓园', '熔核工坊', '雷暴浮岛', '瘟疫花园', '时砂神殿', '幽影剧院', '星核圣殿', '天穹王座',
+  '暮色回廊', '双生祭坛', '流沙王座', '无光之厅', '深渊王庭', '星陨平原', '永夜花园', '终幕剧场', '虚无圣所', '创世之门',
 ]
 const BOSS_NAMES = [
   '苔痕巨像', '沉钟巡守', '赤岩暴君', '风蚀猎王', '幽蓝潮主', '断星之眼', '灰烬王座', '血牙蛮王', '苍白日轮', '终焉星门',
   '双影术士·弥', '不破铁壁·磐', '无面镜灵', '熔炉巨匠·铸', '雷鸢', '腐殖女王', '时砂祭司', '无面伶人', '星核守望', '天穹之王',
+  '黄昏守望·洛', '双生之主·昼与夜', '时砂裁决者', '无影之刃', '深渊吞噬者', '星陨巨兽', '永夜女王', '终幕伶人', '虚无之眼', '创世之影',
 ]
 const CHAPTER_SIZE = 10
 const STAGE_COUNT = stageNames.length
 const CHAPTER2_START = CHAPTER_SIZE + 1
-function chapterOf(stage: number) { return stage > CHAPTER_SIZE ? 2 : 1 }
+function chapterOf(stage: number) { return Math.min(3, Math.ceil(Math.max(1, stage) / CHAPTER_SIZE)) }
 function stageChapterLabel(stage: number) {
   const chapter = chapterOf(stage)
   return `第 ${chapter} 章 · 第 ${((stage - 1) % CHAPTER_SIZE) + 1} 关`
@@ -141,6 +155,11 @@ function chapter2Unlocked() {
   if (!game) return false
   if (DEMO_MODE) return true
   return Boolean(game.completed || game.stageProgress?.[String(CHAPTER_SIZE)]?.bossDefeated || (game.unlockedStage ?? 1) > CHAPTER_SIZE)
+}
+function chapter3Unlocked() {
+  if (!game) return false
+  if (DEMO_MODE) return true
+  return Boolean(game.stageProgress?.[String(CHAPTER_SIZE * 2)]?.bossDefeated || (game.unlockedStage ?? 1) > CHAPTER_SIZE * 2)
 }
 const roleLabels: Record<Role, string> = { warrior: '战士', mage: '法师' }
 const SKILL_LABELS: Record<SkillSetKey, string[]> = {
@@ -312,6 +331,17 @@ const STAGE_CONFIG = [
   { mobHp: 154500, mobAtk: 7910, bossHp: 4875000, bossAtk: 15260, bossDef: 1950 },
   { mobHp: 180000, mobAtk: 9100, bossHp: 5625000, bossAtk: 16940, bossDef: 2200 },
   { mobHp: 210000, mobAtk: 10500, bossHp: 6450000, bossAtk: 18900, bossDef: 2500 },
+  // 第三章：30 关大结局。第 23 关限时 Boss 血量略低于前一关。
+  { mobHp: 245000, mobAtk: 12200, bossHp: 7400000, bossAtk: 21800, bossDef: 2850 },
+  { mobHp: 285000, mobAtk: 14000, bossHp: 8500000, bossAtk: 24500, bossDef: 3200 },
+  { mobHp: 330000, mobAtk: 16000, bossHp: 8000000, bossAtk: 27000, bossDef: 3500 },
+  { mobHp: 380000, mobAtk: 18300, bossHp: 9800000, bossAtk: 30000, bossDef: 3850 },
+  { mobHp: 440000, mobAtk: 21000, bossHp: 11500000, bossAtk: 33500, bossDef: 4200 },
+  { mobHp: 510000, mobAtk: 24000, bossHp: 13500000, bossAtk: 37000, bossDef: 4600 },
+  { mobHp: 590000, mobAtk: 27500, bossHp: 15800000, bossAtk: 41000, bossDef: 5000 },
+  { mobHp: 680000, mobAtk: 31500, bossHp: 18500000, bossAtk: 45500, bossDef: 5500 },
+  { mobHp: 780000, mobAtk: 36000, bossHp: 21500000, bossAtk: 50500, bossDef: 6000 },
+  { mobHp: 900000, mobAtk: 41000, bossHp: 25000000, bossAtk: 56000, bossDef: 6600 },
 ]
 const STAMP_UNLOCK = 10
 const STAMP_DROP_CHANCE = .2
@@ -371,6 +401,16 @@ const STAGE_MATERIALS: string[][] = [
   ['幽影幕布', '剧院面具', '伶人泪晶'],
   ['星核碎片', '圣殿星尘', '守望棱晶'],
   ['天穹羽片', '王座金屑', '终焉星核'],
+  ['暮色羽片', '黄昏余烬', '洛之残影'],
+  ['双生棱片', '昼夜砂砾', '双子共鸣'],
+  ['流沙金粒', '裁决沙漏', '时砂刻痕'],
+  ['无光影屑', '暗刃碎片', '无声残念'],
+  ['深渊鳞片', '王庭暗晶', '吞噬残渣'],
+  ['星陨碎核', '平原星尘', '巨兽星牙'],
+  ['永夜花瓣', '花园暗露', '女王夜晶'],
+  ['终幕幕布', '剧场残光', '伶人谢幕'],
+  ['虚无棱晶', '圣所空响', '虚无之瞳'],
+  ['创世星屑', '门扉光片', '起源余辉'],
 ]
 const STONE_NAMES = ['一阶强化石', '二阶强化石', '三阶强化石', '四阶强化石', '五阶强化石', '六阶强化石']
 function materialKey(stage: number, variant: number) { return `s${stage}-${variant}` }
@@ -638,7 +678,7 @@ const MAP_SEGMENT = 480
 const WAVE_SIZE = 10
 const BOSS_ARENA_WIDTH = 640
 // 第 4 关起部分小怪会飞行；第 8 关（血牙蛮兵）保持地面。第二章飞行怪比例更高。
-const FLYING_CHANCES = [0, 0, 0, .35, .3, .45, .35, 0, .3, .45, .55, .4, .6, .35, .7, .5, .45, .65, .6, .75]
+const FLYING_CHANCES = [0, 0, 0, .35, .3, .45, .35, 0, .3, .45, .55, .4, .6, .35, .7, .5, .45, .65, .6, .75, .8, .7, .85, .75, .9, .8, .85, .9, .95, .95]
 type PlatformSpec = { x: number; height: number; w: number; kind: BattlePlatform['kind'] }
 // 不同关卡使用不同组合的平台：长短、高度、类型都不一样。
 const PLATFORM_LAYOUTS: PlatformSpec[][] = [
@@ -684,7 +724,7 @@ const PLATFORM_LAYOUTS: PlatformSpec[][] = [
   ],
 ]
 // 所有关卡统一使用平坦地面，不再生成起伏、坑洼或台阶。
-const TERRAIN_DEPTHS = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+const TERRAIN_DEPTHS = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 function terrainOffsetAt(worldX: number, stageIndex: number) {
   const stage = Math.max(1, Math.min(TERRAIN_DEPTHS.length, stageIndex + 1))
   const depth = TERRAIN_DEPTHS[stage - 1] ?? 0
@@ -696,7 +736,7 @@ function terrainOffsetAt(worldX: number, stageIndex: number) {
   return depth * envelope * (.35 + .65 * (Math.sin(worldX * .012 + stage * 1.3) * .5 + .5))
 }
 // 第 3 关起出现场景机关；第 10 关与所有 Boss 战不生成。
-const STAGE_HAZARDS: Array<HazardKind | null> = [null, null, 'flame', 'spike', 'poison', 'lightning', 'flame', 'void', 'light', null, 'void', 'lightning', 'poison', 'flame', 'lightning', 'poison', 'void', 'light', 'light', 'void']
+const STAGE_HAZARDS: Array<HazardKind | null> = [null, null, 'flame', 'spike', 'poison', 'lightning', 'flame', 'void', 'light', null, 'void', 'lightning', 'poison', 'flame', 'lightning', 'poison', 'void', 'light', 'light', 'void', 'light', 'void', 'lightning', 'void', 'void', 'lightning', 'poison', 'light', 'void', 'light']
 // 所有机关持续 2 秒，命中一次，伤害等于当关小怪的一次攻击。
 const HAZARD_CONFIG: Record<HazardKind, { radius: number; warn: number; active: number; name: string; shake: number }> = {
   spike: { radius: 44, warn: .75, active: 2, name: '地刺喷发', shake: 4 },
@@ -730,6 +770,16 @@ const BOSS_RANGED: Array<BossRangedConfig | null> = [
   { count: 9, spread: 1.1, interval: 1.7, speed: 450, damageScale: 1.22 },
   { count: 10, spread: Math.PI * 2, interval: 1.6, speed: 460, damageScale: 1.25 },
   { count: 12, spread: Math.PI * 2, interval: 1.5, speed: 470, damageScale: 1.3 },
+  { count: 10, spread: 1.2, interval: 1.6, speed: 480, damageScale: 1.28 },
+  { count: 12, spread: Math.PI * 2, interval: 1.55, speed: 490, damageScale: 1.3 },
+  { count: 12, spread: 1.3, interval: 1.5, speed: 500, damageScale: 1.32 },
+  { count: 14, spread: Math.PI * 2, interval: 1.45, speed: 510, damageScale: 1.35 },
+  { count: 14, spread: 1.4, interval: 1.4, speed: 520, damageScale: 1.38 },
+  { count: 16, spread: Math.PI * 2, interval: 1.35, speed: 530, damageScale: 1.4 },
+  { count: 16, spread: 1.5, interval: 1.3, speed: 540, damageScale: 1.42 },
+  { count: 18, spread: Math.PI * 2, interval: 1.25, speed: 550, damageScale: 1.45 },
+  { count: 18, spread: 1.6, interval: 1.2, speed: 560, damageScale: 1.48 },
+  { count: 20, spread: Math.PI * 2, interval: 1.1, speed: 580, damageScale: 1.55 },
 ]
 // 第 4 关起小怪也会使用远程攻击，越往后弹幕越多。
 // 第 1 关起小怪就会区分远程与近战；远程弹幕随关卡逐渐增强。
@@ -754,9 +804,19 @@ const MOB_RANGED: Array<BossRangedConfig | null> = [
   { count: 5, spread: .7, interval: 2.6, speed: 430, damageScale: 1.14 },
   { count: 5, spread: .75, interval: 2.5, speed: 440, damageScale: 1.16 },
   { count: 6, spread: .8, interval: 2.4, speed: 450, damageScale: 1.2 },
+  { count: 6, spread: .8, interval: 2.3, speed: 460, damageScale: 1.22 },
+  { count: 6, spread: .85, interval: 2.2, speed: 470, damageScale: 1.25 },
+  { count: 7, spread: .9, interval: 2.1, speed: 480, damageScale: 1.28 },
+  { count: 7, spread: .9, interval: 2.0, speed: 490, damageScale: 1.3 },
+  { count: 7, spread: .95, interval: 1.95, speed: 500, damageScale: 1.33 },
+  { count: 8, spread: 1.0, interval: 1.9, speed: 510, damageScale: 1.36 },
+  { count: 8, spread: 1.0, interval: 1.85, speed: 520, damageScale: 1.4 },
+  { count: 8, spread: 1.05, interval: 1.8, speed: 530, damageScale: 1.45 },
+  { count: 9, spread: 1.1, interval: 1.75, speed: 540, damageScale: 1.5 },
+  { count: 10, spread: 1.15, interval: 1.7, speed: 550, damageScale: 1.55 },
 ]
 // 每个 Boss 都有独立专属技能；冷却更短，专属技能使用频率更高。
-const BOSS_SPECIAL_COOLDOWNS = [5.4, 5.2, 5.0, 4.8, 4.6, 4.4, 4.2, 4.0, 3.8, 2.4, 4.0, 3.8, 3.7, 3.6, 3.5, 3.4, 3.3, 3.2, 3.1, 2.0]
+const BOSS_SPECIAL_COOLDOWNS = [5.4, 5.2, 5.0, 4.8, 4.6, 4.4, 4.2, 4.0, 3.8, 2.4, 4.0, 3.8, 3.7, 3.6, 3.5, 3.4, 3.3, 3.2, 3.1, 2.0, 2.2, 2.1, 2.0, 1.9, 1.8, 1.8, 1.7, 1.7, 1.6, 1.4]
 const BOSS_SPECIAL_NAMES: Array<{ pierce: string; exclusive: string; laser?: string; homing?: string; effect?: string } | null> = [
   { pierce: '苔痕突刺', exclusive: '古木震击', laser: '苔光射线', homing: '藤蔓追猎', effect: 'quake' },
   { pierce: '钟摆突刺', exclusive: '沉钟回响', laser: '冷钟射线', homing: '钟声追猎', effect: 'ring' },
@@ -779,12 +839,22 @@ const BOSS_SPECIAL_NAMES: Array<{ pierce: string; exclusive: string; laser?: str
   { pierce: '影刃穿刺', exclusive: '幽影剧院', laser: '暗红射线', homing: '面具追猎', effect: 'shadow' },
   { pierce: '星核穿刺', exclusive: '星核引力', laser: '星核射线', homing: '星尘追猎', effect: 'stellar' },
   { pierce: '天穹穿刺', exclusive: '天穹审判', laser: '终焉射线', homing: '王座追猎', effect: 'crown' },
+  { pierce: '黄昏穿刺', exclusive: '黄昏回响', laser: '暮光射线', homing: '黄昏追猎', effect: 'dusk' },
+  { pierce: '双生穿刺', exclusive: '双生共鸣', laser: '日月射线', homing: '双生追猎', effect: 'twin' },
+  { pierce: '流沙穿刺', exclusive: '时砂裁决', laser: '流沙射线', homing: '时砂追猎', effect: 'time' },
+  { pierce: '无影穿刺', exclusive: '无影斩杀', laser: '暗影射线', homing: '无影追猎', effect: 'shadow' },
+  { pierce: '深渊穿刺', exclusive: '深渊吞噬', laser: '深渊射线', homing: '深渊追猎', effect: 'void' },
+  { pierce: '星陨穿刺', exclusive: '星陨坠落', laser: '星芒射线', homing: '星陨追猎', effect: 'star' },
+  { pierce: '永夜穿刺', exclusive: '永夜花园', laser: '永夜射线', homing: '永夜追猎', effect: 'plague' },
+  { pierce: '终幕穿刺', exclusive: '终幕谢礼', laser: '追光射线', homing: '终幕追猎', effect: 'shadow' },
+  { pierce: '虚无穿刺', exclusive: '虚无审判', laser: '虚无射线', homing: '虚无追猎', effect: 'void' },
+  { pierce: '创世穿刺', exclusive: '创世终焉', laser: '创世射线', homing: '创世追猎', effect: 'crown' },
 ]
 // 主题顺序与关卡名称对应；第二章使用独立的配色与场景。
-const BOSS_THEMES = ['moss', 'frost', 'ember', 'storm', 'tide', 'void', 'ash', 'blood', 'sun', 'star', 'rift', 'iron', 'mirror', 'forge', 'thunder', 'plague', 'time', 'shadow', 'stellar', 'crown']
-const BOSS_THEME_COLORS: Record<string, string> = { ember: '#f49b58', frost: '#a9e2e5', storm: '#f2dc79', void: '#d78fb4', moss: '#a7cf77', sun: '#ffe28a', blood: '#ec6464', tide: '#69c7d2', ash: '#c9c2b0', star: '#b8a4f4', rift: '#b58cff', iron: '#8fa7c7', mirror: '#9fe8e0', forge: '#ff9a5a', thunder: '#e8d86a', plague: '#8fd06a', time: '#e8c97a', shadow: '#c77a9f', stellar: '#8fb8ff', crown: '#ffd27a' }
+const BOSS_THEMES = ['moss', 'frost', 'ember', 'storm', 'tide', 'void', 'ash', 'blood', 'sun', 'star', 'rift', 'iron', 'mirror', 'forge', 'thunder', 'plague', 'time', 'shadow', 'stellar', 'crown', 'dusk', 'twin', 'hourglass', 'stealth', 'abyss', 'starfall', 'nightgarden', 'finale', 'void2', 'genesis']
+const BOSS_THEME_COLORS: Record<string, string> = { ember: '#f49b58', frost: '#a9e2e5', storm: '#f2dc79', void: '#d78fb4', moss: '#a7cf77', sun: '#ffe28a', blood: '#ec6464', tide: '#69c7d2', ash: '#c9c2b0', star: '#b8a4f4', rift: '#b58cff', iron: '#8fa7c7', mirror: '#9fe8e0', forge: '#ff9a5a', thunder: '#e8d86a', plague: '#8fd06a', time: '#e8c97a', shadow: '#c77a9f', stellar: '#8fb8ff', crown: '#ffd27a', dusk: '#e8a060', twin: '#c9a7ff', hourglass: '#f0d890', stealth: '#8a9aa8', abyss: '#a06ad0', starfall: '#8fc8ff', nightgarden: '#b8e08a', finale: '#e88aa8', void2: '#b8a4f4', genesis: '#ffe6a8' }
 // 每个 Boss 使用不同的体型比例，避免只是换颜色。
-const BOSS_SCALES = [2.25, 2.35, 2.45, 2.1, 2.2, 2.3, 2.4, 2.35, 2.2, 3.2, 2.05, 2.4, 2.0, 2.15, 2.25, 2.3, 2.15, 2.0, 2.45, 3.3]
+const BOSS_SCALES = [2.25, 2.35, 2.45, 2.1, 2.2, 2.3, 2.4, 2.35, 2.2, 3.2, 2.05, 2.4, 2.0, 2.15, 2.25, 2.3, 2.15, 2.0, 2.45, 3.3, 2.6, 2.5, 2.55, 2.4, 2.7, 2.8, 2.6, 2.5, 2.9, 3.6]
 type EnemyTheme = { body: string; dark: string; light: string; accent: string; eye: string; glow: string }
 const STAGE_THEMES: EnemyTheme[] = [
   { body: '#5f7a4a', dark: '#33452c', light: '#a4c070', accent: '#d6e39a', eye: '#ffe58a', glow: '#a7cf77' },
@@ -807,6 +877,16 @@ const STAGE_THEMES: EnemyTheme[] = [
   { body: '#7a3a5a', dark: '#2e1422', light: '#e8a8c8', accent: '#ffd8e8', eye: '#ffe0f0', glow: '#e08ab0' },
   { body: '#4a5a9a', dark: '#1c2240', light: '#b0ccff', accent: '#e0ecff', eye: '#d8e8ff', glow: '#a0c0ff' },
   { body: '#7a5a32', dark: '#2e2414', light: '#ffe8b8', accent: '#fff8dc', eye: '#fff4d0', glow: '#f0d89a' },
+  { body: '#8a5a3a', dark: '#3a2418', light: '#ffc890', accent: '#ffe8c8', eye: '#ffe0a0', glow: '#e8a060' },
+  { body: '#6a4a9a', dark: '#2a1c40', light: '#d8c8ff', accent: '#f0e8ff', eye: '#e8d8ff', glow: '#c9a7ff' },
+  { body: '#8a7438', dark: '#3a2e14', light: '#ffe8a8', accent: '#fff8d0', eye: '#fff4c8', glow: '#f0d890' },
+  { body: '#4a5a66', dark: '#1c2630', light: '#a8c0d0', accent: '#d8e8f0', eye: '#c8e0f0', glow: '#8a9aa8' },
+  { body: '#5a3a7a', dark: '#24142e', light: '#c8a0e8', accent: '#e8d0ff', eye: '#e0c8ff', glow: '#a06ad0' },
+  { body: '#4a6a9a', dark: '#1c2a40', light: '#b8d8ff', accent: '#e0f0ff', eye: '#d0e8ff', glow: '#8fc8ff' },
+  { body: '#4a7a4a', dark: '#1c301c', light: '#c0f0a8', accent: '#e8ffd8', eye: '#e0ffc8', glow: '#b8e08a' },
+  { body: '#8a4a6a', dark: '#3a1c2a', light: '#f0b8d0', accent: '#ffe0f0', eye: '#ffd8e8', glow: '#e88aa8' },
+  { body: '#4a4a7a', dark: '#1c1c38', light: '#c0c0f0', accent: '#e8e8ff', eye: '#e0e0ff', glow: '#b8a4f4' },
+  { body: '#8a7a4a', dark: '#3a301c', light: '#fff0c0', accent: '#fffbe8', eye: '#fff8d8', glow: '#ffe6a8' },
 ]
 type BackgroundTheme = { skyTop: string; skyMid: string; skyLow: string; far: string; near: string; ground: string; line: string; orb: string; accent: string }
 const TOWN_BACKGROUND: BackgroundTheme = { skyTop: '#243b3a', skyMid: '#4c6756', skyLow: '#8a9467', far: '#2c443a', near: '#3f5b47', ground: '#4a3a2b', line: '#9b8a5f', orb: '#f4d28d', accent: '#d4b876' }
@@ -1089,6 +1169,16 @@ const STAGE_BACKGROUNDS: BackgroundTheme[] = [
   { skyTop: '#1a0610', skyMid: '#3a1024', skyLow: '#5c2040', far: '#2a0c1a', near: '#3a1424', ground: '#180810', line: '#8a3a5a', orb: '#f0b8d0', accent: '#c77a9f' },
   { skyTop: '#050818', skyMid: '#101a3a', skyLow: '#243a68', far: '#0a1028', near: '#142038', ground: '#080c1a', line: '#4a6aa0', orb: '#d0e0ff', accent: '#8fb8ff' },
   { skyTop: '#0a0806', skyMid: '#241c10', skyLow: '#4a3a1c', far: '#181208', near: '#2a2010', ground: '#120e08', line: '#a07840', orb: '#fff4c8', accent: '#ffd27a' },
+  { skyTop: '#2a140c', skyMid: '#5a2a18', skyLow: '#a05a32', far: '#3a1e12', near: '#4e2a1a', ground: '#2a1a12', line: '#b07848', orb: '#ffd8a8', accent: '#e8a060' },
+  { skyTop: '#1a1030', skyMid: '#3a2458', skyLow: '#6a4a8a', far: '#241838', near: '#34204c', ground: '#1a1228', line: '#8a6ab0', orb: '#e8d8ff', accent: '#c9a7ff' },
+  { skyTop: '#2a2410', skyMid: '#5a4a20', skyLow: '#9a7a38', far: '#3a3018', near: '#4e3e1e', ground: '#2a2210', line: '#b09850', orb: '#fff0b8', accent: '#f0d890' },
+  { skyTop: '#0a1014', skyMid: '#1e2a32', skyLow: '#3a4a54', far: '#141c22', near: '#202c34', ground: '#10161a', line: '#5a6a74', orb: '#c8d8e0', accent: '#8a9aa8' },
+  { skyTop: '#140a20', skyMid: '#2e1840', skyLow: '#5a3078', far: '#1e1230', near: '#2a1a3c', ground: '#160e22', line: '#704a98', orb: '#d8b8ff', accent: '#a06ad0' },
+  { skyTop: '#0a1428', skyMid: '#182c50', skyLow: '#34588a', far: '#101e38', near: '#182a48', ground: '#0c1424', line: '#486aa0', orb: '#d0e8ff', accent: '#8fc8ff' },
+  { skyTop: '#0a1a0a', skyMid: '#1c3a1c', skyLow: '#3a5a2a', far: '#122414', near: '#1e341e', ground: '#0e1a0e', line: '#5a8a4a', orb: '#d8ffb8', accent: '#b8e08a' },
+  { skyTop: '#1a0810', skyMid: '#3a1424', skyLow: '#6a2a44', far: '#28101a', near: '#361828', ground: '#1a0a12', line: '#9a4a6a', orb: '#ffd8e8', accent: '#e88aa8' },
+  { skyTop: '#0a0a1a', skyMid: '#1a1a3a', skyLow: '#34346a', far: '#12122a', near: '#1e1e44', ground: '#0c0c1a', line: '#5a5aa0', orb: '#e0e0ff', accent: '#b8a4f4' },
+  { skyTop: '#1a1408', skyMid: '#3a2e12', skyLow: '#7a6028', far: '#2a200c', near: '#3a2e14', ground: '#1a160a', line: '#b09048', orb: '#fffbe0', accent: '#ffe6a8' },
 ]
 function bossDashConfig(stage: number) { return { cooldown: Math.max(1.5, (4.2 - stage * .2) * .62), speed: 300 + stage * 18 } }
 const app = document.querySelector<HTMLDivElement>('#app')!
@@ -1311,6 +1401,8 @@ let actingAsPartner = false
 let suppressSave = false
 // 当前战斗用时（秒），进入战场或开始新战斗时重置。
 let battleTime = 0
+let bossFightTime = 0
+let bossTimerTriggered = false
 // 本场战斗已经复活过的次数：第一次可看广告免费，之后复活币消耗 2、3、4…
 let battleReviveCount = 0
 // 战斗连击：命中累计，5 秒不命中或被击中 2 次后清零。
@@ -1336,6 +1428,11 @@ let flyingSwords: FlyingSword[] = []
 // 御剑术：伤害按 5 段拆分，5 段打完后仍会继续造成伤害，直到飞剑归鞘。
 let swordFlightTimer = 0
 let swordFlightPower = 0
+// 双持专精：原地按住 S 5 秒切换主副武器（技能组随主武器切换）。
+let weaponSwitchHold = 0
+let weaponSwitchAnchorX = 0
+let weaponSwitchLatched = false
+let weaponSwitchNotified = false
 // 每个敌人再次受到御剑飞行伤害的冷却；5 段结束后继续穿过仍会再次造成伤害。
 let swordFlightHits = new Map<number, number>()
 // 万剑归一：分多段延迟结算的穿刺伤害。
@@ -2271,7 +2368,7 @@ function enemyScaling(isBoss: boolean) {
   const bossRate = stage <= 1 ? 0
     : stage <= CHAPTER_SIZE
       ? ((stage - 1) / (CHAPTER_SIZE - 1)) * .5
-      : .5 + ((stage - CHAPTER_SIZE) / (STAGE_COUNT - CHAPTER_SIZE)) * .5
+      : .5 + Math.min(1, (stage - CHAPTER_SIZE) / CHAPTER_SIZE) * .5
   return isBoss ? bossRate : bossRate * .65
 }
 function enemyDodgeRate(isBoss: boolean) { return enemyScaling(isBoss) }
@@ -2287,7 +2384,7 @@ function enemyCritScaling(isBoss: boolean) {
   const bossRate = stage <= 1 ? 0
     : stage <= CHAPTER_SIZE
       ? ((stage - 1) / (CHAPTER_SIZE - 1)) * .35
-      : .35 + ((stage - CHAPTER_SIZE) / (STAGE_COUNT - CHAPTER_SIZE)) * .35
+      : .35 + Math.min(1, (stage - CHAPTER_SIZE) / CHAPTER_SIZE) * .35
   return isBoss ? bossRate : bossRate * .65
 }
 function enemyAntiCritScaling(isBoss: boolean) { return Math.min(1.2, enemyCritScaling(isBoss) * 1.1) }
@@ -2710,12 +2807,15 @@ const MOB_MODEL_VARIANTS: number[][] = [
   [5, 6, 0], [6, 7, 1], [7, 8, 2], [8, 9, 3], [9, 0, 4],
   [10, 11, 18], [11, 12, 19], [12, 13, 10], [13, 14, 11], [14, 15, 12],
   [15, 16, 13], [16, 17, 14], [17, 18, 15], [18, 19, 16], [19, 10, 17],
+  [10, 12, 16], [11, 13, 17], [12, 14, 18], [13, 15, 19], [14, 16, 10],
+  [15, 17, 11], [16, 18, 12], [17, 19, 13], [18, 10, 14], [19, 11, 15],
 ]
 function spawnFoe(x: number, boss = false, flying = false): Foe {
   const stageIndex = stageIndexNow()
   const config = STAGE_CONFIG[stageIndex]
-  // 第 10、20 关的最终 Boss 固定在战斗画面正中，不移动，血量额外加厚。
-  const finalBoss = boss && (stageIndex === 9 || stageIndex === 19)
+  // 第 10、20、30 关的最终 Boss 固定在战斗画面正中，不移动，血量额外加厚。
+  const finalBoss = boss && (stageIndex === 9 || stageIndex === 19 || stageIndex === 29)
+  const aggression = stageIndex >= 20
   const hp = Math.round((boss ? config.bossHp : config.mobHp) * (coopRuntime && !boss ? 1.5 : 1) * (finalBoss ? 1.3 : 1))
   const clampedX = Math.max(MAP_LEFT + 20, Math.min(unlockedWidth - 40, finalBoss ? unlockedWidth - world.width / 2 : x))
   // 第 4 关的风蚀猎王与第 15 关的雷鸢是飞行 Boss；第 12 关的不破铁壁全程霸体。
@@ -2734,8 +2834,9 @@ function spawnFoe(x: number, boss = false, flying = false): Foe {
     modelIndex: boss ? stageIndex : pool[Math.floor(Math.random() * pool.length)],
     mobVariant: boss ? 0 : Math.floor(Math.random() * 3),
     scaleVariant: boss ? 1 : .86 + Math.random() * .22,
-    timer: .7 + Math.random() * 1.2, skillTimer: boss ? 2.4 : 3.2,
-    rangedTimer: boss ? 2.6 + Math.random() * .8 : 3.4 + Math.random() * 1.2,
+    timer: boss ? (aggression ? .45 + Math.random() * .6 : .7 + Math.random() * 1.2) : .7 + Math.random() * 1.2,
+    skillTimer: boss ? (aggression ? 1.6 : 2.4) : 3.2,
+    rangedTimer: boss ? (aggression ? 1.5 + Math.random() * .5 : 2.6 + Math.random() * .8) : 3.4 + Math.random() * 1.2,
     flash: 0, attackAnim: 0,
     flying: boss ? bossFlying : flying,
     flyHeight: bossFlying ? (stageIndex === 3 ? 112 : 96) : (!boss && flying ? 120 + Math.random() * 70 : 0),
@@ -2743,8 +2844,11 @@ function spawnFoe(x: number, boss = false, flying = false): Foe {
     flyAmplitude: bossFlying ? 20 : (!boss && flying ? 16 + Math.random() * 20 : 0),
     flySpeed: bossFlying ? .7 : (!boss && flying ? .8 + Math.random() * .5 : 0),
     stunTimer: 0,
-    specialTimer: boss ? 2.6 + Math.random() * 1.2 : 0,
+    specialTimer: boss ? (aggression ? 1.8 + Math.random() * .6 : 2.6 + Math.random() * 1.2) : 0,
     specialNext: boss ? 'pierce' : undefined,
+    revived: false,
+    twinIndex: 0,
+    permaStealth: boss && stageIndex === 23,
     permanentArmor: boss && (stageIndex === 11 || finalBoss),
     superArmor: boss && (stageIndex === 11 || finalBoss) ? 9999 : 0,
     stationary: finalBoss,
@@ -2753,7 +2857,7 @@ function spawnFoe(x: number, boss = false, flying = false): Foe {
     summonTimer: finalBoss ? 7 : undefined,
     invulnTimer: 0,
     invulnCycle: finalBoss ? 15 : undefined,
-    fieldTimer: finalBoss ? 4.5 : undefined,
+    fieldTimer: finalBoss ? (stageIndex === 29 ? 4 : 4.5) : undefined,
     preferredAttack: boss ? undefined : (Math.random() < .5 ? 'melee' : 'ranged'),
     mobSkillTimer: !boss ? 4 + Math.random() * 3 : 0,
     teleport: !boss && Math.random() < teleportChance,
@@ -2762,6 +2866,23 @@ function spawnFoe(x: number, boss = false, flying = false): Foe {
     platformW: platform?.w,
     platformHeight: platform?.height,
   }
+}
+// 第 22 关双 Boss：两名 Boss 共享关卡主题，但技能循环错开。
+function spawnBossFoes(x: number): Foe[] {
+  const stageIndex = stageIndexNow()
+  if (stageIndex === 22) setLog('时砂裁决者：4 分钟内未击杀，角色会被时间抹除。')
+  if (stageIndex === 29) setLog('创世之影：不移动，周期性释放全屏 AOE。')
+  if (stageIndex === 21) {
+    const first = spawnFoe(x, true)
+    const second = spawnFoe(Math.max(MAP_LEFT + 100, x - 180), true)
+    const hp = Math.max(1, Math.round(Math.min(first.maxHp, second.maxHp) * .62))
+    first.maxHp = hp; first.hp = hp
+    second.maxHp = hp; second.hp = hp
+    second.twinIndex = 1
+    second.specialNext = 'homing'
+    return [first, second]
+  }
+  return [spawnFoe(x, true)]
 }
 // 从当前关卡可站立的平台中挑一个靠近生成点的平台。
 function spawnPlatformFor(x: number): BattlePlatform | undefined {
@@ -2943,7 +3064,9 @@ function startBossSpecial(foe: Foe, stageIndex: number) {
   const special = BOSS_SPECIAL_NAMES[stageIndex]
   if (!special) return
   // 专属技能在循环中出现三次，保证每个 Boss 的特色机制有足够使用频率。
-  const cycle: Array<'pierce' | 'exclusive' | 'laser' | 'homing'> = ['pierce', 'exclusive', 'laser', 'exclusive', 'homing', 'exclusive']
+  const cycle: Array<'pierce' | 'exclusive' | 'laser' | 'homing'> = foe.twinIndex === 1
+    ? ['homing', 'laser', 'exclusive', 'pierce', 'exclusive', 'homing']
+    : ['pierce', 'exclusive', 'laser', 'exclusive', 'homing', 'exclusive']
   const kind: 'pierce' | 'exclusive' | 'laser' | 'homing' = foe.specialNext && cycle.includes(foe.specialNext) ? foe.specialNext : 'pierce'
   const name = kind === 'pierce' ? special.pierce
     : kind === 'exclusive' ? special.exclusive
@@ -3242,6 +3365,8 @@ function armNextWave() {
 function enterBattlefield() {
   if (!game) return
   battleTime = 0
+  bossFightTime = 0
+  bossTimerTriggered = false
   resetCombo()
   resetHiddenUltimate()
   myriadImpactTimer = 0
@@ -3259,7 +3384,7 @@ function enterBattlefield() {
   heroY = 0; velocityY = 0; grounded = true
   if (game.kills >= MAX_SMALL_KILLS) {
     heroX = clampHeroX(unlockedWidth - BOSS_ARENA_WIDTH + 120)
-    foes = [spawnFoe(unlockedWidth - 150, true)]
+    foes = spawnBossFoes(unlockedWidth - 150)
     setLog('守关者就在前方。')
   } else {
     heroX = game.kills > 0 ? clampHeroX(unlockedWidth - 340) : 480
@@ -4073,7 +4198,7 @@ function renderTitle() {
     ? `<div class="slot-scrim"><section class="slot-dialog slot-panel" role="dialog" aria-modal="true" aria-labelledby="save-panel-title"><small>SAVE ARCHIVE · 远征档案</small><h2 id="save-panel-title">选择存档</h2><p>继续一份现有存档，或新建一份远征档案。</p><div class="slot-grid">${archiveCards}</div><div class="slot-panel-actions"><button class="slot-cancel" data-action="close-save-panel" type="button">返回</button><button class="primary" data-action="title-new" type="button">新建存档</button></div></section></div>`
     : ''
   const overwriteDialog = pendingRole ? `<div class="slot-scrim"><section class="slot-dialog"><small>存档槽已满 · ${MAX_SAVE_SLOTS} / ${MAX_SAVE_SLOTS}</small><h2>新建${roleLabels[pendingRole]}存档</h2><p>请选择一个存档槽。覆盖前会再次确认，取消不会改动任何存档。</p>${saveSlots.map((slot) => `<button data-action="overwrite-slot" data-slot="${slot.id}"><span><b>${slot.label}</b><small>${roleLabels[slot.data.role]} · ${slot.data.town ? '小镇' : `第 ${slot.data.stage} 关`}</small></span><i>选择覆盖</i></button>`).join('')}<button class="slot-cancel" data-action="cancel-new">取消</button></section></div>` : ''
-  app.innerHTML = `<main class="title-screen"><section class="title-copy"><div class="eyebrow"><i></i> 单机动作 RPG · 二十关远征</div><h1>成王之路<span>：元素远征</span></h1><p class="intro">选择职业，穿越失落之地，直面守关者。</p>${accountBar}<div class="rule"></div>${titleView === 'home' ? homePanel : newPanel}<footer><span>存档最多 ${MAX_SAVE_SLOTS} 个 · 覆盖前确认</span><span class="game-version">版本 ${GAME_VERSION}</span><span>01 — 20</span></footer></section><div class="title-art" aria-hidden="true"><div class="sacred-veil"></div><div class="dark-veil"></div><div class="sacred-halo"></div><div class="dark-thorns"></div><div class="sun"></div><div class="mountains"></div><div class="ruins"><i></i><i></i><i></i></div><div class="silhouette"><b></b><i></i><span></span></div><small>THE LOST FRONTIER <span>遗迹之外，仍有远方</span></small></div></main>${overwriteDialog}${savePanel}`
+  app.innerHTML = `<main class="title-screen"><section class="title-copy"><div class="eyebrow"><i></i> 单机动作 RPG · 三十关远征</div><h1>成王之路<span>：元素远征</span></h1><p class="intro">选择职业，穿越失落之地，直面守关者。</p>${accountBar}<div class="rule"></div>${titleView === 'home' ? homePanel : newPanel}<footer><span>存档最多 ${MAX_SAVE_SLOTS} 个 · 覆盖前确认</span><span class="game-version">版本 ${GAME_VERSION}</span><span>01 — 30</span></footer></section><div class="title-art" aria-hidden="true"><div class="sacred-veil"></div><div class="dark-veil"></div><div class="sacred-halo"></div><div class="dark-thorns"></div><div class="sun"></div><div class="mountains"></div><div class="ruins"><i></i><i></i><i></i></div><div class="silhouette"><b></b><i></i><span></span></div><small>THE LOST FRONTIER <span>遗迹之外，仍有远方</span></small></div></main>${overwriteDialog}${savePanel}`
   app.querySelector<HTMLElement>('.title-screen')?.scrollTo(0, 0)
 }
 function gearMarkup(canEquip: boolean, filter: 'all' | 'weapon' | 'armor' | 'fashion' | 'ring' | 'cloak' = 'all') {
@@ -4861,7 +4986,7 @@ function townPanelMarkup() {
   const npcButton = npcUnlocked()
     ? `<button class="secondary town-npc" data-action="open-npc">${itemIcon('npc')} ${TOWN_NPC_NAME} · 属性/天赋/强化 · S</button>`
     : '<button class="secondary" disabled title="通关第一关后解锁">阿岩 · 第1关解锁</button>'
-  return `<section class="panel town-panel"><header><span>冒险者小镇</span><small>${townWeatherNow().label} · ${chapter2Unlocked() ? 'NIGHT HAVEN' : 'SAFE HAVEN'}</small></header><p>${chapter2Unlocked() ? '天空剧变后小镇进入黑天模式，但营火、NPC 与所有功能都还在。左侧远征法阵通往第一章，右侧暗夜法阵通往第二章。' : '在镇内自由走动整备；可以跳跃、攻击和练习技能，不消耗法力。走到镇中央的远征法阵按 S 可以直接选择关卡。旅行商人只在周六、周日出现，每天带一件随机货物。'}</p><div class="town-shortcuts">${forgeButton}<button class="secondary town-rank" data-action="open-rank-board">🏆 排行榜</button><button class="secondary town-sky" data-action="town-sky">☾ 切换白天/夜晚</button><button class="secondary town-awaken" data-action="skill-awaken" title="前往时间回廊进行技能觉醒">✦ 技能觉醒</button>${npcButton}</div><div class="town-currency"><span>${itemIcon('soul')} 硬币 ${displayCurrency(current.soul ?? 0)}</span><span>${itemIcon('fragment')} 碎片 ${displayCurrency(current.talentFragments ?? 0)}</span><span>${itemIcon('coin')} 天赋币 ${displayCurrency(current.talentCoins ?? 0)}</span><span>${itemIcon('stamp')} 印章 ${displayCurrency(current.stamps ?? 0)} / ${STAMP_UNLOCK}</span></div>${npcUnlocked() ? `<p class="npc-hint">${TOWN_NPC_NAME}已经回到镇上：走到他面前按 S 对话。</p>` : '<p class="npc-hint">通关第一关后，阿岩会出现在镇上。</p>'}${current.completed ? `<p class="stage-progress-copy">二十座试炼场皆已沉寂</p><button class="primary" data-action="role-select">返回角色选择</button>` : `<label class="stage-picker"><span>选择关卡</span><select id="stage-select">${options}</select></label><button class="primary" data-action="enter-stage">进入遗迹　→</button>`}</section>`
+  return `<section class="panel town-panel"><header><span>冒险者小镇</span><small>${townWeatherNow().label} · ${chapter3Unlocked() ? 'GENESIS HAVEN' : chapter2Unlocked() ? 'NIGHT HAVEN' : 'SAFE HAVEN'}</small></header><p>${chapter3Unlocked() ? '第三道创世之门已经开启。中央法阵可以直接选择 1~30 关，继续完成最后的远征。' : chapter2Unlocked() ? '天空剧变后小镇进入黑天模式，但营火、NPC 与所有功能都还在。左侧远征法阵通往第一章，右侧暗夜法阵通往第二章。' : '在镇内自由走动整备；可以跳跃、攻击和练习技能，不消耗法力。走到镇中央的远征法阵按 S 可以直接选择关卡。旅行商人只在周六、周日出现，每天带一件随机货物。'}</p><div class="town-shortcuts">${forgeButton}<button class="secondary town-rank" data-action="open-rank-board">🏆 排行榜</button><button class="secondary town-sky" data-action="town-sky">☾ 切换白天/夜晚</button><button class="secondary town-awaken" data-action="skill-awaken" title="前往时间回廊进行技能觉醒">✦ 技能觉醒</button>${npcButton}</div><div class="town-currency"><span>${itemIcon('soul')} 硬币 ${displayCurrency(current.soul ?? 0)}</span><span>${itemIcon('fragment')} 碎片 ${displayCurrency(current.talentFragments ?? 0)}</span><span>${itemIcon('coin')} 天赋币 ${displayCurrency(current.talentCoins ?? 0)}</span><span>${itemIcon('stamp')} 印章 ${displayCurrency(current.stamps ?? 0)} / ${STAMP_UNLOCK}</span></div>${npcUnlocked() ? `<p class="npc-hint">${TOWN_NPC_NAME}已经回到镇上：走到他面前按 S 对话。</p>` : '<p class="npc-hint">通关第一关后，阿岩会出现在镇上。</p>'}${current.completed ? `<p class="stage-progress-copy">三十座试炼场皆已沉寂</p><button class="primary" data-action="role-select">返回角色选择</button>` : `<label class="stage-picker"><span>选择关卡</span><select id="stage-select">${options}</select></label><button class="primary" data-action="enter-stage">进入遗迹　→</button>`}</section>`
 }
 function stageOneCleared() {
   return Boolean(game && (game.unlockedStage > 1 || game.stageProgress?.['1']?.bossDefeated))
@@ -5881,7 +6006,7 @@ function questsMarkup() {
     // 书页模式：只展示当前进行中的一项主线任务，尚未挑战的关卡不渲染。
     const currentStage = Array.from({ length: STAGE_COUNT }, (_, index) => index + 1).find((stage) => !mainQuestClaimed(stage)) ?? 0
     if (!currentStage) {
-      body = `<p class="bag-note">主线已经全部完成，书页合上了。</p><div class="quest-book quest-book-complete${questPageTurning ? ' flip' : ''}"><div class="quest-book-page"><div class="quest-book-emblem">✦</div><small class="quest-kicker">MAIN QUEST · COMPLETE</small><h3 class="quest-book-title">二十页均已归档</h3><p class="quest-book-copy">所有主线奖励都已领取。你翻过了这本远征手记的最后一页。</p><footer class="quest-page-no">第 ${STAGE_COUNT} / ${STAGE_COUNT} 页</footer></div></div>`
+      body = `<p class="bag-note">主线已经全部完成，书页合上了。</p><div class="quest-book quest-book-complete${questPageTurning ? ' flip' : ''}"><div class="quest-book-page"><div class="quest-book-emblem">✦</div><small class="quest-kicker">MAIN QUEST · COMPLETE</small><h3 class="quest-book-title">三十页均已归档</h3><p class="quest-book-copy">所有主线奖励都已领取。你翻过了这本远征手记的最后一页。</p><footer class="quest-page-no">第 ${STAGE_COUNT} / ${STAGE_COUNT} 页</footer></div></div>`
     } else {
       const stage = currentStage
       const stageNo = String(stage).padStart(2, '0')
@@ -7889,7 +8014,7 @@ function renderGame() {
   const reviveCost = Math.max(1, battleReviveCount + 1)
   const canAdRevive = PLATFORM_4399 && battleReviveCount === 0 && adRevivesLeft > 0
   const deathOverlay = scene === 'defeat' ? `<div class="overlay death-overlay"><small>EXPEDITION PAUSED</small><h2>你倒在了遗迹深处</h2><p>本场第一次复活可以看广告免费；广告次数用完时，第一次复活消耗 1 个复活币。之后每次复活依次消耗 2、3、4… 个复活币。复活后 Boss 保持原来的血量与位置。${PLATFORM_4399 ? ` 今日广告复活剩余 ${adRevivesLeft} 次。` : ''}</p><div class="death-actions">${canAdRevive ? `<button data-action="ad-revive" class="ad-button">看广告免费复活</button>` : ''}${(game.reviveCoins ?? 0) >= reviveCost ? `<button data-action="revive-coin" class="revive-button">${itemIcon('revive')} 使用复活币 ×${reviveCost}（满状态） · 持有 ${game.reviveCoins ?? 0}</button>` : `<button class="revive-button" disabled>需要 ${reviveCost} 个复活币（持有 ${game.reviveCoins ?? 0}）</button>`}<button data-action="restart-stage" class="secondary">重新开始（满状态）</button><button data-action="respawn-town" class="secondary">回到小镇</button></div></div>` : ''
-  const endingOverlay = scene === 'ending' ? '<div class="overlay"><small>THE SKY IS YOURS</small><h2>二十座试炼场，尽数沉寂</h2><p>天穹之门已被推开。你完成了元素远征。</p><button data-action="town" class="primary">返回小镇　↗</button></div>' : ''
+  const endingOverlay = scene === 'ending' ? '<div class="overlay"><small>THE SKY IS YOURS</small><h2>三十座试炼场，尽数沉寂</h2><p>天穹之门已被推开。你完成了元素远征。</p><button data-action="town" class="primary">返回小镇　↗</button></div>' : ''
   app.innerHTML = `<main class="game-shell ${isTown ? 'town-mode' : ''}"><header class="game-header"><a data-action="town" class="wordmark"><b>A</b> 成王之路 <i>／</i> ${realm ? '时间回廊' : isTown ? '冒险者小镇' : '元素远征'}</a>${DEMO_MODE ? '<span class="demo-badge">体验版 · 全关卡</span>' : ''}<span class="save-state"><i></i>${realm ? '技能觉醒' : isTown ? '小镇安全区' : '进度已自动保存'}</span><span class="soul-badge" title="硬币">${itemIcon('soul')} ${displayNumber(game.soul ?? 0)}</span><button class="bag-button" data-action="bag">${itemIcon('bag')} 背包${game.bagUnread ? '<span class="notify-dot"></span>' : ''}</button>${isTown && !realm ? `<button class="bag-button mail-button" data-action="open-mail" title="打开邮箱">${itemIcon('mail')} 邮箱${mailUnread() ? '<span class="notify-dot"></span>' : ''}</button>` : ''}<button class="save-button" data-action="save" title="保存进度">▣</button></header><section class="overview"><div><small>${realm ? '时间回廊' : isTown ? '冒险者小镇' : chapterLabel}</small><h1>${realm ? '觉醒之境' : isTown ? '营火集市' : areaName}</h1><p>${realm ? '攻击稻草人，收集觉醒碎片兑换觉醒书' : isTown ? '缓冲区 · 整备装备与选择关卡' : tutorialMode ? '新手试炼 · 完成引导目标' : hiddenBattle ? '宿敌对决 · 没有退路' : `遗迹入口 · 击败 ${MAX_SMALL_KILLS} 只守卫后迎战 Boss`}</p></div><div class="metrics"><div><small>职业</small><b>${roleLabels[game.role]}</b></div><div><small>已击杀</small><b>${realm ? '技能觉醒' : isTown ? '小镇休整' : countText}</b></div><div><small>当前装备</small><b>${item()?.name ?? '无'}</b></div></div></section><section class="game-grid"><div class="battle-column"><div class="arena-label"><span>◆ ${realm ? '时间回廊 · 觉醒之境' : isTown ? '冒险者小镇 · 补给站' : `${areaName} · 深层区域`}</span><b id="enemy-name">${realm ? '小满在此守望' : isTown ? '安全区域' : tutorialMode ? '训练傀儡正在等待' : hiddenBattle ? '宿敌正在等待' : boss ? `${bossLabel}冲刺准备中` : `${foes.length} 只守卫正在逼近`}</b></div><div class="arena-stage"><div class="arena"><canvas id="arena" aria-label="横版战斗场景"></canvas><div class="coords"><span>${realm ? 'REALM · TIME CORRIDOR' : isTown ? 'TOWN · SAFE ZONE' : tutorialMode ? 'NEW PLAYER · TRAINING' : hiddenBattle ? 'SECRET · RIVAL' : `遗迹远征 · ${String(game.stage).padStart(2, '0')}`}</span><span>${realm ? 'AWAKENING' : boss ? 'BOSS ENCOUNTER' : isTown ? 'REST & PREPARE' : 'WAVE ENCOUNTER'}</span></div>${townOverlay}${townQuestTracker}${deathOverlay}${endingOverlay}${bossVictoryMarkup()}${lootRevealMarkup()}${tutorialHintMarkup()}<div class="mobile-control-deck"><div class="mobile-rail mobile-move-rail"><div class="mobile-joystick" data-joystick ${canControl ? '' : 'data-disabled="true"'} aria-label="移动摇杆"><span class="joystick-knob"></span></div></div><div class="mobile-rail mobile-action-rail"><div class="mobile-skills">${[2, 3, 0, 1].map((index) => `<button class="mobile-skill" data-action="skill" data-index="${index}" aria-label="技能 ${index + 1}" ${canControl ? '' : 'disabled'}>${index + 1}</button>`).join('')}</div><div class="mobile-utils"><button class="mobile-skill mobile-pickup" data-action="pickup" aria-label="拾取" title="拾取药水 / 与商人对话" ${canControl ? '' : 'disabled'}>S</button><button class="mobile-skill mobile-shield" data-shield aria-label="护盾" title="按住生成护盾" ${canControl ? '' : 'disabled'}>L</button></div><button class="mobile-pad attack-pad" data-action="attack" aria-label="攻击" title="攻击" ${canControl ? '' : 'disabled'}>⚔</button><button class="mobile-pad jump-pad" data-action="jump" aria-label="跳跃" title="跳跃" ${canControl ? '' : 'disabled'}>↟</button></div></div></div></div><div class="foe-health${!isTown && !boss ? ' mob-health-hidden' : boss ? ' boss-health' : ''}"><div><span>${realm ? '时间回廊' : isTown ? '冒险者状态' : boss ? bossDisplayName(bossFoe) : '本批守卫'}</span>${realm ? '<b id="foe-hp">小满在等你</b>' : isTown ? '<b id="foe-hp">安全休整</b>' : boss ? '' : `<b>${foes.length} 名敌人 · 已击败 ${game.kills} / ${MAX_SMALL_KILLS}</b>`}</div><div><i id="foe-fill" style="width:${bossFoe ? `${Math.max(0, bossFoe.hp / bossFoe.maxHp * 100)}%` : '100%'}"></i></div></div><div class="combat-bar"><button data-action="attack" class="attack" ${canControl ? '' : 'disabled'}><b>${game.role === 'warrior' ? '⚔' : '✦'}</b><span><strong>${game.role === 'warrior' ? '剑刃斩击' : '法杖射击'}</strong><small>J · ${game.role === 'warrior' ? '近战' : '远程'}</small></span></button><button data-action="jump" ${canControl ? '' : 'disabled'}><b>↟</b><span><strong>跳跃</strong><small>K ×2</small></span></button>${[0, 1, 2, 3].map((i) => `<button data-action="skill" data-index="${i}" ${canControl ? '' : 'disabled'}><i>${i + 1}</i><span><strong>${skillDisplayName(i)}</strong><small>${skillSummary(i)}</small></span></button>`).join('')}</div><div class="combat-log"><b>✦</b><span>${logText}</span></div></div><aside class="side-column">${isTown ? (realm ? awakenRealmPanelMarkup() : townPanelMarkup()) : ''}<section class="panel status-panel"><header><span>角色状态</span><small>${String(game.stage).padStart(2, '0')}</small></header><div class="hero-card"><b class="avatar ${game.role}">${game.role === 'warrior' ? '刃' : '✦'}</b><span><strong>${roleLabels[game.role]}</strong><small>${game.role === 'warrior' ? '钢铁誓约 · 剑士' : '星辉学派 · 法杖'}</small></span></div><div class="resource-label"><span>生命</span><b id="hp-text">${displayNumber(game.hp)} <i>/ ${displayNumber(s.hp)}</i></b><em>♥</em></div><div class="resource"><i id="hp-fill" style="width:${game.hp / s.hp * 100}%"></i></div><div class="resource-label mana-label"><span>法力</span><b id="mp-text">${displayNumber(game.mp)} <i>/ ${displayNumber(s.mp)}</i></b><em>✦</em></div><div class="resource"><i id="mp-fill" style="width:${game.mp / s.mp * 100}%"></i></div><div class="stats"><div><small>攻击</small><b>${displayNumber(s.attack)}</b></div><div><small>防御</small><b>${displayNumber(s.defense)}</b></div><div><small>命中</small><b>${displayNumber(s.hit ?? 0)}</b></div><div><small>闪避</small><b>${displayNumber(s.dodge ?? 0)}</b></div><div><small>暴击</small><b>${displayNumber(s.crit ?? 0)}</b></div><div><small>防爆</small><b>${displayNumber(s.antiCrit ?? 0)}</b></div><div><small>增益</small><b id="buff-stat">${buffTime > 0 ? `${buffTime.toFixed(1)}s` : '—'}</b></div></div></section><section class="panel gear-panel"><header><span>装备栏</span><small>${item()?.name ?? '未装备'}</small></header><div class="gear-summary">${item() ? `生命 +${item()!.hp}　攻击 +${item()!.attack}　防御 +${item()!.defense}` : '装备不会自动穿戴，请在小镇打开背包手动更换。'}</div><button class="open-bag" data-action="bag">打开背包　↗</button><div class="camp-hint">⌂　${isTown ? '安全区内可自由更换装备' : '击败 Boss 后回到小镇整备'}</div></section></aside></section><footer class="game-footer"><span>WASD / ← → 移动　·　J 攻击　·　K 跳跃 / 二段跳　·　1–4 技能　·　L 护盾</span><b>LOCAL SAVE　●</b></footer>${bagOpen ? bagMarkup() : ''}</main>`
   if (craftingOpen && isTown) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', craftingMarkup())
   if (attributesOpen && isTown) document.querySelector('.game-shell')?.insertAdjacentHTML('beforeend', attributeMarkup())
@@ -9478,6 +9603,21 @@ function cast(index: number) {
 }
 function defeatFoe(target: Foe) {
   if (!game) return
+  // 第 21 关 Boss：第一次倒下后以 30% 生命复活，只能复活一次。
+  if (target.boss && !target.bossClone && game.stage === 21 && !target.revived) {
+    target.revived = true
+    target.hp = Math.max(1, Math.round(target.maxHp * .3))
+    target.flash = .6
+    target.invulnTimer = 1.2
+    target.attackAnim = 0
+    addFx('blink-rift', target.x, world.floor - 76, 1, .9, '#e8a060')
+    addSparks(target.x, world.floor - 70, 36, ['#e8a060', '#ffe6a8', '#ffffff'], 260)
+    addShake(18)
+    setLog('黄昏守望·洛的残影重新聚合，以 30% 生命复活！')
+    toast('黄昏守望·洛复活了：生命恢复至 30%，且只会复活一次。')
+    save(); syncHud()
+    return
+  }
   playSfx('defeat')
   const wasBoss = target.boss && !target.bossClone
   const wasClone = Boolean(target.bossClone)
@@ -9558,6 +9698,14 @@ function defeatFoe(target: Foe) {
     addShake(18)
     playSfx('victory')
     save(); renderGame(); return
+  }
+  // 第 22 关双 Boss：只有两名都倒下才结算通关。
+  if (wasBoss && foes.some((foe) => foe.boss && !foe.bossClone)) {
+    awardExperience(100 * 2 ** (game.stage - 1))
+    toast('一名守关者倒下，另一名仍在战斗！')
+    setLog('双生之主只剩一位，继续战斗！')
+    save(); syncHud()
+    return
   }
   const bossExperience = (wasBoss ? 100 : 10) * 2 ** (game.stage - 1)
   awardExperience(bossExperience)
@@ -10268,6 +10416,33 @@ function equipGearFromBag(id: string) {
     if (game.cloakId === id) unequipSlot('cloak')
     else equip(id)
   } else equip(id)
+}
+// 双持专精：交换主副武器；主武器变化后技能组自动随之切换。
+function switchEquippedWeapon() {
+  if (!game || !dualWieldUnlocked()) return
+  const mainId = game.weaponId
+  const offId = game.weapon2Id
+  const main = game.gear.find((entry) => entry.id === mainId)
+  const off = game.gear.find((entry) => entry.id === offId)
+  if (!main || !off) { toast('需要主武器与副武器都已装备才能切换。'); return }
+  if (!canUseWeapon(main) || !canUseWeapon(off)) { toast('存在当前职业无法使用的武器，不能切换。'); return }
+  const allowed: WeaponStyle[] = game.role === 'warrior' ? ['sword', 'bow'] : ['staff', 'book']
+  if (!allowed.includes(weaponStyleOf(main)) || !allowed.includes(weaponStyleOf(off))) {
+    toast(`只能切换本职业武器：${game.role === 'warrior' ? '剑 / 弓' : '法杖 / 魔法书'}。`)
+    return
+  }
+  game.weaponId = off.id
+  game.weapon2Id = main.id
+  game.equipped = off.id
+  // 强化等级跟随武器交换到对应栏位。
+  const enh = game.enhance ??= { weapon: 0, armor: 0, armor2: 0, weapon2: 0, ring: 0, failWeapon: 0, failArmor: 0, failArmor2: 0, failWeapon2: 0, failRing: 0 }
+  ;[enh.weapon, enh.weapon2] = [enh.weapon2, enh.weapon]
+  ;[enh.failWeapon, enh.failWeapon2] = [enh.failWeapon2, enh.failWeapon]
+  // 切换瞬间清掉蓄力与技能等待，避免旧武器的动作带到新武器。
+  bowCharging = false; bowCharge = 0; bowChargeSource = null
+  attackWait = 0; attackSwing = 0; skillWait = [0, 0, 0, 0]
+  save(); renderGame()
+  toast(`已切换武器：${off.name} · 技能组已切换为${SKILL_SET_NAMES[styleSkillSet(weaponStyleOf(off))] ?? ''}。`)
 }
 // 点击装备框卸下装备，物品会放回背包列表。
 function unequipSlot(slot: string) {
@@ -11709,6 +11884,37 @@ function update(dt: number) {
   }
   if (scene !== 'battle' || bossVictory) shieldActive = false
   attackWait = Math.max(0, attackWait - dt); attackSwing = Math.max(0, attackSwing - dt); buffTime = Math.max(0, buffTime - dt)
+  // 双持专精：原地按住 S 5 秒，交换主副武器与技能组。
+  if ((scene === 'battle' || scene === 'town') && dualWieldUnlocked() && game?.weaponId && game?.weapon2Id) {
+    // S 也是拾取键；只有原地不动时才累计切换进度。
+    const moving = keys.has('a') || keys.has('d') || keys.has('arrowleft') || keys.has('arrowright') || Math.abs(heroX - weaponSwitchAnchorX) > 2
+    if (!keys.has('s')) {
+      weaponSwitchHold = 0
+      weaponSwitchLatched = false
+      weaponSwitchNotified = false
+    } else if (weaponSwitchLatched) {
+      // 等待松开 S，避免一次长按连续切换。
+    } else if (moving || heroStaggerTimer > 0 || swordFlightTimer > 0) {
+      weaponSwitchHold = 0
+      weaponSwitchAnchorX = heroX
+    } else {
+      if (weaponSwitchHold <= 0) weaponSwitchAnchorX = heroX
+      weaponSwitchHold += dt
+      if (!weaponSwitchNotified && weaponSwitchHold > .15) {
+        weaponSwitchNotified = true
+        setLog('保持原地不动，5 秒后切换主副武器与技能组…')
+      }
+      if (weaponSwitchHold >= 5) {
+        weaponSwitchLatched = true
+        weaponSwitchHold = 0
+        switchEquippedWeapon()
+      }
+    }
+  } else {
+    weaponSwitchHold = 0
+    weaponSwitchLatched = false
+    weaponSwitchNotified = false
+  }
   heroStaggerTimer = Math.max(0, heroStaggerTimer - dt)
   stormStruckTimer = Math.max(0, stormStruckTimer - dt)
   // 石化状态计时。
@@ -12102,6 +12308,19 @@ function update(dt: number) {
     if (bossVictory.time <= 0) finishBossVictory()
   } else if (scene === 'battle' && game) {
     battleTime += dt
+    if (mainBossFoe()) bossFightTime += dt
+    // 第 23 关限时：Boss 出现后 4 分钟内未击杀，角色被秒杀（可通过广告/复活币复活）。
+    if (game.stage === 23 && !bossTimerTriggered && mainBossFoe() && bossFightTime >= 240) {
+      bossTimerTriggered = true
+      game.hp = 0
+      game.dead = true
+      scene = 'defeat'
+      paused = false
+      setLog('时砂裁决者的沙漏耗尽：4 分钟已到，角色被时间抹除。')
+      toast('限时已到：时砂裁决者抹除了角色。可以消耗复活机会继续。')
+      save(); renderGame()
+      return
+    }
     updateHazards(dt)
     if (waveSpawnQueue.length) {
       waveSpawnTimer -= dt
@@ -12329,8 +12548,15 @@ function update(dt: number) {
         foe.fieldTimer = (foe.fieldTimer ?? 5) - dt
         if (foe.fieldTimer <= 0 && (foe.invulnTimer ?? 0) <= 0) {
           const color = BOSS_THEME_COLORS[BOSS_THEMES[stageIndex]] ?? '#b8a4f4'
-          foe.fieldTimer = 6 + Math.random() * 3
-          if (Math.random() < .5) {
+          foe.fieldTimer = stageIndex === 29 ? 5 : 6 + Math.random() * 3
+          if (stageIndex === 29) {
+            // 创世之影：全屏 AOE，整条战斗区域同时预警。
+            for (let aoeX = MAP_LEFT + 30; aoeX <= unlockedWidth - 30; aoeX += 90) {
+              spawnBossHazard('lightning', aoeX, 1.1)
+            }
+            addFx('boss-laser', foe.x, world.floor - 52, 1, 1.1, color)
+            setLog('创世之影释放全屏 AOE！整片场地都在预警，举盾或硬抗。')
+          } else if (Math.random() < .5) {
             for (let strikeIndex = 0; strikeIndex < 3; strikeIndex += 1) {
               spawnBossHazard('lightning', Math.max(MAP_LEFT + 40, Math.min(unlockedWidth - 50, foe.x + (strikeIndex - 1) * 170)), .75)
             }
@@ -12525,7 +12751,7 @@ function update(dt: number) {
       refreshMap()
       if (bossPending) {
         bossPending = false
-        foes = [spawnFoe(unlockedWidth - 150, true)]
+        foes = spawnBossFoes(unlockedWidth - 150)
         hazards = []
         setLog('守关者出现！')
         addShake(6)
@@ -14288,6 +14514,9 @@ function drawFoe(c: CanvasRenderingContext2D, foe: Foe) {
     drawMirrorCombatant(c, foe, now)
     c.restore()
   } else if (foe.boss) {
+    // 第 24 关无影之刃：常态只剩影子，只有在出招前摇时才会显出半透明轮廓。
+    const stealthWindup = (foe.specialWindup ?? 0) > 0 || (foe.skillWindup ?? 0) > 0 || (foe.dashWindup ?? 0) > 0 || (foe.rangedWindup ?? 0) > 0 || foe.attackAnim > 0
+    if (foe.permaStealth) c.globalAlpha = stealthWindup ? .45 : .06
     if (foe.bossClone) {
       // 分身带一层残余影子与半透明本体，和真身/法师分身明显区分。
       c.save(); c.globalAlpha = .26; c.translate(-12, 0); drawBossModel(c, index, theme); c.restore()
@@ -14295,6 +14524,7 @@ function drawFoe(c: CanvasRenderingContext2D, foe: Foe) {
       c.shadowColor = '#e0d0ff'; c.shadowBlur = 18
     }
     drawBossModel(c, index, theme)
+    if (foe.permaStealth) c.globalAlpha = 1
   } else c.drawImage(mobSprite(index, theme), -90, -150, 180, 160)
   // 同一种小怪轮廓再叠加 3 种配件变体：角、悬浮护符、肩甲，避免整波完全一样。
   if (!foe.boss && !foe.mirror && !foe.tutorial) {
