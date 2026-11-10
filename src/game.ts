@@ -54,6 +54,7 @@ const UPDATE_NOTES = [
   '第三章 Boss 攻击欲望提高，远程与专属技能更频繁。',
   '小镇新增第三座「创世法阵」，用于选择第三章 21~30 关；旅行商人移至更右侧。',
   '商店界面整体放大；背包装备框顺序改为武器/护甲/戒指/披风/时装。',
+  '第三章性能保护：限制小怪弹幕、Boss 机关与专属特效数量，减轻 21 关及后续关卡卡顿。',
   '新增「技能觉醒」：救出小满后可进入时间回廊，在觉醒界面选择当前武器技能进行觉醒；普通与觉醒版本共享技能等级。',
   '觉醒条件：战士用目标技能对稻草人造成单次 ≥800 伤害（多段合计）计 1 次；法师靠近稻草人承受反击，每次受击计 1 次。',
   '每 10 次计数使觉醒碎片掉率 +1%；集齐 3 个碎片兑换觉醒书。返回小镇会清零计数、掉率与碎片。',
@@ -100,6 +101,7 @@ const PUBLIC_UPDATE_NOTES = [
   '每个 Boss 的专属技能使用独立几何特效。',
   '第三章 Boss 攻击欲望与远程弹幕增强。',
   '小镇新增创世法阵，商店界面放大，背包槽位顺序调整。',
+  '优化第三章弹幕与特效数量，减轻卡顿。',
   '新增技能觉醒系统：四种武器各四个技能均可觉醒，觉醒后永久 +10% 伤害。',
   '时间回廊、觉醒碎片与觉醒书玩法上线；4399 版兑换觉醒书需观看广告。',
   '新增大量觉醒技能与专属特效，涵盖剑、弓、法杖与魔法书。',
@@ -2960,6 +2962,10 @@ function fireHomingVolley(foe: Foe, stageIndex: number, count = 4) {
 function fireShotFan(originX: number, originY: number, targetX: number, count: number, spread: number, speed: number, rawDamage: number, color: string, radius = 9, life = 4, fromBoss = false, trackHeight = false) {
   const targetY = world.floor - 55 + (trackHeight ? Math.min(0, heroY) : 0)
   const baseAngle = Math.atan2(targetY - originY, targetX - originX)
+  // 第三章同屏弹幕上限：小怪弹幕最多 6 发；场上弹幕过多时进一步压缩。
+  if ((game?.stage ?? 1) >= 21 && !fromBoss) count = Math.min(count, 6)
+  if (foeShots.length > 140) count = Math.min(count, 2)
+  else if (foeShots.length > 100) count = Math.min(count, 3)
   for (let i = 0; i < count; i++) {
     const offset = count === 1
       ? 0
@@ -3091,7 +3097,7 @@ function startBossSpecial(foe: Foe, stageIndex: number) {
   foe.specialTimer = (BOSS_SPECIAL_COOLDOWNS[stageIndex] ?? 6) * (foe.bossClone ? 1.6 : 1)
   foe.specialNext = cycle[(cycle.indexOf(kind) + 1) % cycle.length]
   foe.flash = .2; foe.attackAnim = .5
-  effects.push({ kind: `boss-unique-${stageIndex}`, x: foe.x, y: world.floor - 110, direction, life: duration, duration, color, text: name })
+  if (effects.length < 160) effects.push({ kind: `boss-unique-${stageIndex}`, x: foe.x, y: world.floor - 110, direction, life: duration, duration, color, text: name })
   addSparks(foe.x, world.floor - 105, 12, [color, '#fff6d0'], 130)
   addShake(4)
   playSfx('boss')
@@ -3100,6 +3106,8 @@ function startBossSpecial(foe: Foe, stageIndex: number) {
 // Boss 专属技能制造的地面陷阱：只由 Boss 技能生成，Boss 战期间不会被清空。
 function spawnBossHazard(kind: HazardKind, x: number, warn = .8) {
   const cfg = HAZARD_CONFIG[kind]
+  // 第三章限制同屏 Boss 机关数量，避免全屏 AOE 时机关堆积。
+  if ((game?.stage ?? 1) >= 21 && hazards.length >= 36) return
   hazards.push({ id: nextHazardId++, x, kind, warn, warnTotal: warn, active: 0, activeTotal: cfg.active, hit: false, radius: cfg.radius, fromBoss: true })
 }
 function spawnBossClone(source: Foe) {
@@ -3135,7 +3143,7 @@ function executeExclusiveEffect(foe: Foe, effect: string | undefined, stageIndex
   const direction = foe.specialDirection ?? (Math.sign(heroX - foe.x) || 1)
   const originY = world.floor - 76
   // 每个专属技能使用对应关卡的独立几何特效。
-  effects.push({ kind: `boss-unique-${stageIndex}`, x: foe.x, y: world.floor - 74, direction, life: 1.15, duration: 1.15, color, text: effect })
+  if (effects.length < 160) effects.push({ kind: `boss-unique-${stageIndex}`, x: foe.x, y: world.floor - 74, direction, life: 1.15, duration: 1.15, color, text: effect })
   const fan = (count: number, spread: number, speed: number, scale: number, radius = 8) =>
     fireShotFan(foe.x, originY, heroX, count, spread, speed, config.bossAtk * scale, color, radius, 4.6, true)
   switch (effect) {
@@ -3257,7 +3265,7 @@ function executeBossSpecial(foe: Foe, kind: 'pierce' | 'exclusive' | 'laser' | '
     : kind === 'exclusive' ? (special?.exclusive ?? '专属技能')
       : kind === 'laser' ? (special?.laser ?? '湮灭射线')
         : (special?.homing ?? '追踪弹幕')
-  if (kind !== 'exclusive') {
+  if (kind !== 'exclusive' && effects.length < 160) {
     effects.push({ kind: `boss-unique-${stageIndex}`, x: foe.x, y: world.floor - 86, direction, life: 1.1, duration: 1.1, color, text: name })
   }
   if (kind === 'laser') {
