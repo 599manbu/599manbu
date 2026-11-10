@@ -57,6 +57,7 @@ const UPDATE_NOTES = [
   '第三章性能保护：限制小怪弹幕、Boss 机关与专属特效数量，减轻 21 关及后续关卡卡顿。',
   '所有章节战斗背景整体提亮，四周暗角大幅减弱，去掉偏灰/偏紫的滤镜观感。',
   '所有怪物与 Boss 的闪避成长降低 10%，玩家攻击更容易命中。',
+  '宝石镶嵌改为左右布局：右侧点选装备与宝石，左侧显示所选装备孔位。',
   '新增「技能觉醒」：救出小满后可进入时间回廊，在觉醒界面选择当前武器技能进行觉醒；普通与觉醒版本共享技能等级。',
   '觉醒条件：战士用目标技能对稻草人造成单次 ≥800 伤害（多段合计）计 1 次；法师靠近稻草人承受反击，每次受击计 1 次。',
   '每 10 次计数使觉醒碎片掉率 +1%；集齐 3 个碎片兑换觉醒书。返回小镇会清零计数、掉率与碎片。',
@@ -106,6 +107,7 @@ const PUBLIC_UPDATE_NOTES = [
   '优化第三章弹幕与特效数量，减轻卡顿。',
   '战斗背景整体提亮，减弱暗角。',
   '所有怪物闪避降低 10%。',
+  '宝石镶嵌改为左右点选布局。',
   '新增技能觉醒系统：四种武器各四个技能均可觉醒，觉醒后永久 +10% 伤害。',
   '时间回廊、觉醒碎片与觉醒书玩法上线；4399 版兑换觉醒书需观看广告。',
   '新增大量觉醒技能与专属特效，涵盖剑、弓、法杖与魔法书。',
@@ -1331,6 +1333,8 @@ let forgeSlots: string[] = []
 let forgeTab: 'gear' | 'special' | 'stone' | 'punch' = 'gear'
 let forgeCategory: 'all' | 'weapon' | 'armor' | 'ring' | 'cloak' | 'fashion' = 'all'
 let punchSelectedId: string | null = null
+// 宝石镶嵌：右侧点选装备，左侧只显示该装备与孔位。
+let gemSelectedSlot: 'weapon' | 'armor' | 'ring' | 'cloak' = 'weapon'
 let specialSlots: string[] = []
 let enhanceStoneTier = 1
 let attributesOpen = false
@@ -6090,12 +6094,16 @@ function firstEmptySocket(gear?: Gear) {
   for (let index = 0; index < sockets; index += 1) if (!gear.socketGems?.[index]) return index
   return -1
 }
-function socketGem(kind: GemKind, tier: number, target?: 'ring' | 'cloak') {
+function socketGem(kind: GemKind, tier: number, target?: 'weapon' | 'armor' | 'ring' | 'cloak') {
   if (!game) return
   game.gems ??= []
   const gemIndex = game.gems.findIndex((gem) => gem.kind === kind && gem.tier === tier)
   if (gemIndex < 0) { toast('没有这种宝石。'); return }
-  const slot = target ?? gemSlotForKind(kind)
+  const slot = target ?? gemSelectedSlot
+  if ((slot === 'weapon' || slot === 'armor') && gemSlotForKind(kind) !== slot) {
+    toast(slot === 'weapon' ? '武器孔只能镶嵌攻击/能量/命中/暴击宝石。' : '护甲孔只能镶嵌生命/防御/闪避/防爆宝石。')
+    return
+  }
   const gear = mainGearForGem(slot)
   if (!gear) { toast(slot === 'weapon' ? '请先装备主武器。' : slot === 'ring' ? '请先装备戒指。' : slot === 'cloak' ? '请先装备披风。' : '请先装备主护甲。'); return }
   const index = firstEmptySocket(gear)
@@ -6150,10 +6158,15 @@ function gemSocketMarkup(gear: Gear | undefined, slot: 'weapon' | 'armor' | 'rin
 }
 function gemsMarkup() {
   if (!game) return ''
-  const weapon = mainGearForGem('weapon')
-  const armor = mainGearForGem('armor')
-  const ring = mainGearForGem('ring')
-  const cloak = mainGearForGem('cloak')
+  const slotEntries = [
+    { slot: 'weapon' as const, label: '主武器', gear: mainGearForGem('weapon') },
+    { slot: 'armor' as const, label: '主护甲', gear: mainGearForGem('armor') },
+    { slot: 'ring' as const, label: '戒指', gear: mainGearForGem('ring') },
+    { slot: 'cloak' as const, label: '披风', gear: mainGearForGem('cloak') },
+  ]
+  const selected = slotEntries.find((entry) => entry.slot === gemSelectedSlot) ?? slotEntries[0]
+  const selectedGear = selected.gear
+  const picker = slotEntries.map((entry) => `<button class="gem-pick ${entry.slot === gemSelectedSlot ? 'active' : ''}" data-action="gem-pick-slot" data-slot="${entry.slot}" type="button">${entry.gear ? gearIcon(entry.gear) : itemIcon('bag')}<span><b>${entry.label}</b><small>${entry.gear ? `${entry.gear.name} · ${entry.gear.sockets ?? 0}/${GEM_MAX_SOCKETS} 孔` : '未装备'}</small></span></button>`).join('')
   const groups = new Map<string, Gem[]>()
   for (const gem of game.gems ?? []) {
     const key = `${gem.kind}-${gem.tier}`
@@ -6165,20 +6178,15 @@ function gemsMarkup() {
     .sort((a, b) => (a[1][0].tier - b[1][0].tier) || a[1][0].kind.localeCompare(b[1][0].kind))
     .map(([, list]) => {
       const gem = list[0]
-      const slot = gemSlotForKind(gem.kind)
-      const gear = mainGearForGem(slot)
-      const canSocket = Boolean(gear && firstEmptySocket(gear) >= 0)
-      const canSocketRing = Boolean(ring && firstEmptySocket(ring) >= 0)
-      const canSocketCloak = Boolean(cloak && firstEmptySocket(cloak) >= 0)
+      const naturalSlot = gemSlotForKind(gem.kind)
+      const compatible = gemSelectedSlot === 'ring' || gemSelectedSlot === 'cloak' || naturalSlot === gemSelectedSlot
+      const canSocket = Boolean(selectedGear && compatible && firstEmptySocket(selectedGear) >= 0)
       const canCombine = list.length >= 3 && gem.tier < 7
-      return `<article class="gem-row gem-kind-${gem.kind}"><span class="gear-glyph">${gemIcon(gem)}</span><span class="gear-copy"><b>${gemName(gem)} <em>×${list.length}</em></b><small><i class="gem-chip">${GEM_STAT_LABEL[gem.kind]}</i>${gemSummary(gem)} · ${slot === 'armor' ? '护甲孔位' : '武器孔位'}${ring ? ' · 戒指可镶嵌' : ''}${cloak ? ' · 披风可镶嵌' : ''}</small></span><span class="gem-actions"><button data-action="gem-socket" data-kind="${gem.kind}" data-tier="${gem.tier}" ${canSocket ? '' : 'disabled'}>镶嵌</button>${ring ? `<button data-action="gem-socket-ring" data-kind="${gem.kind}" data-tier="${gem.tier}" ${canSocketRing ? '' : 'disabled'}>戒指</button>` : ''}${cloak ? `<button data-action="gem-socket-cloak" data-kind="${gem.kind}" data-tier="${gem.tier}" ${canSocketCloak ? '' : 'disabled'}>披风</button>` : ''}${canCombine ? `<button data-action="gem-combine" data-kind="${gem.kind}" data-tier="${gem.tier}">合成 3→1</button>` : ''}</span></article>`
+      const targetHint = compatible ? `镶嵌到${selected.label}` : `${selected.label}不能镶嵌${GEM_STAT_LABEL[gem.kind]}`
+      return `<article class="gem-row gem-kind-${gem.kind}"><span class="gear-glyph">${gemIcon(gem)}</span><span class="gear-copy"><b>${gemName(gem)} <em>×${list.length}</em></b><small><i class="gem-chip">${GEM_STAT_LABEL[gem.kind]}</i>${gemSummary(gem)} · ${naturalSlot === 'armor' ? '护甲孔' : '武器孔'} · ${targetHint}</small></span><span class="gem-actions"><button data-action="gem-socket" data-kind="${gem.kind}" data-tier="${gem.tier}" ${canSocket ? '' : 'disabled'}>镶嵌</button>${canCombine ? `<button data-action="gem-combine" data-kind="${gem.kind}" data-tier="${gem.tier}">合成 3→1</button>` : ''}</span></article>`
     }).join('')
-  const slotsPanel = `<section class="gem-panel gem-panel-slots"><header><h3>装备孔位</h3><small>点击已镶嵌宝石可取出</small></header><div class="gem-equips">${gemSocketMarkup(weapon, 'weapon')}${gemSocketMarkup(armor, 'armor')}${gemSocketMarkup(ring, 'ring')}${gemSocketMarkup(cloak, 'cloak')}</div><p class="bag-note">护甲可镶嵌生命/防御/闪避/防爆宝石，武器可镶嵌攻击/能量/命中/暴击宝石；戒指与披风可以镶嵌任意宝石。没有孔位时先去炉子打孔。</p></section>`
-  // 背包里没有宝石时不再保留一整块空白面板。
-  if (!inventory) {
-    return `<div class="gem-layout gem-layout-empty">${slotsPanel}</div><p class="bag-note gem-empty-note">宝石背包为空：噩梦副本的守关者会掉落宝石；同阶同类宝石可以合成更高一阶（最高七阶）。</p>`
-  }
-  return `<div class="gem-layout">${slotsPanel}<section class="gem-panel gem-panel-bag"><header><h3>宝石背包</h3><small>选择宝石放入对应孔位</small></header><div class="forge-bag-list gem-inventory">${inventory}</div><p class="bag-note">同阶同类宝石可以合成更高一阶（最高七阶）。</p></section></div>`
+  const selectedPanel = `<section class="gem-panel gem-panel-slots"><header><h3>${selected.label}孔位</h3><small>点击已镶嵌宝石可取出</small></header><div class="gem-equips">${gemSocketMarkup(selectedGear, selected.slot)}</div><p class="bag-note">护甲孔可镶嵌生命/防御/闪避/防爆宝石，武器孔可镶嵌攻击/能量/命中/暴击宝石；戒指与披风可以镶嵌任意宝石。</p></section>`
+  return `<div class="gem-layout gem-layout-pick">${selectedPanel}<section class="gem-panel gem-panel-bag"><header><h3>装备与宝石</h3><small>先点装备，再点宝石镶嵌</small></header><div class="gem-pick-list">${picker}</div><div class="forge-bag-list gem-inventory">${inventory || '<div class="empty-gear">宝石背包为空<small>噩梦副本的守关者会掉落宝石</small></div>'}</div><p class="bag-note">同阶同类宝石可以合成更高一阶（最高七阶）。点击右侧装备后，左侧会切换到该装备的孔位。</p></section></div>`
 }
 function todayKey() {
   const now = new Date()
@@ -11341,6 +11349,13 @@ function performAction(name: string, target: HTMLElement) {
   if (name === 'side-accept' && target.dataset.stage) acceptSideQuest(Number(target.dataset.stage))
   if (name === 'side-claim') claimSideQuest()
   if (name === 'side-abandon') abandonSideQuest()
+  if (name === 'gem-pick-slot' && target.dataset.slot) {
+    const slot = target.dataset.slot
+    if (slot === 'weapon' || slot === 'armor' || slot === 'ring' || slot === 'cloak') {
+      gemSelectedSlot = slot
+      renderGame(); return
+    }
+  }
   if (name === 'gem-socket' && target.dataset.kind) socketGem(target.dataset.kind as GemKind, Number(target.dataset.tier))
   if (name === 'gem-socket-ring' && target.dataset.kind) socketGem(target.dataset.kind as GemKind, Number(target.dataset.tier), 'ring')
   if (name === 'gem-socket-cloak' && target.dataset.kind) socketGem(target.dataset.kind as GemKind, Number(target.dataset.tier), 'cloak')

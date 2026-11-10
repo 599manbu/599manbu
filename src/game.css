@@ -2131,6 +2131,17 @@ body { background: #0d1717; }
 
 /* 宝石左右布局 */
 .gem-layout { display: grid; grid-template-columns: minmax(300px, .9fr) minmax(0, 1.1fr); gap: 14px; align-items: start; }
+/* 宝石镶嵌：左装备孔位，右装备选择 + 宝石背包。 */
+.gem-layout-pick { grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); }
+.gem-pick-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; margin-bottom: 10px; }
+.gem-pick { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 8px 10px; border: 1px solid rgba(191, 202, 169, .24); background: rgba(20, 35, 35, .66); color: #dfe0d0; text-align: left; cursor: pointer; }
+.gem-pick:hover { border-color: #c9b273; }
+.gem-pick.active { border-color: rgba(226, 197, 126, .8); background: rgba(66, 56, 30, .55); }
+.gem-pick .item-icon { width: 22px; height: 22px; }
+.gem-pick span { display: grid; gap: 3px; min-width: 0; }
+.gem-pick b { color: #f0dfb2; font-size: 11px; font-weight: 500; }
+.gem-pick small { overflow: hidden; color: #9fb0a3; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.gem-layout-pick .gem-inventory { max-height: 46vh; overflow-y: auto; }
 .gem-panel { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 12px; border: 1px solid rgba(191, 202, 169, .22); background: rgba(20, 35, 35, .55); }
 .gem-panel > header { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding-bottom: 6px; border-bottom: 1px solid rgba(201, 178, 115, .18); }
 .gem-panel > header h3 { margin: 0; color: #f0dfb2; font-size: 17px; font-weight: 500; }
