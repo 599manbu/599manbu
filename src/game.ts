@@ -52,6 +52,8 @@ const UPDATE_NOTES = [
   '第 30 关最终 Boss 不移动，周期性释放全屏 AOE 与定向创世矛。',
   '每个 Boss 的专属技能改为独立几何特效，不再共用爆炸/激光模板。',
   '第三章 Boss 攻击欲望提高，远程与专属技能更频繁。',
+  '小镇新增第三座「创世法阵」，用于选择第三章 21~30 关；旅行商人移至更右侧。',
+  '商店界面整体放大；背包装备框顺序改为武器/护甲/戒指/披风/时装。',
   '新增「技能觉醒」：救出小满后可进入时间回廊，在觉醒界面选择当前武器技能进行觉醒；普通与觉醒版本共享技能等级。',
   '觉醒条件：战士用目标技能对稻草人造成单次 ≥800 伤害（多段合计）计 1 次；法师靠近稻草人承受反击，每次受击计 1 次。',
   '每 10 次计数使觉醒碎片掉率 +1%；集齐 3 个碎片兑换觉醒书。返回小镇会清零计数、掉率与碎片。',
@@ -97,6 +99,7 @@ const PUBLIC_UPDATE_NOTES = [
   '新增复活 Boss、双 Boss、4 分钟限时、全程隐身 Boss 与最终全屏 AOE + 定向攻击。',
   '每个 Boss 的专属技能使用独立几何特效。',
   '第三章 Boss 攻击欲望与远程弹幕增强。',
+  '小镇新增创世法阵，商店界面放大，背包槽位顺序调整。',
   '新增技能觉醒系统：四种武器各四个技能均可觉醒，觉醒后永久 +10% 伤害。',
   '时间回廊、觉醒碎片与觉醒书玩法上线；4399 版兑换觉醒书需观看广告。',
   '新增大量觉醒技能与专属特效，涵盖剑、弓、法杖与魔法书。',
@@ -374,12 +377,14 @@ const TOWN_NPC_X = 320
 const TOWN_CIRCLE_X = 1300
 // 第一章通关后，在原法阵右侧出现暗夜法阵，用于选择第二章关卡。
 const TOWN_SECOND_CIRCLE_X = 1600
+// 第二章通关后，出现第三个创世法阵，用于选择第三章 21~30 关。
+const TOWN_THIRD_CIRCLE_X = 1860
 const TOWN_NPC_NAME = '阿岩'
 const SECOND_NPC_X = 620
 const SECOND_NPC_NAME = '铸魂师·霍恩'
 const HIDDEN_NPC_X = 920
 const HIDDEN_NPC_NAME = '守印人·岚'
-const TRAVEL_MERCHANT_X = 1760
+const TRAVEL_MERCHANT_X = 2020
 const TRAVEL_MERCHANT_NAME = '旅行商人'
 // 每关小怪的 3 种专属掉落物。
 const STAGE_MATERIALS: string[][] = [
@@ -593,7 +598,7 @@ function legacySocketCount(id: string) {
 function nextPunchCost(sockets: number) { return PUNCH_SOCKET_COSTS[Math.max(0, Math.min(PUNCH_SOCKET_COSTS.length - 1, sockets))] }
 type ShopCategory = 'equipment' | 'fashion' | 'gem' | 'material' | 'other'
 type ShopGrant =
-  | { kind: 'gear'; gearType: 'weapon' | 'armor'; level: number }
+  | { kind: 'gear'; gearType: 'weapon' | 'armor' | 'cloak'; level: number }
   | { kind: 'fashion'; tier: number }
   | { kind: 'gem'; gemKind: GemKind; tier: number }
   | { kind: 'material'; key: string }
@@ -630,6 +635,8 @@ function demoShopItems(): ShopItem[] {
   for (let level = 2; level <= 11; level += 1) {
     items.push({ id: `demo-weapon-${level}`, name: `${level} 级武器 ×1`, cost: 1, desc: '体验版商城道具', category: 'equipment', icon: 'weapon', demoOnly: true, grant: { kind: 'gear', gearType: 'weapon', level } })
     items.push({ id: `demo-armor-${level}`, name: `${level} 级护甲 ×1`, cost: 1, desc: '体验版商城道具', category: 'equipment', icon: 'armor', demoOnly: true, grant: { kind: 'gear', gearType: 'armor', level } })
+    // 体验版商城补充披风，方便直接测试暴击/防爆与披风孔位。
+    items.push({ id: `demo-cloak-${level}`, name: `${level} 阶披风 ×1`, cost: 1, desc: '体验版商城道具 · 暴击 / 防爆', category: 'equipment', icon: 'cloak', demoOnly: true, grant: { kind: 'gear', gearType: 'cloak', level } })
   }
   for (const kind of GEM_KINDS) {
     for (let tier = 1; tier <= 7; tier += 1) {
@@ -674,7 +681,7 @@ const ATTRIBUTE_POINT_CAP_PER_STAGE = 10
 const MAX_SMALL_KILLS = 50
 const MAP_LEFT = 40
 const TOWN_LEFT = 150
-const TOWN_RIGHT = 1800
+const TOWN_RIGHT = 2100
 const BASE_MAP_WIDTH = 1280
 const MAP_SEGMENT = 480
 const WAVE_SIZE = 10
@@ -1307,7 +1314,7 @@ let enhanceStoneTier = 1
 let attributesOpen = false
 let npcOpen = false
 let stageCircleOpen = false
-let stageCircleChapter: 1 | 2 = 1
+let stageCircleChapter: 1 | 2 | 3 = 1
 let settingsOpen = false
 let mailOpen = false
 let sellConfirmId: string | null = null
@@ -5740,7 +5747,7 @@ function bagMarkup() {
     : ''
   const hpNow = p2Active ? partner.hp : game.hp
   const mpNow = p2Active ? partner.mp : game.mp
-  return `<div class="bag-scrim"><section class="bag-dialog bag-dialog-wide"><header><div><small>INVENTORY · ${game.gear.length} 件物品${p2Active ? ' · 玩家二' : ''}</small><h2>${p2Active ? '玩家二背包' : '远征背包'}</h2>${playerSwitch}</div><button data-action="close-bag" aria-label="关闭背包">×</button></header><div class="bag-body"><section class="bag-figure"><div class="bag-portrait-column"><div class="bag-preview"><canvas id="bag-portrait" width="300" height="420" aria-label="角色全身预览"></canvas></div><div class="bag-stats"><span>♥ 生命 ${displayNumber(hpNow)} / ${displayNumber(s.hp)}</span><span>✦ 法力 ${displayNumber(mpNow)} / ${displayNumber(s.mp)}</span><span>⚔ 攻击 ${displayNumber(s.attack)}</span><span>▰ 防御 ${displayNumber(s.defense)}</span><span>◎ 命中 ${displayNumber(s.hit ?? 0)}</span><span>◇ 闪避 ${displayNumber(s.dodge ?? 0)}</span><span>✦ 暴击 ${displayNumber(s.crit ?? 0)}</span><span>✧ 防爆 ${displayNumber(s.antiCrit ?? 0)}</span><span>★ 等级 ${game.level ?? 1}</span></div></div><div class="equip-slots">${bagEquipSlot('weapon', main, '主武器', '拖入武器')}${bagEquipSlot('armor', armor, '护甲', '拖入护甲')}${bagEquipSlot('fashion', fashion, '时装', '拖入时装')}${p2Active ? '' : bagEquipSlot('ring', ring, '戒指', '拖入戒指')}${p2Active ? '' : bagEquipSlot('cloak', cloak, '披风', '拖入披风')}${extraUnlocked ? bagEquipSlot('extra', extraGear, extraLabel, '拖入装备（仅属性）') : ''}</div></section><section class="bag-side"><div class="bag-equipped">${chips}</div><div class="bag-tabs">${tabButtons}</div><div class="bag-content is-paged">${content}</div></section></div></section></div>`
+  return `<div class="bag-scrim"><section class="bag-dialog bag-dialog-wide"><header><div><small>INVENTORY · ${game.gear.length} 件物品${p2Active ? ' · 玩家二' : ''}</small><h2>${p2Active ? '玩家二背包' : '远征背包'}</h2>${playerSwitch}</div><button data-action="close-bag" aria-label="关闭背包">×</button></header><div class="bag-body"><section class="bag-figure"><div class="bag-portrait-column"><div class="bag-preview"><canvas id="bag-portrait" width="300" height="420" aria-label="角色全身预览"></canvas></div><div class="bag-stats"><span>♥ 生命 ${displayNumber(hpNow)} / ${displayNumber(s.hp)}</span><span>✦ 法力 ${displayNumber(mpNow)} / ${displayNumber(s.mp)}</span><span>⚔ 攻击 ${displayNumber(s.attack)}</span><span>▰ 防御 ${displayNumber(s.defense)}</span><span>◎ 命中 ${displayNumber(s.hit ?? 0)}</span><span>◇ 闪避 ${displayNumber(s.dodge ?? 0)}</span><span>✦ 暴击 ${displayNumber(s.crit ?? 0)}</span><span>✧ 防爆 ${displayNumber(s.antiCrit ?? 0)}</span><span>★ 等级 ${game.level ?? 1}</span></div></div><div class="equip-slots">${bagEquipSlot('weapon', main, '主武器', '拖入武器')}${bagEquipSlot('armor', armor, '护甲', '拖入护甲')}${p2Active ? '' : bagEquipSlot('ring', ring, '戒指', '拖入戒指')}${p2Active ? '' : bagEquipSlot('cloak', cloak, '披风', '拖入披风')}${bagEquipSlot('fashion', fashion, '时装', '拖入时装')}${extraUnlocked ? bagEquipSlot('extra', extraGear, extraLabel, '拖入装备（仅属性）') : ''}</div></section><section class="bag-side"><div class="bag-equipped">${chips}</div><div class="bag-tabs">${tabButtons}</div><div class="bag-content is-paged">${content}</div></section></div></section></div>`
 }
 // 将右侧装备拖入左侧装备框：武器 / 护甲 / 时装 / 高级天赋的额外属性框。
 function dropGearToSlot(id: string | undefined, slot: string | undefined) {
@@ -6651,19 +6658,21 @@ function stageCircleMarkup() {
   if (!game || !stageCircleOpen) return ''
   const current = game
   const chapter = stageCircleChapter
-  const first = chapter === 2 ? CHAPTER2_START : 1
-  const last = chapter === 2 ? Math.min(STAGE_COUNT, current.unlockedStage) : Math.min(CHAPTER_SIZE, current.unlockedStage)
+  const first = (chapter - 1) * CHAPTER_SIZE + 1
+  const last = Math.min(chapter * CHAPTER_SIZE, current.unlockedStage)
   const rows = Array.from({ length: Math.max(0, last - first + 1) }, (_, index) => {
     const stage = first + index
     const progress = getStageProgress(stage)
     const state = progress.bossDefeated ? 'Boss 已击败 · 可再次挑战' : (progress.kills ?? 0) > 0 ? `进度 ${progress.kills} / ${MAX_SMALL_KILLS}` : '尚未探索'
     return `<button class="stage-circle-row ${current.stage === stage ? 'active' : ''}" data-action="circle-enter-stage" data-stage="${stage}"><b>${String(stage).padStart(2, '0')}</b><span><strong>${stageNames[stage - 1]}</strong><small>${state}</small></span><i>进入 →</i></button>`
   }).join('')
-  const title = chapter === 2 ? '暗夜法阵 · 第二章' : '远征法阵 · 第一章'
-  const copy = chapter === 2 ? '天空剧变后的遗迹。守关者的力量远超第一章，建议先提升等级、装备与天赋。' : '选择一处已解锁的遗迹。进入后从第一波开始。'
-  return `<div class="bag-scrim stage-circle-scrim"><section class="bag-dialog stage-circle-dialog ${chapter === 2 ? 'night-circle' : ''}"><header><div><small>WAYPOINT · 冒险者小镇</small><h2>${title}</h2></div><button data-action="close-stage-circle" aria-label="关闭法阵">×</button></header><p>${copy}</p><div class="stage-circle-list">${rows || '<div class="empty-gear">尚未解锁第二章关卡</div>'}</div></section></div>`
+  const title = chapter === 3 ? '创世法阵 · 第三章' : chapter === 2 ? '暗夜法阵 · 第二章' : '远征法阵 · 第一章'
+  const copy = chapter === 3
+    ? '接近创世之门的最后十关。守关者拥有复活、双生、限时、隐身与全屏 AOE 等机制，请做好完整准备。'
+    : chapter === 2 ? '天空剧变后的遗迹。守关者的力量远超第一章，建议先提升等级、装备与天赋。' : '选择一处已解锁的遗迹。进入后从第一波开始。'
+  return `<div class="bag-scrim stage-circle-scrim"><section class="bag-dialog stage-circle-dialog ${chapter === 2 ? 'night-circle' : chapter === 3 ? 'genesis-circle' : ''}"><header><div><small>WAYPOINT · 冒险者小镇</small><h2>${title}</h2></div><button data-action="close-stage-circle" aria-label="关闭法阵">×</button></header><p>${copy}</p><div class="stage-circle-list">${rows || `<div class="empty-gear">尚未解锁第${chapter === 3 ? '三' : '二'}章关卡</div>`}</div></section></div>`
 }
-function openStageCircle(chapter: 1 | 2 = 1) {
+function openStageCircle(chapter: 1 | 2 | 3 = 1) {
   if (!game || scene !== 'town') return
   resetPanels()
   stageCircleChapter = chapter
@@ -6671,17 +6680,18 @@ function openStageCircle(chapter: 1 | 2 = 1) {
   document.querySelector('#rotate-hint')?.classList.add('dismissed')
   renderGame()
 }
-function drawTownWaypoint(c: CanvasRenderingContext2D, chapter: 1 | 2 = 1) {
+function drawTownWaypoint(c: CanvasRenderingContext2D, chapter: 1 | 2 | 3 = 1) {
   if (!game || scene !== 'town') return
   if (chapter === 2 && !chapter2Unlocked()) return
-  const x = chapter === 2 ? TOWN_SECOND_CIRCLE_X : TOWN_CIRCLE_X
+  if (chapter === 3 && !chapter3Unlocked()) return
+  const x = chapter === 3 ? TOWN_THIRD_CIRCLE_X : chapter === 2 ? TOWN_SECOND_CIRCLE_X : TOWN_CIRCLE_X
   const now = performance.now()
   const pulse = .7 + Math.sin(now / 380) * .3
   const near = Math.abs(heroX - x) <= 60
-  const white = chapter === 2 ? '#e8d8ff' : '#d8f6ff'
-  const rgb = chapter === 2 ? '195, 155, 255' : '159, 232, 255'
-  const rgbSoft = chapter === 2 ? '150, 100, 220' : '125, 196, 226'
-  const accent = chapter === 2 ? '#ff8ac8' : '#c9b273'
+  const white = chapter === 3 ? '#fff4d0' : chapter === 2 ? '#e8d8ff' : '#d8f6ff'
+  const rgb = chapter === 3 ? '255, 220, 140' : chapter === 2 ? '195, 155, 255' : '159, 232, 255'
+  const rgbSoft = chapter === 3 ? '220, 170, 80' : chapter === 2 ? '150, 100, 220' : '125, 196, 226'
+  const accent = chapter === 3 ? '#e2c57e' : chapter === 2 ? '#ff8ac8' : '#c9b273'
   c.save()
   // 地面光晕
   const aura = c.createRadialGradient(x, world.floor, 4, x, world.floor, 66)
@@ -6695,7 +6705,7 @@ function drawTownWaypoint(c: CanvasRenderingContext2D, chapter: 1 | 2 = 1) {
   c.beginPath(); c.ellipse(x, world.floor + 2, 47, 16, 0, 0, Math.PI * 2); c.stroke()
   c.strokeStyle = accent; c.globalAlpha = .8; c.lineWidth = 1.4
   c.beginPath(); c.ellipse(x, world.floor + 2, 36, 12, 0, 0, Math.PI * 2); c.stroke(); c.globalAlpha = 1
-  c.save(); c.translate(x, world.floor + 2); c.scale(1, .34); c.rotate((chapter === 2 ? -1 : 1) * now / 2600)
+  c.save(); c.translate(x, world.floor + 2); c.scale(1, .34); c.rotate((chapter === 3 ? 1.4 : chapter === 2 ? -1 : 1) * now / 2600)
   c.setLineDash([7, 5]); c.strokeStyle = `rgba(${rgb}, .85)`; c.lineWidth = 2.2
   c.beginPath(); c.arc(0, 0, 43, 0, Math.PI * 2); c.stroke(); c.setLineDash([])
   c.restore()
@@ -6723,7 +6733,7 @@ function drawTownWaypoint(c: CanvasRenderingContext2D, chapter: 1 | 2 = 1) {
     c.beginPath(); c.arc(x + Math.sin(now / 700 + i) * 14, world.floor - rise, 1.6, 0, Math.PI * 2); c.fill()
   }
   c.restore()
-  drawCompanionNameplates(c, chapter === 2 ? '暗夜法阵' : '远征法阵', x, near, world.floor - 112)
+  drawCompanionNameplates(c, chapter === 3 ? '创世法阵' : chapter === 2 ? '暗夜法阵' : '远征法阵', x, near, world.floor - 112)
 }
 type TownCompanion = { id: 'xiaoman' | 'zhou'; name: string; x: number }
 // 第 5、7 关救下的同伴会回到小镇；未救出时不会出现。
@@ -10198,6 +10208,7 @@ function pickupDrop() {
       return
     }
     if (isTravelMerchantDay() && Math.abs(heroX - TRAVEL_MERCHANT_X) <= 38) { openTravelMerchant(); return }
+    if (chapter3Unlocked() && Math.abs(heroX - TOWN_THIRD_CIRCLE_X) <= 60) { openStageCircle(3); return }
     if (chapter2Unlocked() && Math.abs(heroX - TOWN_SECOND_CIRCLE_X) <= 60) { openStageCircle(2); return }
     if (Math.abs(heroX - TOWN_CIRCLE_X) <= 60) { openStageCircle(1); return }
     if (secondNpcUnlocked() && Math.abs(heroX - SECOND_NPC_X) <= 75) { openSecondNpcMenu(); return }
@@ -17183,6 +17194,7 @@ function draw() {
       drawTownTree(ctx)
       drawTownWaypoint(ctx)
       if (chapter2Unlocked()) drawTownWaypoint(ctx, 2)
+      if (chapter3Unlocked()) drawTownWaypoint(ctx, 3)
       drawTownNpc(ctx)
       drawTownCompanions(ctx)
       drawSecondNpc(ctx)

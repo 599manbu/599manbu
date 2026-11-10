@@ -1349,24 +1349,33 @@ body { background: #0d1717; }
 .quest-book-nav button:disabled { opacity: .3; cursor: not-allowed; }
 .quest-book-nav span { color: #a99a6e; font-family: var(--mono); font-size: 12px; letter-spacing: .12em; }
 /* 商店：双页书本 + 翻页，1280×720 内不滚动 */
-.shop-dialog { width: min(96vw, 1040px); overflow: hidden; }
+.shop-dialog { width: min(96vw, 1180px); overflow: hidden; padding: 26px 30px; }
 .shop-book { margin-top: 0; }
-.shop-book .quest-book-page { min-height: 0; gap: 7px; padding: 20px 24px 14px; }
-.shop-book-left .shop-categories { margin: 2px 0 0; }
+.shop-book .quest-book-page { min-height: 420px; gap: 10px; padding: 26px 30px 20px; }
+.shop-book-left .quest-book-title { font-size: 31px; }
+.shop-book-left .quest-book-copy { font-size: 15px; line-height: 1.7; }
+.shop-book-left .shop-categories { margin: 4px 0 0; }
+.shop-book-left .shop-categories button { min-height: 36px; font-size: 12px; }
+.shop-book-left .npc-currency { font-size: 11px; padding: 10px 12px; }
 .shop-book-left .ad-reward-panel { margin: 0; }
+.shop-book-left .ad-reward-button { min-height: 38px; font-size: 11px; }
 .shop-book-left .purchase-result { margin: 0; }
 .shop-currency { flex-wrap: wrap; }
 .shop-book-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-.shop-book-head span { color: #8fa79a; font-family: var(--mono); font-size: 10px; }
-.shop-book-list { flex: 1; min-height: 0; display: grid; align-content: center; gap: 6px; }
-.shop-book-list .shop-row { min-height: 56px; padding: 7px 9px; grid-template-columns: 30px minmax(0, 1fr) auto auto; }
-.shop-book-list .shop-row .gear-glyph { width: 30px; height: 30px; }
-.shop-book-list .shop-row .gear-glyph .item-icon { width: 20px; height: 20px; }
-.shop-book-list .shop-row .gear-copy b { font-size: 11px; }
-.shop-book-list .shop-row .gear-copy small { font-size: 9px; }
-.shop-book-list .shop-row button { min-width: 46px; min-height: 28px; font-size: 9px; }
+.shop-book-head .quest-kicker { font-size: 11px; }
+.shop-book-head span { color: #8fa79a; font-family: var(--mono); font-size: 11px; }
+.shop-book-list { flex: 1; min-height: 0; display: grid; align-content: center; gap: 8px; }
+.shop-book-list .shop-row { min-height: 64px; padding: 10px 12px; gap: 10px; grid-template-columns: 38px minmax(0, 1fr) auto auto; }
+.shop-book-list .shop-row .gear-glyph { width: 38px; height: 38px; }
+.shop-book-list .shop-row .gear-glyph .item-icon { width: 26px; height: 26px; }
+.shop-book-list .shop-row .gear-copy b { font-size: 14px; }
+.shop-book-list .shop-row .gear-copy small { font-size: 11px; line-height: 1.5; }
+.shop-book-list .shop-row .shop-price { font-size: 12px; }
+.shop-book-list .shop-row button { min-width: 64px; min-height: 34px; font-size: 11px; }
 .shop-book-list .empty-gear { align-self: center; }
-.shop-book + .quest-book-nav { margin: 6px 0 8px; }
+.shop-book + .quest-book-nav { margin: 10px 0 10px; }
+.shop-book + .quest-book-nav button { width: 42px; height: 34px; font-size: 20px; }
+.shop-book + .quest-book-nav span { font-size: 13px; }
 .quest-book-action { gap: 8px; }
 .quest-book-action .quest-abandon { flex: 0 0 auto; padding: 0 16px; border-color: rgba(200, 120, 100, .4); background: transparent; color: #e0a090; }
 /* ── 排行榜 ───────────────────────────────────────── */
@@ -1894,6 +1903,9 @@ body { background: #0d1717; }
 .stage-circle-dialog.night-circle { border-color: rgba(181, 140, 255, .5); box-shadow: 0 0 34px rgba(120, 70, 200, .28); }
 .stage-circle-dialog.night-circle header small { color: #b8a4f4; }
 .stage-circle-dialog.night-circle .stage-circle-row:hover { border-color: rgba(181, 140, 255, .7); }
+.stage-circle-dialog.genesis-circle { border-color: rgba(226, 197, 126, .55); box-shadow: 0 0 34px rgba(226, 197, 126, .24); }
+.stage-circle-dialog.genesis-circle header small { color: #ffe6a8; }
+.stage-circle-dialog.genesis-circle .stage-circle-row:hover { border-color: rgba(255, 220, 140, .75); }
 @media (max-width: 600px) { .stamp-gallery { grid-template-columns: 1fr; } }
 
 /* 强化石页：放大字号，聚焦库存与合成按钮；已移除右侧说明与规则框。 */
