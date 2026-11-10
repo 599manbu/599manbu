@@ -49,7 +49,8 @@ const UPDATE_NOTES = [
   '第 22 关双 Boss 同时在场，技能循环错开；两名都倒下才通关。',
   '第 23 关 Boss 出现后 4 分钟内未击杀会秒杀角色（可复活），Boss 血量略低于前一关。',
   '第 24 关 Boss 全程隐身，只显示影子；出招前摇时短暂显示半透明轮廓。',
-  '第 30 关最终 Boss 不移动，周期性释放全屏 AOE。',
+  '第 30 关最终 Boss 不移动，周期性释放全屏 AOE 与定向创世矛。',
+  '每个 Boss 的专属技能改为独立几何特效，不再共用爆炸/激光模板。',
   '第三章 Boss 攻击欲望提高，远程与专属技能更频繁。',
   '新增「技能觉醒」：救出小满后可进入时间回廊，在觉醒界面选择当前武器技能进行觉醒；普通与觉醒版本共享技能等级。',
   '觉醒条件：战士用目标技能对稻草人造成单次 ≥800 伤害（多段合计）计 1 次；法师靠近稻草人承受反击，每次受击计 1 次。',
@@ -93,7 +94,8 @@ const UPDATE_NOTES = [
 const PUBLIC_UPDATE_NOTES = [
   '新增 30 关与第三章；第 30 关为最终结局。',
   '双持专精可按住 S 5 秒切换主副武器与技能组。',
-  '新增复活 Boss、双 Boss、4 分钟限时、全程隐身 Boss 与最终全屏 AOE。',
+  '新增复活 Boss、双 Boss、4 分钟限时、全程隐身 Boss 与最终全屏 AOE + 定向攻击。',
+  '每个 Boss 的专属技能使用独立几何特效。',
   '第三章 Boss 攻击欲望与远程弹幕增强。',
   '新增技能觉醒系统：四种武器各四个技能均可觉醒，觉醒后永久 +10% 伤害。',
   '时间回廊、觉醒碎片与觉醒书玩法上线；4399 版兑换觉醒书需观看广告。',
@@ -3082,7 +3084,7 @@ function startBossSpecial(foe: Foe, stageIndex: number) {
   foe.specialTimer = (BOSS_SPECIAL_COOLDOWNS[stageIndex] ?? 6) * (foe.bossClone ? 1.6 : 1)
   foe.specialNext = cycle[(cycle.indexOf(kind) + 1) % cycle.length]
   foe.flash = .2; foe.attackAnim = .5
-  effects.push({ kind: `boss-special-windup-${kind}-${theme}`, x: foe.x, y: world.floor - 120, direction, life: duration, duration, color, text: name })
+  effects.push({ kind: `boss-unique-${stageIndex}`, x: foe.x, y: world.floor - 110, direction, life: duration, duration, color, text: name })
   addSparks(foe.x, world.floor - 105, 12, [color, '#fff6d0'], 130)
   addShake(4)
   playSfx('boss')
@@ -3125,65 +3127,55 @@ function executeExclusiveEffect(foe: Foe, effect: string | undefined, stageIndex
   const color = BOSS_THEME_COLORS[BOSS_THEMES[stageIndex]] ?? '#d78fb4'
   const direction = foe.specialDirection ?? (Math.sign(heroX - foe.x) || 1)
   const originY = world.floor - 76
-  // 每个专属技能额外播放独立轮廓的特效，不再只靠同一套爆炸/新星光圈换颜色。
-  effects.push({ kind: 'boss-theme', x: foe.x, y: world.floor - 40, direction, life: 1.15, duration: 1.15, color, text: effect })
+  // 每个专属技能使用对应关卡的独立几何特效。
+  effects.push({ kind: `boss-unique-${stageIndex}`, x: foe.x, y: world.floor - 74, direction, life: 1.15, duration: 1.15, color, text: effect })
   const fan = (count: number, spread: number, speed: number, scale: number, radius = 8) =>
     fireShotFan(foe.x, originY, heroX, count, spread, speed, config.bossAtk * scale, color, radius, 4.6, true)
   switch (effect) {
     case 'quake':
-      addFx('great-quake', foe.x, world.floor - 8, direction, .9, color)
       addSparks(foe.x, world.floor - 8, 26, [color, '#ffe6a8'], 260)
       addShake(13)
       if (Math.abs(heroX - foe.x) < 250 && heroY > -46) hurtPlayer(config.bossAtk * 2.2, 12, true, foe.x)
       break
     case 'ring':
       fan(14, Math.PI * 2, 300, .62, 7)
-      addFx('boss-special-nova-sun', foe.x, world.floor - 80, direction, .9, color)
       addShake(8)
       break
     case 'meteor':
       for (let i = 0; i < 3; i += 1) spawnBossHazard('flame', Math.max(MAP_LEFT + 50, Math.min(unlockedWidth - 60, heroX + (i - 1) * 130 + (Math.random() - .5) * 60)), .75)
-      addFx('boss-special-nova-star', foe.x, world.floor - 160, direction, 1, color)
       addShake(10)
       break
     case 'gale':
       fan(9, 1.5, 420, .65)
       heroX = clampHeroX(heroX + direction * 60)
-      addFx('whirlwind-storm', foe.x, world.floor - 80, direction, .8, color)
       addShake(7)
       break
     case 'tide':
       fan(10, Math.PI * 1.4, 290, .6)
       spawnBossHazard('poison', heroX, .9)
-      addFx('boss-special-nova-ash', foe.x, world.floor - 70, direction, 1, color)
       addShake(8)
       break
     case 'nova':
       fan(16, Math.PI * 2, 330, .6, 7)
-      addFx('boss-special-nova-star', foe.x, world.floor - 82, direction, 1, color)
       addShake(10)
       break
     case 'ash':
       fan(9, 1.2, 320, .62)
       spawnBossHazard('flame', heroX, .8)
-      addFx('boss-special-nova-ash', foe.x, world.floor - 70, direction, 1, color)
       addShake(9)
       break
     case 'blood':
-      addFx('boss-special-nova-blood', foe.x, world.floor - 18, direction, .95, color)
       addSparks(foe.x, world.floor - 8, 24, [color, '#ffd0b0'], 270)
       if (Math.abs(heroX - foe.x) < 240 && heroY > -40) hurtPlayer(config.bossAtk * 2.3, 15, true, foe.x)
       addShake(13)
       break
     case 'sun':
       fan(18, Math.PI * 2, 320, .55, 7)
-      addFx('boss-special-nova-sun', foe.x, world.floor - 80, direction, 1, color)
       addShake(10)
       break
     case 'star':
       fan(12, 1.5, 340, .6, 7)
       fan(1, 0, 230, 1.5, 17)
-      addFx('boss-special-nova-star', foe.x, world.floor - 80, direction, 1.1, color)
       addShake(12)
       break
     case 'clone':
@@ -3193,7 +3185,6 @@ function executeExclusiveEffect(foe: Foe, effect: string | undefined, stageIndex
       break
     case 'iron':
       foe.superArmor = Math.max(foe.superArmor ?? 0, 4)
-      addFx('great-quake', foe.x, world.floor - 8, direction, .85, color)
       fan(12, Math.PI * 2, 260, .55, 8)
       addShake(14)
       break
@@ -3201,13 +3192,11 @@ function executeExclusiveEffect(foe: Foe, effect: string | undefined, stageIndex
       foe.x = clampFoeX(heroX - direction * 230)
       addFx('blink-rift', foe.x, world.floor - 64, direction, .45, color)
       fan(10, Math.PI * 2, 340, .55, 7)
-      addFx('boss-special-beam', foe.x, originY, direction, .6, color)
       addShake(9)
       break
     case 'forge':
       for (let i = 0; i < 3; i += 1) spawnBossHazard('flame', Math.max(MAP_LEFT + 50, Math.min(unlockedWidth - 60, heroX + (i - 1) * 160)), .7)
       fan(10, 1.4, 330, .6)
-      addFx('arcane-explosion', foe.x, world.floor - 70, direction, 1, color)
       addShake(11)
       break
     case 'thunder':
@@ -3223,7 +3212,6 @@ function executeExclusiveEffect(foe: Foe, effect: string | undefined, stageIndex
       break
     case 'time':
       foe.x = clampFoeX(heroX - (Math.sign(heroX - foe.x) || 1) * 200)
-      addFx('boss-special-nova-star', foe.x, world.floor - 80, direction, 1, color)
       fan(12, Math.PI * 2, 250, .55, 7)
       addShake(8)
       setLog('时砂逆流：守关者加速了自身的时间！')
@@ -3237,7 +3225,6 @@ function executeExclusiveEffect(foe: Foe, effect: string | undefined, stageIndex
     case 'stellar':
       fan(20, Math.PI * 2, 300, .5, 6)
       fireHomingVolley(foe, stageIndex, 5)
-      addFx('boss-special-nova-star', foe.x, world.floor - 80, direction, 1.2, color)
       addShake(12)
       break
     case 'crown':
@@ -3245,8 +3232,6 @@ function executeExclusiveEffect(foe: Foe, effect: string | undefined, stageIndex
       fireHomingVolley(foe, stageIndex, 6)
       spawnBossHazard('void', heroX, .75)
       spawnBossHazard('light', Math.max(MAP_LEFT + 50, heroX - 180), .9)
-      addFx('boss-special-nova-star', foe.x, world.floor - 80, direction, 1.2, color)
-      addFx('boss-laser', foe.x, world.floor - 52, direction, 1, color)
       addShake(16)
       break
     default:
@@ -3263,17 +3248,19 @@ function executeBossSpecial(foe: Foe, kind: 'pierce' | 'exclusive' | 'laser' | '
   const special = BOSS_SPECIAL_NAMES[stageIndex]
   const name = kind === 'pierce' ? (special?.pierce ?? '贯穿')
     : kind === 'exclusive' ? (special?.exclusive ?? '专属技能')
-      : kind === 'laser' ? (special?.laser ?? '湮灭激光')
+      : kind === 'laser' ? (special?.laser ?? '湮灭射线')
         : (special?.homing ?? '追踪弹幕')
+  if (kind !== 'exclusive') {
+    effects.push({ kind: `boss-unique-${stageIndex}`, x: foe.x, y: world.floor - 86, direction, life: 1.1, duration: 1.1, color, text: name })
+  }
   if (kind === 'laser') {
     const beamY = world.floor - 52
-    addFx('boss-laser', foe.x, beamY, direction, 1.0, color)
     addSparks(foe.x + direction * 220, beamY, 26, [color, '#fff6d0', '#ffffff'], 280)
     addShake(14)
     if (heroY > -64 && Math.sign(heroX - foe.x) === direction && Math.abs(heroX - foe.x) <= 640) {
       hurtPlayer(stageValues.bossAtk * 2, 12, true, foe.x)
     }
-    setLog(`守关者释放「${name}」！跳跃可以躲开地面激光。`)
+    setLog(`守关者释放「${name}」！跳跃可以躲开。`)
     return
   }
   if (kind === 'homing') {
@@ -3284,10 +3271,9 @@ function executeBossSpecial(foe: Foe, kind: 'pierce' | 'exclusive' | 'laser' | '
   }
   if (kind === 'pierce') {
     fireShotFan(foe.x, originY, heroX, 1, 0, 520, stageValues.bossAtk * 2.2, color, 16, 3, true)
-    addFx('boss-special-beam', foe.x, originY, direction, .6, color)
     addSparks(foe.x, originY, 18, [color, '#ffffff'], 240)
     addShake(10)
-    setLog('守关者释放贯穿光束！')
+    setLog(`守关者释放「${name}」！`)
     return
   }
   executeExclusiveEffect(foe, special?.effect, stageIndex)
@@ -3507,7 +3493,6 @@ function executeMirrorSkill(foe: Foe, skill: number) {
       addFx('slash-crescent', heroX, world.floor - 64 + heroY, direction, .5, color)
     } else if (skill === 1) {
       if (Math.abs(heroX - foe.x) < 240) hurtPlayer(attack * 1.5, 6, true, foe.x)
-      addFx('whirlwind-storm', foe.x, world.floor - 82 + heroY, direction, .8, color)
       addShake(5)
     } else if (skill === 2) {
       foe.x = clampFoeX(foe.x + direction * 160)
@@ -3534,7 +3519,6 @@ function executeMirrorSkill(foe: Foe, skill: number) {
       const away = Math.abs(heroX - foe.x) < 190
       foe.x = clampFoeX(foe.x + (away ? -direction : direction) * 190)
       addFx('thrust-dash', foe.x, world.floor - 72, direction, .45, color)
-      addFx('great-quake', foe.x, world.floor - 6, direction, .5)
       if (Math.abs(heroX - foe.x) < 130) hurtPlayer(attack * 1.1, 5, true, foe.x)
     } else {
       addFx('sky-bow', heroX, world.floor - 240, direction, 1.3, color)
@@ -3576,12 +3560,10 @@ function executeMirrorSkill(foe: Foe, skill: number) {
     } else if (skill === 2) {
       foe.x = clampFoeX(foe.x + direction * 170)
       addFx('blink-rift', foe.x, world.floor - 65, direction, .5, color)
-      addFx('arcane-explosion', foe.x, world.floor - 58, direction, 1, color)
       if (Math.abs(heroX - foe.x) < 170) hurtPlayer(attack * 1.5, 6, true, foe.x)
       addShake(5)
     } else {
       addFx('arcane-seal', heroX, world.floor - 6, direction, 1.3, color)
-      addFx('arcane-explosion', heroX, world.floor - 64, direction, 1.1, color)
       if (Math.abs(heroX - foe.x) < 360) hurtPlayer(attack * 1.8, 8, true, foe.x)
       addShake(8)
     }
@@ -8355,7 +8337,6 @@ function applyStagger(foe: Foe) {
     foe.staggerTimer = 0
     foe.staggerImmune = STAGGER_IMMUNE_TIME
     foe.superArmor = 0
-    addFx('great-quake', foe.x, world.floor - 8, 1, foe.boss ? .9 : .6, '#ffd27a')
     addSparks(foe.x, world.floor - (foe.boss ? 100 : 48), foe.boss ? 34 : 16, ['#ffd27a', '#fff2c0', '#ff9a5c', '#ffffff'], foe.boss ? 320 : 190)
     addShake(foe.boss ? 11 : 4)
     if (foe.boss) addFlash(.25, '#ffd27a')
@@ -8840,7 +8821,6 @@ function castBowSkill(index: number) {
     if (skillAwakened(2, 'bow')) { castAwakenedHouyi(); return }
     const startY = world.floor + heroY
     flowerBombs.push({ x: heroX, y: startY, timer: .7 })
-    addFx('great-quake', heroX, startY, facing, .4)
     heroY = Math.min(heroY, 0) - 50; velocityY = -360; grounded = false; jumpCount = Math.max(jumpCount, 1)
     heroX = scene === 'town' ? Math.max(TOWN_LEFT, Math.min(TOWN_RIGHT, heroX + facing * SKILL3_DISTANCE)) : clampHeroX(heroX + facing * SKILL3_DISTANCE)
     addFx('thrust-dash', heroX, world.floor - 72 + heroY, facing, .45, '#c8f0a0')
@@ -9104,7 +9084,6 @@ function castAwakenedBowMeteor() {
 }
 function resolveMeteorStrike(hit: { x: number; damage: number }) {
   addFx('meteor-impact', hit.x, world.floor - 26, 1, 1.1, '#ff9a5c')
-  addFx('great-quake', hit.x, world.floor - 8, 1, 1.5, '#ff9a5c')
   addSparks(hit.x, world.floor - 20, 90, ['#ff9a5c', '#ffd27a', '#fff2c0'], 420)
   addShake(22)
   addFlash(.5, '#ff9a5c')
@@ -9438,7 +9417,6 @@ function cast(index: number) {
       const centers = awakenedSpiral ? [spiralX, heroX - facing * 78] : [spiralX]
       for (const center of centers) {
         addFx('spiral-slash', center, world.floor - 66 + heroY, facing, .95, fxColor)
-        addFx('whirlwind-storm', center, world.floor - 82 + heroY, facing, .8, fxColor)
         addSparks(center, world.floor - 40 + heroY, 18, [fxColor, '#f2c46d', '#fff6d0'], 240)
       }
       addShake(awakenedSpiral ? 11 : 8)
@@ -9493,7 +9471,6 @@ function cast(index: number) {
         const greatY = world.floor - 80 + heroY
         addFx(`weapon-swing-${style}`, heroX + facing * 60, greatY, facing, .7, fxColor)
         addFx('myriad-swords', heroX + facing * 190, world.floor - 4, facing, 1.35, fxColor)
-        addFx('great-quake', heroX + facing * 110, world.floor - 8, facing, 1.2, fxColor)
         addFx('ground-break', heroX + facing * 90, world.floor - 70, facing, .95)
         addSparks(heroX + facing * 90, world.floor - 8, 48, [fxColor, '#d8b96c', '#fff6d0', '#a98d55'], 380)
         addShake(20)
@@ -9521,7 +9498,6 @@ function cast(index: number) {
     const center = heroX + facing * 150
     addFx('twin-fire-pillars', center, world.floor - 2, facing, 1.05, '#ff9a5c')
     addFx('fire-nova', center, world.floor - 62, facing, 1, '#ffd27a')
-    addFx('great-quake', center, world.floor - 8, facing, .9, '#ff7a3d')
     addSparks(heroX + facing * 120, world.floor - 40, 32, ['#ff9a5c', '#ffd27a', '#fff2c0', '#ff6a3d'], 280)
     addFlash(.18, '#ff9a5c')
     addShake(9)
@@ -11739,7 +11715,6 @@ function updateSkillObjects(dt: number) {
     if (bomb.timer > 0) continue
     flowerBombs = flowerBombs.filter((entry) => entry !== bomb)
     const bombPower = skillPower(2, 'bow')
-    addFx('great-quake', bomb.x, world.floor - 8, 1, .9)
     addSparks(bomb.x, world.floor - 20, 30, ['#ff9a5c', '#ffd27a', '#fff2c0'], 260)
     addShake(8)
     // 花炸弹范围扩大 1.5 倍（150 → 225）。
@@ -11790,8 +11765,6 @@ function explodeBombClone(clone: BombClone) {
   const { x, power } = clone
   const main = clone.source === 'main'
   const color = main ? '#d6b4ff' : '#9fe8ff'
-  addFx('arcane-explosion', x, world.floor - 58, 1, main ? 1 : .8, color)
-  addFx('great-quake', x, world.floor - 8, 1, main ? .85 : .65, color)
   addSparks(x, world.floor - 46, main ? 38 : 26, [color, '#ff9ae0', '#9fe8ff', '#ffffff'], main ? 320 : 250)
   addShake(main ? 13 : 8)
   addFlash(main ? .22 : .14, color)
@@ -11812,8 +11785,6 @@ function explodeArcaneOrb() {
   if (!arcaneOrb) return
   const { x, power } = arcaneOrb
   arcaneOrb = null
-  addFx('arcane-explosion', x, world.floor - 64, 1, 1.1, '#d6b4ff')
-  addFx('great-quake', x, world.floor - 8, 1, .9, '#d6b4ff')
   addSparks(x, world.floor - 50, 40, ['#d6b4ff', '#9fe8ff', '#fff2c0', '#ffffff'], 330)
   addShake(13)
   addFlash(.26, '#d6b4ff')
@@ -11827,8 +11798,6 @@ function explodeBlastProjectile(projectile: Projectile) {
   const y = projectile.y
   const radius = projectile.radius ?? 150
   const color = '#d6b4ff'
-  addFx('arcane-explosion', x, y, 1, 1, color)
-  addFx('great-quake', x, world.floor - 8, 1, .75, color)
   addSparks(x, y + 8, 28, [color, '#9fe8ff', '#fff2c0'], 280)
   addShake(8)
   const targets = foes.filter((foe) => Math.abs(foe.x - x) <= radius)
@@ -12126,7 +12095,6 @@ function update(dt: number) {
         addShake(3)
         if (burst <= 0) {
           addFx('energy-finale', target.x, world.floor - 70, 1, 1.05, hitColor)
-          addFx('great-quake', target.x, world.floor - 8, 1, .8, hitColor)
           addSparks(target.x, world.floor - 60, 42, [hitColor, '#e8fff2', '#b7f0ff', '#ffffff'], 340)
           addFlash(.3, hitColor)
           addShake(15)
@@ -12183,7 +12151,6 @@ function update(dt: number) {
       clone.skillTimer = 1.8
       // 频繁使用技能 3（爆裂分身）。
       const power = Math.max(1, Math.round(skillPower(2, 'book') * autoCloneDamageRatio()))
-      addFx('arcane-explosion', target.x, world.floor - 58, 1, .9, '#d6b4ff')
       addSparks(target.x, world.floor - 60, 18, ['#d6b4ff', '#9fe8ff', '#ffffff'], 200)
       foes.filter((foe) => foe.hp > 0 && Math.abs(foe.x - target.x) <= 140).forEach((foe) => strike(foe, power, '分身 · 爆裂分身', true, false, true))
     }
@@ -12286,7 +12253,6 @@ function update(dt: number) {
           else { remove = true; break }
         }
         if (landed) {
-          addFx('great-quake', projectile.x, world.floor - 8, 1, .32, '#ffe28a')
           addSparks(projectile.x, world.floor - 8, 5, ['#ffe28a', '#f7ffd8'], 110)
           remove = true
         }
@@ -12545,16 +12511,20 @@ function update(dt: number) {
             setLog('守关者召唤了 3 只守卫！')
           }
         }
+        // 第 30 关最终 Boss：除全屏 AOE 外，还会周期性释放定向创世矛。
+        if (stageIndex === 29 && (foe.specialTimer ?? 0) <= 0 && (foe.invulnTimer ?? 0) <= 0) {
+          foe.specialTimer = 3.2 + Math.random() * 1.2
+          executeBossSpecial(foe, 'pierce', stageIndex)
+        }
         foe.fieldTimer = (foe.fieldTimer ?? 5) - dt
         if (foe.fieldTimer <= 0 && (foe.invulnTimer ?? 0) <= 0) {
-          const color = BOSS_THEME_COLORS[BOSS_THEMES[stageIndex]] ?? '#b8a4f4'
           foe.fieldTimer = stageIndex === 29 ? 5 : 6 + Math.random() * 3
           if (stageIndex === 29) {
             // 创世之影：全屏 AOE，整条战斗区域同时预警。
             for (let aoeX = MAP_LEFT + 30; aoeX <= unlockedWidth - 30; aoeX += 90) {
               spawnBossHazard('lightning', aoeX, 1.1)
             }
-            addFx('boss-laser', foe.x, world.floor - 52, 1, 1.1, color)
+            effects.push({ kind: 'boss-unique-29', x: foe.x, y: world.floor - 74, life: 1.2, duration: 1.2, color: '#ffe6a8', text: '创世终焉' })
             setLog('创世之影释放全屏 AOE！整片场地都在预警，举盾或硬抗。')
           } else if (Math.random() < .5) {
             for (let strikeIndex = 0; strikeIndex < 3; strikeIndex += 1) {
@@ -12565,7 +12535,6 @@ function update(dt: number) {
             for (let beamIndex = 0; beamIndex < 5; beamIndex += 1) {
               spawnBossHazard('lightning', Math.max(MAP_LEFT + 40, Math.min(unlockedWidth - 50, foe.x - 340 + beamIndex * 170)), .85)
             }
-            addFx('boss-laser', foe.x, world.floor - 52, 1, .9, color)
             setLog('守关者释放横向激光！站上两侧平台可以躲避。')
           }
           addShake(7)
@@ -15026,6 +14995,127 @@ function drawBossModel(c: CanvasRenderingContext2D, index: number, theme: EnemyT
     c.beginPath(); c.arc(0, -48, 12, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1
   }
 }
+// 每个 Boss 的专属技能使用独立的几何轮廓，不再共用爆炸/激光模板。
+function drawUniqueBossSkill(c: CanvasRenderingContext2D, stage: number, p: number, x: number, y: number, color: string) {
+  const now = performance.now()
+  const grow = Math.min(1, Math.max(0, p * 1.7))
+  const fade = Math.min(1, Math.max(0, (1 - p) * 2.4))
+  c.save(); c.translate(x, y); c.globalAlpha *= fade
+  c.strokeStyle = color; c.fillStyle = color; c.lineWidth = 2.2; c.lineCap = 'round'; c.lineJoin = 'round'
+  const stroke = () => c.stroke()
+  switch (stage) {
+    case 0: // 苔痕巨像：藤蔓与叶片
+      for (let i = 0; i < 6; i += 1) {
+        const sx = (i - 2.5) * 18
+        c.beginPath(); c.moveTo(sx, 40); c.quadraticCurveTo(sx + Math.sin(now / 300 + i) * 20, 0, sx + 10, -20 - grow * 70); stroke()
+        c.beginPath(); c.ellipse(sx + 8, -20 - grow * 50, 7, 3.4, -.6, 0, Math.PI * 2); c.fill()
+      }
+      break
+    case 1: // 沉钟巡守：扩散钟环与钟摆
+      for (let i = 0; i < 3; i += 1) { c.globalAlpha *= .9; c.beginPath(); c.arc(0, -10, 18 + i * 22 * grow, 0, Math.PI * 2); stroke() }
+      c.beginPath(); c.moveTo(-26, -46); c.lineTo(26, -46); c.lineTo(0, 10); c.closePath(); stroke()
+      c.beginPath(); c.moveTo(0, -46); c.lineTo(Math.sin(now / 220) * 24, 24); stroke()
+      break
+    case 2: // 赤岩暴君：地刺
+      for (let i = 0; i < 7; i += 1) { const sx = (i - 3) * 22; c.beginPath(); c.moveTo(sx - 9, 34); c.lineTo(sx, 34 - 60 * grow * (.6 + (i % 3) * .2)); c.lineTo(sx + 9, 34); c.closePath(); c.fill() }
+      break
+    case 3: // 风蚀猎王：羽刃风弧
+      for (let i = 0; i < 5; i += 1) { c.beginPath(); c.arc(0, 0, 26 + i * 14 * grow, -1.1, 1.1); stroke(); c.beginPath(); c.moveTo(18 + i * 9, -8); c.lineTo(30 + i * 12, -22); stroke() }
+      break
+    case 4: // 幽蓝潮主：潮汐水环
+      for (let i = 0; i < 4; i += 1) { c.beginPath(); c.ellipse(0, 20 + i * 8, 30 + i * 18 * grow, 8 + i * 4, 0, 0, Math.PI * 2); stroke() }
+      break
+    case 5: // 断星之眼：星屑棱镜
+      for (let i = 0; i < 8; i += 1) { const a = now / 900 + i * Math.PI / 4; c.beginPath(); c.moveTo(Math.cos(a) * 16, Math.sin(a) * 16); c.lineTo(Math.cos(a + .15) * (40 + 26 * grow), Math.sin(a + .15) * (40 + 26 * grow)); c.lineTo(Math.cos(a - .15) * 30, Math.sin(a - .15) * 30); c.closePath(); c.fill() }
+      break
+    case 6: // 灰烬王座：飘散灰方块
+      for (let i = 0; i < 12; i += 1) { const a = i * 2.4; c.fillRect(Math.cos(a) * (20 + grow * 60), Math.sin(a) * 24 - p * 70, 5, 5) }
+      break
+    case 7: // 血牙蛮王：獠牙弧
+      for (let i = 0; i < 5; i += 1) { const sx = (i - 2) * 24; c.beginPath(); c.moveTo(sx, 30); c.quadraticCurveTo(sx + 10, 0, sx, -34 * grow); c.quadraticCurveTo(sx + 8, 0, sx + 12, 30); c.closePath(); c.fill() }
+      break
+    case 8: // 苍白日轮：日轮光冠
+      c.beginPath(); c.arc(0, -20, 18 + 20 * grow, 0, Math.PI * 2); stroke()
+      for (let i = 0; i < 12; i += 1) { const a = i * Math.PI / 6; c.beginPath(); c.moveTo(Math.cos(a) * 36, -20 + Math.sin(a) * 36); c.lineTo(Math.cos(a) * (54 + 14 * grow), -20 + Math.sin(a) * (54 + 14 * grow)); stroke() }
+      break
+    case 9: // 终焉星门：门扉符文
+      c.strokeRect(-34, -70, 68, 84); c.beginPath(); c.moveTo(-20, -52); c.lineTo(20, -52); c.moveTo(-20, -30); c.lineTo(20, -30); c.moveTo(0, -70); c.lineTo(0, 14); stroke()
+      for (let i = 0; i < 4; i += 1) { c.beginPath(); c.arc(0, -28, 8 + i * 7 * grow, 0, Math.PI * 2); stroke() }
+      break
+    case 10: // 双影术士：分裂双影
+      c.globalAlpha *= .8; c.fillRect(-38, -60, 18, 70); c.fillRect(20, -60, 18, 70)
+      c.beginPath(); c.moveTo(-34, -60); c.lineTo(-20, -60); c.lineTo(-28, -84); c.closePath(); c.fill(); c.beginPath(); c.moveTo(24, -60); c.lineTo(38, -60); c.lineTo(31, -84); c.closePath(); c.fill()
+      break
+    case 11: // 不破铁壁：铁壁板块
+      for (let i = 0; i < 5; i += 1) { const h = 30 + i * 8; c.strokeRect(-60 + i * 30, 24 - h * grow, 22, h) }
+      break
+    case 12: // 无面镜灵：镜面碎片
+      for (let i = 0; i < 7; i += 1) { const a = i * 1.3 + now / 1800; c.beginPath(); c.moveTo(Math.cos(a) * 18, Math.sin(a) * 18); c.lineTo(Math.cos(a + .4) * 44, Math.sin(a + .4) * 44); c.lineTo(Math.cos(a + .12) * 56, Math.sin(a + .12) * 56); c.closePath(); c.fill() }
+      break
+    case 13: // 熔炉巨匠：砧台与火星
+      c.strokeRect(-26, 0, 52, 16); c.beginPath(); c.moveTo(-34, 16); c.lineTo(34, 16); stroke()
+      for (let i = 0; i < 10; i += 1) c.fillRect(-30 + i * 6, -20 - grow * 46 - (i % 3) * 8, 3, 3)
+      break
+    case 14: // 雷鸢：锯齿雷径
+      c.beginPath(); c.moveTo(-40, -50); for (let i = 0; i < 7; i += 1) c.lineTo(-40 + i * 13, i % 2 ? -20 : -44); stroke()
+      c.beginPath(); c.moveTo(-20, 20); c.lineTo(0, -60 * grow); c.lineTo(20, 20); stroke()
+      break
+    case 15: // 腐殖女王：孢粉群落
+      for (let i = 0; i < 9; i += 1) { const a = i * .7; c.beginPath(); c.arc(Math.cos(a) * (24 + grow * 30), Math.sin(a) * 20 - 20, 5 + (i % 3) * 2, 0, Math.PI * 2); c.fill() }
+      break
+    case 16: // 时砂祭司：沙漏
+      c.beginPath(); c.moveTo(-26, -52); c.lineTo(26, -52); c.lineTo(0, -6); c.closePath(); c.stroke(); c.beginPath(); c.moveTo(-26, 40); c.lineTo(26, 40); c.lineTo(0, -6); c.closePath(); c.stroke()
+      c.beginPath(); c.moveTo(0, -6); c.lineTo(0, 40); stroke()
+      break
+    case 17: // 无面伶人：双面具
+      for (const sx of [-24, 24]) { c.beginPath(); c.ellipse(sx, -26, 15, 19, 0, 0, Math.PI * 2); stroke(); c.beginPath(); c.arc(sx - 5, -30, 2, 0, Math.PI * 2); c.arc(sx + 5, -30, 2, 0, Math.PI * 2); c.fill() }
+      break
+    case 18: // 星核守望：双轨星环
+      for (let i = 0; i < 2; i += 1) { c.save(); c.rotate(now / 2400 + i * Math.PI / 2); c.beginPath(); c.ellipse(0, -22, 46 + grow * 14, 13 + i * 5, 0, 0, Math.PI * 2); stroke(); c.restore() }
+      break
+    case 19: // 天穹之王：王冠
+      c.beginPath(); c.moveTo(-38, 16); c.lineTo(-38, -30); c.lineTo(-20, -10); c.lineTo(0, -46); c.lineTo(20, -10); c.lineTo(38, -30); c.lineTo(38, 16); c.closePath(); stroke()
+      for (let i = 0; i < 5; i += 1) { c.beginPath(); c.arc(-28 + i * 14, 6, 2.4, 0, Math.PI * 2); c.fill() }
+      break
+    case 20: // 黄昏守望：暮色地平线
+      c.beginPath(); c.arc(0, 10, 32 + grow * 18, Math.PI, Math.PI * 2); stroke(); c.beginPath(); c.moveTo(-48, 10); c.lineTo(48, 10); stroke()
+      for (let i = 0; i < 6; i += 1) { const a = Math.PI + i * Math.PI / 5; c.beginPath(); c.moveTo(Math.cos(a) * 34, 10 + Math.sin(a) * 34); c.lineTo(Math.cos(a) * 48, 10 + Math.sin(a) * 48); stroke() }
+      break
+    case 21: // 双生之主：双生球
+      for (const [sx, phase] of [[-22, 0], [22, Math.PI]] as Array<[number, number]>) { const yy = -24 + Math.sin(now / 380 + phase) * 14; c.beginPath(); c.arc(sx, yy, 13 + grow * 4, 0, Math.PI * 2); stroke(); c.beginPath(); c.arc(sx, yy, 4, 0, Math.PI * 2); c.fill() }
+      break
+    case 22: // 时砂裁决者：流沙线
+      for (let i = 0; i < 8; i += 1) { const sx = (i - 3.5) * 14; c.beginPath(); c.moveTo(sx, -54); c.lineTo(sx + Math.sin(now / 300 + i) * 8, 34); stroke() }
+      break
+    case 23: // 无影之刃：暗刃
+      for (let i = 0; i < 5; i += 1) { const a = -.8 + i * .4; c.beginPath(); c.moveTo(Math.cos(a) * 10, Math.sin(a) * 10); c.lineTo(Math.cos(a) * (48 + grow * 22), Math.sin(a) * (48 + grow * 22)); c.lineTo(Math.cos(a + .06) * 30, Math.sin(a + .06) * 30); c.closePath(); c.fill() }
+      break
+    case 24: // 深渊吞噬者：巨口
+      for (let i = 0; i < 3; i += 1) { c.beginPath(); c.arc(0, 4, 22 + i * 14 * grow, .15, Math.PI - .15); stroke() }
+      for (let i = 0; i < 7; i += 1) { const sx = -30 + i * 10; c.beginPath(); c.moveTo(sx, 2); c.lineTo(sx + 4, 14); c.lineTo(sx + 8, 2); c.closePath(); c.fill() }
+      break
+    case 25: // 星陨巨兽：斜坠星屑
+      for (let i = 0; i < 7; i += 1) { const sx = -36 + i * 12; c.beginPath(); c.moveTo(sx, -60 - (i % 3) * 10); c.lineTo(sx + 7, -40); c.lineTo(sx + 2, -40); c.lineTo(sx - 5, -60); c.closePath(); c.fill() }
+      break
+    case 26: // 永夜女王：夜花瓣
+      for (let i = 0; i < 8; i += 1) { const a = i * Math.PI / 4 + now / 1600; c.beginPath(); c.ellipse(Math.cos(a) * (24 + grow * 22), Math.sin(a) * 24, 9, 4, a, 0, Math.PI * 2); c.fill() }
+      break
+    case 27: // 终幕伶人：谢幕帷幕
+      c.beginPath(); c.moveTo(-46, -60); c.quadraticCurveTo(-24, -30, -46, 30); c.quadraticCurveTo(-20, 16, -46, 44); stroke()
+      c.beginPath(); c.moveTo(46, -60); c.quadraticCurveTo(24, -30, 46, 30); c.quadraticCurveTo(20, 16, 46, 44); stroke()
+      c.beginPath(); c.moveTo(0, -52); c.lineTo(0, 36); stroke()
+      break
+    case 28: // 虚无之眼：虚空之瞳
+      c.beginPath(); c.ellipse(0, -24, 42 + grow * 12, 20 + grow * 6, 0, 0, Math.PI * 2); stroke(); c.beginPath(); c.arc(0, -24, 9, 0, Math.PI * 2); c.fill()
+      for (let i = 0; i < 8; i += 1) { const a = i * Math.PI / 4; c.beginPath(); c.moveTo(Math.cos(a) * 52, -24 + Math.sin(a) * 26); c.lineTo(Math.cos(a) * 64, -24 + Math.sin(a) * 32); stroke() }
+      break
+    default: // 创世之影：创世符文环
+      c.beginPath(); c.arc(0, -20, 26 + grow * 22, 0, Math.PI * 2); stroke()
+      for (let i = 0; i < 10; i += 1) { const a = i * Math.PI / 5 + now / 2200; c.save(); c.translate(Math.cos(a) * (34 + grow * 18), -20 + Math.sin(a) * (34 + grow * 18)); c.rotate(a); c.strokeRect(-4, -7, 8, 14); c.restore() }
+      c.beginPath(); c.moveTo(-18, -20); c.lineTo(18, -20); c.moveTo(0, -38); c.lineTo(0, -2); stroke()
+  }
+  c.restore()
+}
 function drawFx(c: CanvasRenderingContext2D, fx: Fx) {
   const duration = fx.duration ?? .55
   const alpha = Math.min(1, fx.life / duration)
@@ -15786,6 +15876,14 @@ function drawFx(c: CanvasRenderingContext2D, fx: Fx) {
       const ringProgress = (progress + ring * .18) % 1
       c.globalAlpha = alpha * (1 - ringProgress * .7)
       c.beginPath(); c.ellipse(fx.x, world.floor - 3, 24 + ringProgress * 90, 8 + ringProgress * 18, 0, 0, Math.PI * 2); c.stroke()
+    }
+  } else if (fx.kind.startsWith('boss-unique-')) {
+    const stage = Math.max(0, Math.min(29, Number(fx.kind.slice('boss-unique-'.length)) || 0))
+    drawUniqueBossSkill(c, stage, progress, fx.x, fx.y, fx.color ?? '#ffe6a8')
+    if (fx.text) {
+      c.globalAlpha = Math.min(1, alpha * 1.2); c.font = "700 12px 'Microsoft YaHei', sans-serif"; c.textAlign = 'center'
+      c.lineWidth = 3; c.strokeStyle = 'rgba(9, 15, 15, .85)'; c.strokeText(fx.text, fx.x, fx.y - 96)
+      c.fillStyle = '#fff4d0'; c.fillText(fx.text, fx.x, fx.y - 96)
     }
   } else if (fx.kind.startsWith('boss-special-windup-')) {
     const parts = fx.kind.split('-')
