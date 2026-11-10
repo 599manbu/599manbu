@@ -55,6 +55,7 @@ const UPDATE_NOTES = [
   '小镇新增第三座「创世法阵」，用于选择第三章 21~30 关；旅行商人移至更右侧。',
   '商店界面整体放大；背包装备框顺序改为武器/护甲/戒指/披风/时装。',
   '第三章性能保护：限制小怪弹幕、Boss 机关与专属特效数量，减轻 21 关及后续关卡卡顿。',
+  '所有章节战斗背景整体提亮，四周暗角大幅减弱，去掉偏灰/偏紫的滤镜观感。',
   '新增「技能觉醒」：救出小满后可进入时间回廊，在觉醒界面选择当前武器技能进行觉醒；普通与觉醒版本共享技能等级。',
   '觉醒条件：战士用目标技能对稻草人造成单次 ≥800 伤害（多段合计）计 1 次；法师靠近稻草人承受反击，每次受击计 1 次。',
   '每 10 次计数使觉醒碎片掉率 +1%；集齐 3 个碎片兑换觉醒书。返回小镇会清零计数、掉率与碎片。',
@@ -102,6 +103,7 @@ const PUBLIC_UPDATE_NOTES = [
   '第三章 Boss 攻击欲望与远程弹幕增强。',
   '小镇新增创世法阵，商店界面放大，背包槽位顺序调整。',
   '优化第三章弹幕与特效数量，减轻卡顿。',
+  '战斗背景整体提亮，减弱暗角。',
   '新增技能觉醒系统：四种武器各四个技能均可觉醒，觉醒后永久 +10% 伤害。',
   '时间回廊、觉醒碎片与觉醒书玩法上线；4399 版兑换觉醒书需观看广告。',
   '新增大量觉醒技能与专属特效，涵盖剑、弓、法杖与魔法书。',
@@ -1191,6 +1193,22 @@ const STAGE_BACKGROUNDS: BackgroundTheme[] = [
   { skyTop: '#0a0a1a', skyMid: '#1a1a3a', skyLow: '#34346a', far: '#12122a', near: '#1e1e44', ground: '#0c0c1a', line: '#5a5aa0', orb: '#e0e0ff', accent: '#b8a4f4' },
   { skyTop: '#1a1408', skyMid: '#3a2e12', skyLow: '#7a6028', far: '#2a200c', near: '#3a2e14', ground: '#1a160a', line: '#b09048', orb: '#fffbe0', accent: '#ffe6a8' },
 ]
+// 战斗背景整体提亮，减弱“蒙了一层灰/紫滤镜”的观感。
+function brightenHex(hex: string, amount: number) {
+  const match = /^#([0-9a-f]{6})$/i.exec(hex)
+  if (!match) return hex
+  const value = parseInt(match[1], 16)
+  const lift = (channel: number) => Math.round(channel + (255 - channel) * amount)
+  const r = lift((value >> 16) & 255)
+  const g = lift((value >> 8) & 255)
+  const b = lift(value & 255)
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`
+}
+const BRIGHT_STAGE_BACKGROUNDS: BackgroundTheme[] = STAGE_BACKGROUNDS.map((bg) => {
+  const out = { ...bg }
+  for (const key of Object.keys(out) as Array<keyof BackgroundTheme>) out[key] = brightenHex(bg[key], .2)
+  return out
+})
 function bossDashConfig(stage: number) { return { cooldown: Math.max(1.5, (4.2 - stage * .2) * .62), speed: 300 + stage * 18 } }
 const app = document.querySelector<HTMLDivElement>('#app')!
 const world = { width: 960, height: 480, floor: 390 }
@@ -12887,7 +12905,7 @@ function sceneBackground() {
     if (awakenRealmActive) return AWAKEN_BACKGROUND
     return townWeatherNow().day ? TOWN_BACKGROUND : TOWN_NIGHT_BACKGROUND
   }
-  return STAGE_BACKGROUNDS[stageIndex]
+  return BRIGHT_STAGE_BACKGROUNDS[stageIndex] ?? STAGE_BACKGROUNDS[stageIndex]
 }
 // 全屏竖屏时在游戏世界上下补足天空与地面，避免拉伸画面。
 function fillExtendedBackdrop(c: CanvasRenderingContext2D) {
@@ -13029,12 +13047,12 @@ function drawBackground(c: CanvasRenderingContext2D) {
       c.restore()
     }
   } else drawStageBackdrop(c, stageIndex, bg)
-  // 轻微暗角：压暗四角，让角色与敌人在同色系场景里更清楚。
+  // 极轻的抗眩光暗角，只保留一点点边缘层次，不再像蒙了滤镜。
   if (!town) {
-    const vignette = c.createRadialGradient(world.width / 2, 230, 140, world.width / 2, 230, 620)
+    const vignette = c.createRadialGradient(world.width / 2, 230, 180, world.width / 2, 230, 680)
     vignette.addColorStop(0, 'rgba(0,0,0,0)')
-    vignette.addColorStop(.72, 'rgba(0,0,0,.08)')
-    vignette.addColorStop(1, 'rgba(0,0,0,.3)')
+    vignette.addColorStop(.8, 'rgba(0,0,0,.02)')
+    vignette.addColorStop(1, 'rgba(0,0,0,.1)')
     c.fillStyle = vignette
     c.fillRect(0, 0, world.width, world.floor)
   }
