@@ -72,6 +72,7 @@ const UPDATE_NOTES = [
   '御剑术飞剑后续攻击必定命中并忽略高度判定。',
   '御剑飞行持续时间由 3 秒延长到 7 秒。',
   'Boss 元素技能按关卡属性分化：火（正面喷火）、风（推退）、冰（冰锥封锁）、毒（毒雾）、雷（连续落雷）、土（岩刺裂地）、暗影（瞬移背刺）、圣光（光柱审判）、水（潮汐推退）、虚空（引力拉扯），不再共用同一套吐息模板。',
+  '战斗背景改为按关卡生成独立地貌与地面材质：尖峰、沙丘、石柱、岩台、废墟、水晶、森林等山形各不相同，地面分为草地、积雪、沙地、灰烬、碎石、地砖、藤蔓、虚空裂纹、金属与大理石，天空与地面使用对比色。',
   '第 21~30 关小怪血量提高 20%，攻击降低 10%。',
   '新增「技能觉醒」：救出小满后可进入时间回廊，在觉醒界面选择当前武器技能进行觉醒；普通与觉醒版本共享技能等级。',
   '觉醒条件：战士用目标技能对稻草人造成单次 ≥800 伤害（多段合计）计 1 次；法师靠近稻草人承受反击，每次受击计 1 次。',
@@ -125,6 +126,7 @@ const PUBLIC_UPDATE_NOTES = [
   '所有怪物闪避降低 10%。',
   '宝石镶嵌改为左右点选布局。换装时宝石按孔位自动转移，宝石背包改为独立槽位。同一件装备每种宝石限一颗。角色等级上限 130，宝石最高十五阶。',
   '双生 Boss 使用不同模型；御剑飞行与御剑术对 Boss 判定放宽并必定命中；21~30 关小怪血量 +20%、攻击 -10%。Boss 元素技能按关卡分为火、风、冰、毒、雷、土、暗影、圣光、水、虚空十种。',
+  '战斗背景按关卡生成不同地貌与地面材质，天空与地面改为对比色，不再所有关卡共用同一套山形。',
   '御剑飞行持续时间由 3 秒延长到 7 秒。',
   '修复复活 Boss 无敌不结束的问题。',
   '新增技能觉醒系统：四种武器各四个技能均可觉醒，觉醒后永久 +10% 伤害。',
@@ -1233,6 +1235,113 @@ const STAGE_BACKGROUNDS: BackgroundTheme[] = [
   { skyTop: '#0a0a1a', skyMid: '#1a1a3a', skyLow: '#34346a', far: '#12122a', near: '#1e1e44', ground: '#0c0c1a', line: '#5a5aa0', orb: '#e0e0ff', accent: '#b8a4f4' },
   { skyTop: '#1a1408', skyMid: '#3a2e12', skyLow: '#7a6028', far: '#2a200c', near: '#3a2e14', ground: '#1a160a', line: '#b09048', orb: '#fffbe0', accent: '#ffe6a8' },
 ]
+// 每个战斗关卡的地貌轮廓与地面材质。山形和地面不再所有关卡共用同一套几何。
+type HillStyle = 'peaks' | 'dunes' | 'spires' | 'mesa' | 'city' | 'crystals' | 'forest' | 'hills'
+type GroundStyle = 'grass' | 'snow' | 'sand' | 'ash' | 'stone' | 'tiles' | 'moss' | 'void' | 'metal' | 'marble'
+type StageScenery = { hills: HillStyle; ground: GroundStyle }
+const STAGE_SCENERY: StageScenery[] = [
+  { hills: 'forest', ground: 'grass' }, { hills: 'spires', ground: 'metal' }, { hills: 'mesa', ground: 'ash' }, { hills: 'dunes', ground: 'sand' }, { hills: 'hills', ground: 'moss' },
+  { hills: 'crystals', ground: 'stone' }, { hills: 'city', ground: 'ash' }, { hills: 'spires', ground: 'stone' }, { hills: 'peaks', ground: 'marble' }, { hills: 'peaks', ground: 'metal' },
+  { hills: 'crystals', ground: 'void' }, { hills: 'city', ground: 'metal' }, { hills: 'dunes', ground: 'snow' }, { hills: 'spires', ground: 'metal' }, { hills: 'peaks', ground: 'stone' },
+  { hills: 'forest', ground: 'moss' }, { hills: 'mesa', ground: 'sand' }, { hills: 'city', ground: 'tiles' }, { hills: 'crystals', ground: 'marble' }, { hills: 'peaks', ground: 'stone' },
+  { hills: 'city', ground: 'stone' }, { hills: 'crystals', ground: 'tiles' }, { hills: 'dunes', ground: 'sand' }, { hills: 'spires', ground: 'void' }, { hills: 'spires', ground: 'stone' },
+  { hills: 'dunes', ground: 'ash' }, { hills: 'forest', ground: 'moss' }, { hills: 'city', ground: 'tiles' }, { hills: 'crystals', ground: 'void' }, { hills: 'peaks', ground: 'marble' },
+]
+// 地面材质使用比天空更暗、更接近大地/岩石的颜色，保证天空与地面有明显色差。
+const GROUND_PALETTES: Record<GroundStyle, { base: string; deep: string; line: string; detail: string; speck: string }> = {
+  grass: { base: '#3c5531', deep: '#17230f', line: '#86b25e', detail: '#6f9a4d', speck: 'rgba(210, 230, 170, .35)' },
+  snow: { base: '#b9ccd8', deep: '#6e8496', line: '#ffffff', detail: '#e6f4ff', speck: 'rgba(255, 255, 255, .7)' },
+  sand: { base: '#b08d52', deep: '#5f4826', line: '#e8cc86', detail: '#c9a866', speck: 'rgba(255, 240, 200, .35)' },
+  ash: { base: '#4b4642', deep: '#211f1d', line: '#8d8274', detail: '#6b635a', speck: 'rgba(255, 190, 120, .32)' },
+  stone: { base: '#424b58', deep: '#1c222b', line: '#8b9bb0', detail: '#5f6b7d', speck: 'rgba(190, 210, 235, .3)' },
+  tiles: { base: '#37485e', deep: '#151f2c', line: '#7397bd', detail: '#527399', speck: 'rgba(200, 225, 255, .3)' },
+  moss: { base: '#334c3b', deep: '#122017', line: '#6f9f6f', detail: '#527d55', speck: 'rgba(190, 235, 180, .3)' },
+  void: { base: '#251a36', deep: '#0b0712', line: '#7b58a6', detail: '#46305e', speck: 'rgba(210, 170, 255, .4)' },
+  metal: { base: '#453f37', deep: '#1d1a16', line: '#a58a5e', detail: '#6f5f48', speck: 'rgba(255, 215, 150, .3)' },
+  marble: { base: '#a9a394', deep: '#5f5a4f', line: '#f5e9c8', detail: '#c9c2b0', speck: 'rgba(255, 250, 230, .35)' },
+}
+function mixHex(a: string, b: string, t: number) {
+  const pa = /^#([0-9a-f]{6})$/i.exec(a)
+  const pb = /^#([0-9a-f]{6})$/i.exec(b)
+  if (!pa || !pb) return a
+  const va = parseInt(pa[1], 16)
+  const vb = parseInt(pb[1], 16)
+  const channel = (shift: number) => Math.round(((va >> shift) & 255) * (1 - t) + ((vb >> shift) & 255) * t)
+  return `#${((channel(16) << 16) | (channel(8) << 8) | channel(0)).toString(16).padStart(6, '0')}`
+}
+// 按关卡生成不同的山形轮廓：尖峰、沙丘、石柱、岩台、废墟城市、水晶丛、森林与丘陵。
+function hillPoints(style: HillStyle, layer: 0 | 1, seed: number): Array<[number, number]> {
+  const base = layer === 0 ? 335 : 362
+  const amp = layer === 0 ? 1 : .68
+  const points: Array<[number, number]> = []
+  const rnd = (n: number) => {
+    const x = Math.sin(seed * 127.1 + layer * 53.3 + n * 311.7) * 43758.5453
+    return x - Math.floor(x)
+  }
+  if (style === 'city') {
+    let x = 0
+    points.push([0, base])
+    while (x < 960) {
+      const w = 70 + rnd(x) * 90
+      const h = 50 + rnd(x + 7) * (layer === 0 ? 150 : 100)
+      points.push([x, base], [x + 2, base - h * amp], [x + w - 2, base - h * amp], [x + w, base])
+      x += w + 20 + rnd(x + 3) * 60
+    }
+    points.push([960, base])
+  } else if (style === 'mesa') {
+    let x = 0
+    while (x < 960) {
+      const w = 110 + rnd(x) * 110
+      const h = (40 + rnd(x + 4) * 80) * amp
+      points.push([x, base], [x + 14, base - h], [x + w - 14, base - h], [x + w, base])
+      x += w + 40 + rnd(x + 8) * 70
+    }
+    points.push([960, base])
+  } else if (style === 'dunes') {
+    for (let i = 0; i <= 24; i += 1) {
+      const x = (i / 24) * 960
+      const y = base - (24 + Math.sin(i * .7 + seed) * 26 + Math.sin(i * 1.9 + seed * 2) * 14 + rnd(i) * 12) * amp
+      points.push([x, y])
+    }
+  } else if (style === 'forest') {
+    for (let i = 0; i <= 32; i += 1) {
+      const x = (i / 32) * 960
+      points.push([x, base - (Math.abs(Math.sin(i * 1.27 + seed)) * 34 + rnd(i) * 18) * amp])
+    }
+  } else if (style === 'spires') {
+    const count = layer === 0 ? 9 : 12
+    for (let i = 0; i < count; i += 1) {
+      const x = (i * 960) / count
+      const h = (90 + rnd(i) * 130) * amp
+      points.push([x, base], [x + 26, base - h], [x + 52, base])
+    }
+    points.push([960, base])
+  } else if (style === 'crystals') {
+    const count = layer === 0 ? 8 : 11
+    for (let i = 0; i < count; i += 1) {
+      const x = (i * 960) / count + rnd(i) * 18
+      const w = 34 + rnd(i + 2) * 34
+      const h = (70 + rnd(i + 5) * 120) * amp
+      points.push([x, base], [x + w * .5, base - h], [x + w, base])
+    }
+    points.push([960, base])
+  } else if (style === 'peaks') {
+    const count = layer === 0 ? 7 : 9
+    for (let i = 0; i < count; i += 1) {
+      const x = (i * 960) / count
+      const h = (90 + rnd(i) * 90) * amp
+      points.push([x, base], [x + 60, base - h], [x + 140, base])
+    }
+    points.push([960, base])
+  } else {
+    for (let i = 0; i <= 20; i += 1) {
+      const x = (i / 20) * 960
+      const y = base - (30 + Math.sin(i * .55 + seed) * 22 + Math.sin(i * 1.3 + seed * 3) * 10) * amp
+      points.push([x, y])
+    }
+  }
+  return points
+}
 // 战斗背景提高亮度与少量饱和度，保留每关原有色相差异。
 function brightenHex(hex: string, amount: number) {
   const match = /^#([0-9a-f]{6})$/i.exec(hex)
@@ -13202,6 +13311,8 @@ function sceneBackground() {
 // 全屏竖屏时在游戏世界上下补足天空与地面，避免拉伸画面。
 function fillExtendedBackdrop(c: CanvasRenderingContext2D) {
   const bg = sceneBackground()
+  const stageIndex = Math.max(0, Math.min(STAGE_COUNT - 1, (game?.stage ?? 1) - 1))
+  const battlePalette = scene !== 'town' ? GROUND_PALETTES[(STAGE_SCENERY[stageIndex] ?? STAGE_SCENERY[0]).ground] : null
   const height = viewHeight
   if (viewOffsetY > 0) {
     c.fillStyle = bg.skyTop
@@ -13216,10 +13327,161 @@ function fillExtendedBackdrop(c: CanvasRenderingContext2D) {
   const bottomStart = viewOffsetY + world.height
   if (height > bottomStart) {
     const ground = c.createLinearGradient(0, bottomStart, 0, height)
-    ground.addColorStop(0, bg.ground); ground.addColorStop(1, '#081110')
+    ground.addColorStop(0, battlePalette?.base ?? bg.ground)
+    ground.addColorStop(1, battlePalette?.deep ?? '#081110')
     c.fillStyle = ground
     c.fillRect(0, bottomStart, world.width, height - bottomStart)
   }
+}
+// 关卡天空的附加景观：云带、日晕、极光、浮空岩块、飞鸟与地平线雾带。
+function drawSkyScenery(c: CanvasRenderingContext2D, stageIndex: number, bg: BackgroundTheme, orbX: number) {
+  const variant = stageIndex % 6
+  const now = performance.now()
+  c.save()
+  if (variant === 0) {
+    // 云带：缓慢横向漂移。
+    c.globalAlpha = .22; c.fillStyle = bg.near
+    for (let i = 0; i < 3; i += 1) {
+      const drift = ((now / 24000 + i * .3) % 1.4) - .2
+      c.beginPath(); c.ellipse(orbX - 300 + drift * 520, 150 + i * 36, 120 + i * 30, 12 + i * 3, 0, 0, Math.PI * 2); c.fill()
+    }
+  } else if (variant === 1) {
+    // 行星环 / 日晕。
+    c.globalAlpha = .38; c.strokeStyle = bg.accent; c.lineWidth = 3
+    c.beginPath(); c.ellipse(orbX, 118, 74, 22, -.28 + Math.sin(now / 9000) * .04, 0, Math.PI * 2); c.stroke()
+    c.globalAlpha = .18; c.lineWidth = 8; c.stroke()
+  } else if (variant === 2) {
+    // 极光丝带。
+    c.globalAlpha = .2; c.strokeStyle = bg.accent; c.lineWidth = 14
+    for (let i = 0; i < 3; i += 1) {
+      const y = 90 + i * 34
+      c.beginPath(); c.moveTo(80, y); c.bezierCurveTo(300, y - 34 + i * 8, 560, y + 30 - i * 10, 900, y - 10); c.stroke()
+    }
+  } else if (variant === 3) {
+    // 浮空岩块与环绕碎屑。
+    c.globalAlpha = .55; c.fillStyle = bg.far
+    for (const [x, y, s] of [[180, 190, 26], [700, 150, 34], [840, 240, 20]]) {
+      c.beginPath(); c.moveTo(x - s, y); c.lineTo(x + s * .7, y - s * .4); c.lineTo(x + s, y + s * .5); c.lineTo(x - s * .6, y + s * .8); c.closePath(); c.fill()
+    }
+    c.globalAlpha = .25; c.fillStyle = bg.accent
+    for (let i = 0; i < 10; i += 1) {
+      const a = now / 3000 + i * .7
+      c.beginPath(); c.arc(600 + Math.cos(a) * 260, 180 + Math.sin(a) * 70, 1.6, 0, Math.PI * 2); c.fill()
+    }
+  } else if (variant === 4) {
+    // 远处飞鸟或碎片。
+    c.globalAlpha = .5; c.strokeStyle = bg.accent; c.lineWidth = 2
+    for (let i = 0; i < 9; i += 1) {
+      const x = (i * 131 + 90) % 900
+      const y = 120 + ((i * 67) % 130)
+      c.beginPath(); c.moveTo(x, y); c.lineTo(x + 8, y - 5); c.lineTo(x + 16, y); c.stroke()
+    }
+  } else {
+    // 近地平线的雾带。
+    c.globalAlpha = .18; c.fillStyle = bg.near
+    for (let i = 0; i < 2; i += 1) {
+      c.beginPath(); c.ellipse(480, 300 - i * 26, 520, 26 - i * 8, 0, 0, Math.PI * 2); c.fill()
+    }
+  }
+  c.restore()
+}
+// 战斗地面材质：不同关卡使用草丛、积雪、沙纹、灰烬、碎石、地砖等不同纹理。
+function drawGroundTexture(c: CanvasRenderingContext2D, style: GroundStyle, palette: { base: string; deep: string; line: string; detail: string; speck: string }, groundAt: (x: number) => number, stageIndex: number) {
+  c.save()
+  if (style === 'grass' || style === 'moss') {
+    c.strokeStyle = palette.detail; c.lineWidth = 1.5; c.globalAlpha = .8
+    for (let i = 0; i < 30; i += 1) {
+      const x = (i * 137 + stageIndex * 29) % 960
+      const y = groundAt(x)
+      c.beginPath(); c.moveTo(x, y + 3); c.lineTo(x - 4, y - 9); c.moveTo(x, y + 3); c.lineTo(x + 2, y - 12); c.stroke()
+    }
+  } else if (style === 'snow') {
+    c.fillStyle = palette.detail; c.globalAlpha = .8
+    for (let i = 0; i < 18; i += 1) {
+      const x = (i * 181 + 31) % 960
+      const y = groundAt(x) + 6 + (i * 17) % 26
+      c.beginPath(); c.ellipse(x, y, 18 + (i % 3) * 7, 4 + (i % 2) * 2, 0, 0, Math.PI * 2); c.fill()
+    }
+  } else if (style === 'sand') {
+    c.strokeStyle = palette.detail; c.lineWidth = 2; c.globalAlpha = .55
+    for (let i = 0; i < 6; i += 1) {
+      const y = groundAt(0) + 18 + i * 13
+      c.beginPath(); c.moveTo(0, y)
+      for (let x = 20; x <= 960; x += 20) c.lineTo(x, y + Math.sin(x / 90 + i) * 3)
+      c.stroke()
+    }
+  } else if (style === 'ash') {
+    c.fillStyle = palette.deep; c.globalAlpha = .7
+    for (let i = 0; i < 14; i += 1) {
+      const x = (i * 173 + 53) % 960
+      const y = groundAt(x) + 8 + (i * 23) % 40
+      c.beginPath(); c.ellipse(x, y, 24 + (i % 4) * 8, 6 + (i % 2) * 3, 0, 0, Math.PI * 2); c.fill()
+    }
+    c.globalAlpha = .9; c.fillStyle = palette.speck
+    for (let i = 0; i < 18; i += 1) {
+      const x = (i * 149 + 71) % 960
+      c.fillRect(x, groundAt(x) + 10 + (i * 31) % 46, 2, 2)
+    }
+  } else if (style === 'stone') {
+    c.strokeStyle = palette.detail; c.lineWidth = 2; c.globalAlpha = .6
+    for (let i = 0; i < 12; i += 1) {
+      const x = (i * 197 + 23) % 960
+      const y = groundAt(x) + 10 + (i * 19) % 40
+      c.beginPath(); c.moveTo(x, y); c.lineTo(x + 14, y - 6); c.lineTo(x + 26, y + 4); c.stroke()
+    }
+    c.globalAlpha = .8; c.fillStyle = palette.speck
+    for (let i = 0; i < 16; i += 1) {
+      const x = (i * 113 + 47) % 960
+      c.beginPath(); c.arc(x, groundAt(x) + 8 + (i * 29) % 44, 1.6, 0, Math.PI * 2); c.fill()
+    }
+  } else if (style === 'tiles') {
+    c.strokeStyle = palette.detail; c.lineWidth = 1.4; c.globalAlpha = .55
+    for (let row = 0; row < 5; row += 1) {
+      const y = groundAt(0) + 14 + row * 22
+      c.beginPath(); c.moveTo(0, y); c.lineTo(960, y); c.stroke()
+    }
+    for (let i = 0; i < 20; i += 1) {
+      const x = (i * 103 + (i % 2) * 26) % 960
+      c.beginPath(); c.moveTo(x, groundAt(x) + 14); c.lineTo(x, groundAt(x) + 36); c.stroke()
+    }
+  } else if (style === 'void') {
+    c.strokeStyle = palette.line; c.lineWidth = 2; c.globalAlpha = .7
+    for (let i = 0; i < 9; i += 1) {
+      const x = (i * 211 + 37) % 960
+      const y = groundAt(x) + 8
+      c.beginPath(); c.moveTo(x, y); c.lineTo(x + 12, y + 10); c.lineTo(x + 2, y + 22); c.lineTo(x + 18, y + 30); c.stroke()
+    }
+    c.globalAlpha = .9; c.fillStyle = palette.speck
+    for (let i = 0; i < 14; i += 1) {
+      const x = (i * 163 + 29) % 960
+      c.beginPath(); c.arc(x, groundAt(x) + 6 + (i * 27) % 44, 1.5, 0, Math.PI * 2); c.fill()
+    }
+  } else if (style === 'metal') {
+    c.fillStyle = palette.detail; c.globalAlpha = .6
+    for (let i = 0; i < 20; i += 1) {
+      const x = (i * 127 + 43) % 960
+      c.fillRect(x, groundAt(x) + 10 + (i % 3) * 16, 3, 3)
+    }
+    c.strokeStyle = palette.detail; c.globalAlpha = .35; c.lineWidth = 1
+    for (let i = 0; i < 4; i += 1) {
+      const y = groundAt(0) + 20 + i * 18
+      c.beginPath(); c.moveTo(0, y); c.lineTo(960, y); c.stroke()
+    }
+  } else {
+    c.strokeStyle = palette.detail; c.lineWidth = 1.5; c.globalAlpha = .5
+    for (let i = 0; i < 7; i += 1) {
+      const x = (i * 233 + 61) % 960
+      const y = groundAt(x) + 10
+      c.beginPath(); c.moveTo(x, y); c.bezierCurveTo(x + 20, y + 12, x - 10, y + 26, x + 14, y + 38); c.stroke()
+    }
+  }
+  // 统一撒一层细碎颗粒，让地面有材质而不是纯色块。
+  c.globalAlpha = 1; c.fillStyle = palette.speck
+  for (let i = 0; i < 26; i += 1) {
+    const x = (i * 97 + 17) % 960
+    c.fillRect(x, groundAt(x) + 16 + (i * 37) % 46, 2, 2)
+  }
+  c.restore()
 }
 function drawBackground(c: CanvasRenderingContext2D) {
   const town = scene === 'town'
@@ -13250,6 +13512,8 @@ function drawBackground(c: CanvasRenderingContext2D) {
     c.save(); c.shadowColor = bg.orb; c.shadowBlur = 24; c.globalAlpha = .82; c.fillStyle = bg.orb
     c.beginPath(); c.arc(orbX, 116, town ? 34 : 39, 0, Math.PI * 2); c.fill(); c.restore()
   }
+  // 天空不再只有同一个太阳：按关卡叠加云带、日晕、极光、浮空岩块或雾带。
+  if (!town) drawSkyScenery(c, stageIndex, bg, orbX)
   // 战斗场景的黑天夜空：稀疏星点，与白天形成明显区别。
   if (!town && !daylight) {
     c.fillStyle = 'rgba(220, 226, 255, .7)'
@@ -13301,8 +13565,16 @@ function drawBackground(c: CanvasRenderingContext2D) {
       c.restore()
     }
   }
-  drawHillLayer(.18, bg.far, [[0, 320], [125, 201], [240, 279], [388, 166], [548, 294], [692, 215], [830, 296], [960, 320]])
-  drawHillLayer(.45, bg.near, [[0, 345], [145, 270], [273, 333], [425, 251], [573, 342], [722, 267], [865, 334], [960, 345]])
+  // 远山与近景使用关卡专属轮廓，并用天空与地面颜色混合，避免山体与天空完全同色。
+  const scenery = STAGE_SCENERY[stageIndex] ?? STAGE_SCENERY[0]
+  const palette = GROUND_PALETTES[scenery.ground] ?? GROUND_PALETTES.stone
+  if (town) {
+    drawHillLayer(.18, bg.far, [[0, 320], [125, 201], [240, 279], [388, 166], [548, 294], [692, 215], [830, 296], [960, 320]])
+    drawHillLayer(.45, bg.near, [[0, 345], [145, 270], [273, 333], [425, 251], [573, 342], [722, 267], [865, 334], [960, 345]])
+  } else {
+    drawHillLayer(.16, mixHex(bg.far, palette.deep, .38), hillPoints(scenery.hills, 0, stageIndex + 1))
+    drawHillLayer(.42, mixHex(bg.near, palette.deep, .46), hillPoints(scenery.hills, 1, stageIndex + 7))
+  }
   // 地面：战斗关卡使用轻微起伏的轮廓，不再是一条完全笔直的水平线。
   const groundAt = (screenX: number) => {
     if (town) return world.floor
@@ -13311,24 +13583,28 @@ function drawBackground(c: CanvasRenderingContext2D) {
   c.beginPath(); c.moveTo(0, world.height); c.lineTo(0, groundAt(0))
   for (let x = 20; x <= world.width; x += 20) c.lineTo(x, groundAt(x))
   c.lineTo(world.width, world.height); c.closePath()
-  c.fillStyle = bg.ground; c.fill()
+  if (town) {
+    c.fillStyle = bg.ground; c.fill()
+  } else {
+    // 地面使用关卡材质渐变，天空与地面不再是同一色相。
+    const groundGradient = c.createLinearGradient(0, world.floor - 24, 0, world.height)
+    groundGradient.addColorStop(0, palette.base); groundGradient.addColorStop(1, palette.deep)
+    c.fillStyle = groundGradient; c.fill()
+  }
   c.beginPath(); c.moveTo(0, groundAt(0))
   for (let x = 20; x <= world.width; x += 20) c.lineTo(x, groundAt(x))
-  c.strokeStyle = bg.line; c.lineWidth = town ? 6 : 4; c.stroke()
+  c.strokeStyle = town ? bg.line : palette.line; c.lineWidth = town ? 6 : 4; c.stroke()
   if (!town) {
-    // 地面上的起伏土包与碎石，增加地形凹凸感。
-    c.fillStyle = bg.near
-    for (let i = 0; i < 7; i += 1) {
-      const x = (((i * 191 + stageIndex * 73 - cameraX * .55) % world.width) + world.width) % world.width
-      const y = groundAt(x) + 2
-      c.beginPath(); c.ellipse(x, y, 26 + (i % 3) * 8, 7 + (i % 2) * 2, 0, 0, Math.PI * 2); c.fill()
+    // 按地面材质绘制草丛、积雪、沙纹、灰烬、碎石、地砖、藤蔓、裂缝、铆钉或大理石纹。
+    drawGroundTexture(c, scenery.ground, palette, groundAt, stageIndex)
+  } else {
+    // 小镇地面保留原有的碎石质感。
+    c.fillStyle = 'rgba(201, 189, 129, .28)'
+    const pebbleOffset = -((cameraX * .5) % world.width)
+    for (let n = 0; n < 48; n++) {
+      const x = (((n * 87 + 13 + pebbleOffset) % world.width) + world.width) % world.width
+      c.fillRect(x, groundAt(x) + 21 + (n * 37) % 50, 3, 2)
     }
-  }
-  c.fillStyle = 'rgba(201, 189, 129, .28)'
-  const pebbleOffset = -((cameraX * .5) % world.width)
-  for (let n = 0; n < 48; n++) {
-    const x = (((n * 87 + 13 + pebbleOffset) % world.width) + world.width) % world.width
-    c.fillRect(x, groundAt(x) + 21 + (n * 37) % 50, 3, 2)
   }
   if (town) {
     const tiles = Math.ceil((TOWN_RIGHT + 120) / world.width)
@@ -13458,6 +13734,78 @@ function drawStageBackdrop(c: CanvasRenderingContext2D, stageIndex: number, bg: 
         c.strokeStyle = bg.accent; c.globalAlpha = .3; c.lineWidth = 2
         for (let i = 0; i < 3; i++) { c.beginPath(); c.ellipse(480, 210 + i * 36, 260 - i * 50, 64 - i * 10, .2, 0, Math.PI * 2); c.stroke() }
         c.fillStyle = bg.orb; c.beginPath(); c.arc(480, 190, 26, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1
+      } else if (variant === 10) {
+        // 暮色回廊：断裂石柱与残拱。
+        c.fillStyle = bg.far
+        for (const x of [120, 420, 760]) { c.fillRect(x, 210, 26, 170); c.fillRect(x - 26, 196, 78, 14); c.fillRect(x + 6, 150, 14, 46) }
+        c.strokeStyle = bg.accent; c.globalAlpha = .35; c.lineWidth = 2
+        for (let i = 0; i < 5; i++) { c.beginPath(); c.arc(140 + i * 180, 200, 56, Math.PI, Math.PI * 2); c.stroke() }
+        c.globalAlpha = 1
+      } else if (variant === 11) {
+        // 双生祭坛：左右双碑与双光环。
+        c.fillStyle = bg.far; c.fillRect(170, 180, 52, 200); c.fillRect(738, 180, 52, 200)
+        c.strokeStyle = bg.accent; c.globalAlpha = .4; c.lineWidth = 3
+        c.beginPath(); c.arc(196, 250, 90, 0, Math.PI * 2); c.stroke()
+        c.beginPath(); c.arc(764, 250, 90, 0, Math.PI * 2); c.stroke()
+        c.fillStyle = bg.orb; c.globalAlpha = .5; c.beginPath(); c.arc(480, 150, 40, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1
+      } else if (variant === 12) {
+        // 流沙王座：远方金字塔与悬浮沙漏。
+        c.fillStyle = bg.far
+        for (const [x, h] of [[240, 120], [600, 160], [820, 90]]) { c.beginPath(); c.moveTo(x - 70, 370); c.lineTo(x, 370 - h); c.lineTo(x + 70, 370); c.closePath(); c.fill() }
+        c.strokeStyle = bg.accent; c.globalAlpha = .45; c.lineWidth = 2
+        c.beginPath(); c.moveTo(480, 120); c.lineTo(450, 200); c.lineTo(510, 200); c.closePath()
+        c.moveTo(480, 200); c.lineTo(450, 280); c.lineTo(510, 280); c.closePath(); c.stroke()
+        c.globalAlpha = 1
+      } else if (variant === 13) {
+        // 无光之厅：高耸暗柱与细缝透光。
+        c.fillStyle = bg.far
+        for (const x of [100, 260, 700, 860]) c.fillRect(x, 150, 34, 230)
+        c.fillStyle = bg.accent; c.globalAlpha = .22
+        for (const x of [160, 760]) c.fillRect(x, 140, 10, 240)
+        c.globalAlpha = 1
+      } else if (variant === 14) {
+        // 深渊王庭：巨口拱门、垂落锁链与深渊之眼。
+        c.fillStyle = bg.far
+        c.beginPath(); c.moveTo(220, 380); c.lineTo(300, 180); c.lineTo(430, 140); c.lineTo(530, 140); c.lineTo(660, 180); c.lineTo(740, 380); c.closePath(); c.fill()
+        c.strokeStyle = bg.line; c.globalAlpha = .45; c.lineWidth = 2
+        for (let i = 0; i < 6; i++) { const x = 180 + i * 120; c.beginPath(); c.moveTo(x, 0); c.lineTo(x + 8, 90); c.lineTo(x - 4, 150); c.stroke() }
+        c.fillStyle = bg.accent; c.globalAlpha = .7; c.beginPath(); c.arc(480, 240, 16, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1
+      } else if (variant === 15) {
+        // 星陨平原：斜落流星与地面陨坑。
+        c.strokeStyle = bg.accent; c.globalAlpha = .5; c.lineWidth = 3
+        for (let i = 0; i < 4; i++) { const x = 140 + i * 220; c.beginPath(); c.moveTo(x, 60); c.lineTo(x + 40, 150); c.stroke() }
+        c.fillStyle = bg.far
+        c.beginPath(); c.ellipse(300, 370, 110, 22, 0, 0, Math.PI * 2); c.fill()
+        c.beginPath(); c.ellipse(720, 368, 80, 18, 0, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1
+      } else if (variant === 16) {
+        // 永夜花园：巨大夜花与藤蔓。
+        c.strokeStyle = bg.line; c.lineWidth = 3
+        for (let i = 0; i < 5; i++) {
+          const x = 120 + i * 190
+          c.beginPath(); c.moveTo(x, 380); c.quadraticCurveTo(x - 16, 300, x + 8, 240); c.stroke()
+          c.fillStyle = bg.accent; c.globalAlpha = .45; c.beginPath(); c.arc(x + 8, 232, 22, 0, Math.PI * 2); c.fill()
+          c.globalAlpha = .8; c.beginPath(); c.arc(x + 8, 232, 8, 0, Math.PI * 2); c.fill()
+        }
+        c.globalAlpha = 1
+      } else if (variant === 17) {
+        // 终幕剧场：两侧幕布与舞台顶灯。
+        c.fillStyle = bg.far
+        c.beginPath(); c.moveTo(0, 120); c.quadraticCurveTo(160, 180, 180, 380); c.lineTo(0, 380); c.closePath(); c.fill()
+        c.beginPath(); c.moveTo(960, 120); c.quadraticCurveTo(800, 180, 780, 380); c.lineTo(960, 380); c.closePath(); c.fill()
+        c.fillStyle = bg.accent; c.globalAlpha = .25; c.beginPath(); c.arc(480, 180, 50, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1
+      } else if (variant === 18) {
+        // 虚无圣所：层层虚空环与中央虚无之眼。
+        c.strokeStyle = bg.accent; c.globalAlpha = .35; c.lineWidth = 2
+        for (let i = 0; i < 4; i++) { c.beginPath(); c.ellipse(480, 210 + i * 34, 260 - i * 45, 56 - i * 8, .25, 0, Math.PI * 2); c.stroke() }
+        c.fillStyle = 'rgba(10, 6, 16, .85)'; c.beginPath(); c.arc(480, 200, 44, 0, Math.PI * 2); c.fill()
+        c.fillStyle = bg.orb; c.globalAlpha = .8; c.beginPath(); c.arc(480, 200, 12, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1
+      } else if (variant === 19) {
+        // 创世之门：巨门与环绕符文。
+        c.fillStyle = bg.far; c.fillRect(240, 140, 24, 240); c.fillRect(696, 140, 24, 240); c.fillRect(240, 130, 480, 18)
+        c.strokeStyle = bg.accent; c.globalAlpha = .5; c.lineWidth = 2
+        c.beginPath(); c.arc(480, 260, 80, 0, Math.PI * 2); c.stroke()
+        for (let i = 0; i < 10; i++) { const a = i * Math.PI / 5; c.save(); c.translate(480 + Math.cos(a) * 96, 260 + Math.sin(a) * 96); c.rotate(a); c.strokeRect(-5, -9, 10, 18); c.restore() }
+        c.globalAlpha = 1
       }
       c.globalAlpha = 1
     })
