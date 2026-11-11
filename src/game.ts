@@ -43,9 +43,10 @@ const DEMO_MODE = import.meta.env.MODE === 'demo'
 // 由 vite.config.ts 的 define 在构建时替换为 true/false，便于摇树删除审核不需要的文案。
 declare const PLATFORM_4399: boolean
 const DEMO_SAVE_KEY = `${SAVE_KEY}:demo`
-const GAME_VERSION = '1.99'
+const GAME_VERSION = '2.0'
 // 每次版本更新时同步修改这里，邮件「更新公告」会显示最新内容。
 const UPDATE_NOTES = [
+  '版本更新至 2.0：4399 版默认降低渲染分辨率、关闭阴影，并减少天气与同屏特效数量，优先保证流畅不卡顿。',
   '关卡扩展到 30 关：新增第三章 21~30 关与独立场景、Boss 与专属材料；第 30 关为最终结局，后续不再更新。',
   '高级天赋「双持专精」新增武器切换：原地按住 S 5 秒交换主副武器，技能组随主武器切换；战士仅限剑/弓，法师仅限法杖/魔法书。',
   '第 21 关 Boss 第一次倒下后以 30% 生命复活一次。',
@@ -120,6 +121,7 @@ const UPDATE_NOTES = [
 ]
 // 邮件公告只展示概要，不公开具体平衡数值。
 const PUBLIC_UPDATE_NOTES = [
+  '版本更新至 2.0：4399 版默认采用更流畅的画质档，减少天气与特效数量。',
   '新增 30 关与第三章；第 30 关为最终结局。',
   '双持专精可按住 S 5 秒切换主副武器与技能组。',
   '新增复活 Boss、双 Boss、4 分钟限时、全程隐身 Boss 与最终全屏 AOE + 定向攻击。',
@@ -1376,6 +1378,17 @@ function hillPoints(style: HillStyle, layer: 0 | 1, seed: number): Array<[number
       const y = base - (30 + Math.sin(i * .55 + seed) * 22 + Math.sin(i * 1.3 + seed * 3) * 10) * amp
       points.push([x, y])
     }
+  }
+  return points
+}
+// 山形轮廓只与关卡、层级有关，缓存后避免每帧重复生成大量点，降低 4399 端的 GC 与掉帧。
+const hillPointCache = new Map<string, Array<[number, number]>>()
+function cachedHillPoints(style: HillStyle, layer: 0 | 1, seed: number) {
+  const key = `${style}:${layer}:${seed}`
+  let points = hillPointCache.get(key)
+  if (!points) {
+    points = hillPoints(style, layer, seed)
+    hillPointCache.set(key, points)
   }
   return points
 }
@@ -12155,11 +12168,18 @@ function setupCanvas() {
   const dpr = window.devicePixelRatio || 1
   // 触屏设备默认再降一档渲染倍率，优先保证小怪较多时的帧率。
   const coarse = window.matchMedia('(pointer: coarse)').matches
-  const quality = renderQuality === 'high'
-    ? { cap: 1.5, base: 1.35, shadow: 12, fx: .9 }
-    : renderQuality === 'balanced'
-      ? (coarse ? { cap: 1.1, base: 1, shadow: 3, fx: .5 } : { cap: 1.25, base: 1.1, shadow: 4, fx: .6 })
-      : { cap: 1, base: 1, shadow: 0, fx: .35 }
+  // 4399 端优先保证帧率：默认不超过 1 倍分辨率，均衡档关闭阴影并减少特效。
+  const quality = PLATFORM_4399
+    ? renderQuality === 'high'
+      ? { cap: 1.15, base: 1, shadow: 2, fx: .55 }
+      : renderQuality === 'balanced'
+        ? { cap: 1, base: 1, shadow: 0, fx: .45 }
+        : { cap: 1, base: 1, shadow: 0, fx: .3 }
+    : renderQuality === 'high'
+      ? { cap: 1.5, base: 1.35, shadow: 12, fx: .9 }
+      : renderQuality === 'balanced'
+        ? (coarse ? { cap: 1.1, base: 1, shadow: 3, fx: .5 } : { cap: 1.25, base: 1.1, shadow: 4, fx: .6 })
+        : { cap: 1, base: 1, shadow: 0, fx: .35 }
   renderScale = dpr > 1 ? Math.min(quality.cap, dpr) : quality.base
   shadowCap = quality.shadow
   fxScale = quality.fx
@@ -13329,7 +13349,10 @@ function update(dt: number) {
   }
   effects = effects.filter((fx) => (fx.life -= dt) > 0)
   // 限制同时存在的特效数量，避免长时间战斗或隐藏关卡掉帧。
-  const maxEffects = renderQuality === 'high' ? 140 : renderQuality === 'balanced' ? 100 : 60
+  // 4399 端进一步压低同屏特效上限，避免大规模弹幕时掉帧。
+  const maxEffects = PLATFORM_4399
+    ? (renderQuality === 'high' ? 100 : renderQuality === 'balanced' ? 70 : 45)
+    : (renderQuality === 'high' ? 140 : renderQuality === 'balanced' ? 100 : 60)
   if (effects.length > maxEffects) effects.splice(0, effects.length - maxEffects)
   noticeTime = Math.max(0, noticeTime - dt)
 }
@@ -13605,8 +13628,8 @@ function drawBackground(c: CanvasRenderingContext2D) {
     drawHillLayer(.18, bg.far, [[0, 320], [125, 201], [240, 279], [388, 166], [548, 294], [692, 215], [830, 296], [960, 320]])
     drawHillLayer(.45, bg.near, [[0, 345], [145, 270], [273, 333], [425, 251], [573, 342], [722, 267], [865, 334], [960, 345]])
   } else {
-    drawHillLayer(.16, mixHex(bg.far, palette.deep, .38), hillPoints(scenery.hills, 0, stageIndex + 1))
-    drawHillLayer(.42, mixHex(bg.near, palette.deep, .46), hillPoints(scenery.hills, 1, stageIndex + 7))
+    drawHillLayer(.16, mixHex(bg.far, palette.deep, .38), cachedHillPoints(scenery.hills, 0, stageIndex + 1))
+    drawHillLayer(.42, mixHex(bg.near, palette.deep, .46), cachedHillPoints(scenery.hills, 1, stageIndex + 7))
   }
   // 地面：战斗关卡使用轻微起伏的轮廓，不再是一条完全笔直的水平线。
   const groundAt = (screenX: number) => {
@@ -17948,7 +17971,7 @@ function drawWeatherFx(c: CanvasRenderingContext2D) {
   const now = performance.now()
   const state = townWeatherNow()
   // 战斗场景降低天气粒子密度，Boss 战再降一档，把性能留给战斗特效。
-  const density = scene !== 'battle' ? 1 : mainBossFoe() ? .3 : .45
+  const density = (scene !== 'battle' ? 1 : mainBossFoe() ? .3 : .45) * (PLATFORM_4399 ? .6 : 1)
   const set = weatherPair(state.weather, state.second, state.third)
   c.save()
   if (set.length >= 3) {
