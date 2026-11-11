@@ -60,6 +60,7 @@ const UPDATE_NOTES = [
   '宝石镶嵌改为左右布局：右侧点选装备与宝石，左侧显示所选装备孔位。',
   '换装时宝石按孔位自动转移；新装备孔位不足时，多出的宝石自动放回宝石背包。',
   '宝石背包改为独立槽位卡片，每颗宝石一个槽位。',
+  '同一件装备每种宝石只能镶嵌一颗（等阶不同也不行）；旧存档与换装转移会自动去重。',
   '新增「技能觉醒」：救出小满后可进入时间回廊，在觉醒界面选择当前武器技能进行觉醒；普通与觉醒版本共享技能等级。',
   '觉醒条件：战士用目标技能对稻草人造成单次 ≥800 伤害（多段合计）计 1 次；法师靠近稻草人承受反击，每次受击计 1 次。',
   '每 10 次计数使觉醒碎片掉率 +1%；集齐 3 个碎片兑换觉醒书。返回小镇会清零计数、掉率与碎片。',
@@ -109,7 +110,7 @@ const PUBLIC_UPDATE_NOTES = [
   '优化第三章弹幕与特效数量，减轻卡顿。',
   '战斗背景改为大晴天暖色滤镜，保留各关色相。',
   '所有怪物闪避降低 10%。',
-  '宝石镶嵌改为左右点选布局。换装时宝石按孔位自动转移，宝石背包改为独立槽位。',
+  '宝石镶嵌改为左右点选布局。换装时宝石按孔位自动转移，宝石背包改为独立槽位。同一件装备每种宝石限一颗。',
   '新增技能觉醒系统：四种武器各四个技能均可觉醒，觉醒后永久 +10% 伤害。',
   '时间回廊、觉醒碎片与觉醒书玩法上线；4399 版兑换觉醒书需观看广告。',
   '新增大量觉醒技能与专属特效，涵盖剑、弓、法杖与魔法书。',
@@ -1757,6 +1758,17 @@ function normalizeSave(data: Save): Save {
     data.awakenTarget = { set: target.set, index: target.index }
   } else data.awakenTarget = null
   data.gems = Array.isArray(data.gems) ? data.gems.map(normalizeGem).filter((gem): gem is Gem => Boolean(gem)) : []
+  // 同一件装备每种宝石只能保留一颗；旧存档中重复的宝石收回宝石背包。
+  for (const gear of data.gear) {
+    if (!gear.socketGems?.length) continue
+    const kinds = new Set<GemKind>()
+    for (let index = 0; index < gear.socketGems.length; index += 1) {
+      const gem = gear.socketGems[index]
+      if (!gem) continue
+      if (kinds.has(gem.kind)) { data.gems.push(gem); gear.socketGems[index] = null }
+      else kinds.add(gem.kind)
+    }
+  }
   data.punchStones = Math.max(0, Math.floor(Number(data.punchStones ?? 0)))
   data.punchBuyAt = Math.max(0, Number(data.punchBuyAt ?? 0))
   data.horns = Math.max(0, Math.floor(Number(data.horns ?? 0)))
@@ -6118,6 +6130,11 @@ function socketGem(kind: GemKind, tier: number, target?: 'weapon' | 'armor' | 'r
   }
   const gear = mainGearForGem(slot)
   if (!gear) { toast(slot === 'weapon' ? '请先装备主武器。' : slot === 'ring' ? '请先装备戒指。' : slot === 'cloak' ? '请先装备披风。' : '请先装备主护甲。'); return }
+  // 同一件装备每种宝石只能镶嵌一颗，不同等阶也不行。
+  if ((gear.socketGems ?? []).some((gem) => gem?.kind === kind)) {
+    toast('同一件装备每种宝石只能镶嵌一颗（等阶不同也不行）。')
+    return
+  }
   const index = firstEmptySocket(gear)
   if (index < 0) { toast('该装备没有可用空孔位，可在炉子打孔。'); return }
   const gem = game.gems[gemIndex]
@@ -6170,6 +6187,7 @@ function gemSocketMarkup(gear: Gear | undefined, slot: 'weapon' | 'armor' | 'rin
 }
 function gemsMarkup() {
   if (!game) return ''
+  if (dedupeAllGearGems() > 0) { markBagUnread(); save() }
   const slotEntries = [
     { slot: 'weapon' as const, label: '主武器', gear: mainGearForGem('weapon') },
     { slot: 'armor' as const, label: '主护甲', gear: mainGearForGem('armor') },
@@ -6192,9 +6210,12 @@ function gemsMarkup() {
       const gem = list[0]
       const naturalSlot = gemSlotForKind(gem.kind)
       const compatible = gemSelectedSlot === 'ring' || gemSelectedSlot === 'cloak' || naturalSlot === gemSelectedSlot
-      const canSocket = Boolean(selectedGear && compatible && firstEmptySocket(selectedGear) >= 0)
+      const alreadyKind = Boolean(selectedGear?.socketGems?.some((socketGem) => socketGem?.kind === gem.kind))
+      const canSocket = Boolean(selectedGear && compatible && !alreadyKind && firstEmptySocket(selectedGear) >= 0)
       const canCombine = list.length >= 3 && gem.tier < 7
-      const targetHint = compatible ? `镶嵌到${selected.label}` : `${selected.label}不能镶嵌${GEM_STAT_LABEL[gem.kind]}`
+      const targetHint = !compatible
+        ? `${selected.label}不能镶嵌${GEM_STAT_LABEL[gem.kind]}`
+        : alreadyKind ? '该装备已镶嵌同类宝石' : `镶嵌到${selected.label}`
       return `<article class="gem-slot-card gem-kind-${gem.kind}"><header><span class="gear-glyph">${gemIcon(gem)}</span><span class="gem-slot-count">×${list.length}</span></header><b class="gem-slot-name">${gemName(gem)}</b><small class="gem-slot-stats">${gemSummary(gem)} · ${naturalSlot === 'armor' ? '护甲孔' : '武器孔'}</small><small class="gem-slot-target">${targetHint}</small><div class="gem-slot-actions"><button data-action="gem-socket" data-kind="${gem.kind}" data-tier="${gem.tier}" ${canSocket ? '' : 'disabled'}>镶嵌</button>${canCombine ? `<button data-action="gem-combine" data-kind="${gem.kind}" data-tier="${gem.tier}">合成</button>` : ''}</div></article>`
     }).join('')
   const selectedPanel = `<section class="gem-panel gem-panel-slots"><header><h3>${selected.label}孔位</h3><small>点击已镶嵌宝石可取出</small></header><div class="gem-equips">${gemSocketMarkup(selectedGear, selected.slot)}</div><p class="bag-note">护甲孔可镶嵌生命/防御/闪避/防爆宝石，武器孔可镶嵌攻击/能量/命中/暴击宝石；戒指与披风可以镶嵌任意宝石。</p></section>`
@@ -10362,7 +10383,30 @@ function partnerToggleGear(gear: Gear) {
   if (gear.type === 'fashion' && game.p2FashionId === gear.id) return partnerUnequip('fashion')
   partnerEquipGear(gear)
 }
-// 换装时把旧装备的宝石按孔位转移到新装备；新装备孔位不足时，多出的宝石回到宝石背包。
+// 同一件装备每种宝石只能保留一颗；重复的宝石收回宝石背包。
+function dedupeGearGems(gear: Gear): number {
+  if (!game || !gear.socketGems?.length) return 0
+  const kinds = new Set<GemKind>()
+  let returned = 0
+  for (let index = 0; index < gear.socketGems.length; index += 1) {
+    const gem = gear.socketGems[index]
+    if (!gem) continue
+    if (kinds.has(gem.kind)) {
+      game.gems ??= []
+      game.gems.push(gem)
+      gear.socketGems[index] = null
+      returned += 1
+    } else kinds.add(gem.kind)
+  }
+  return returned
+}
+function dedupeAllGearGems(): number {
+  if (!game) return 0
+  let returned = 0
+  for (const gear of game.gear) returned += dedupeGearGems(gear)
+  return returned
+}
+// 换装时把旧装备的宝石按孔位转移到新装备；新装备孔位不足或已有同类宝石时，多出的宝石回到宝石背包。
 function transferSocketGems(oldId: string | null | undefined, newGear: Gear) {
   if (!game || !oldId || oldId === newGear.id) return
   const oldGear = game.gear.find((entry) => entry.id === oldId)
@@ -10375,6 +10419,14 @@ function transferSocketGems(oldId: string | null | undefined, newGear: Gear) {
   for (let index = 0; index < newSockets; index += 1) {
     const oldGem = oldGems[index]
     if (!oldGem) continue
+    // 新装备已有同类宝石（等阶不限）时，旧宝石直接放回宝石背包。
+    if (newGems.some((gem) => gem?.kind === oldGem.kind)) {
+      game.gems ??= []
+      game.gems.push(oldGem)
+      oldGems[index] = null
+      returned = true
+      continue
+    }
     // 同孔位交换，避免新装备原有的宝石被直接覆盖丢失。
     const newGem = newGems[index]
     newGems[index] = oldGem
@@ -10390,7 +10442,8 @@ function transferSocketGems(oldId: string | null | undefined, newGear: Gear) {
   }
   oldGear.socketGems = oldGems
   newGear.socketGems = newGems
-  if (returned) { markBagUnread(); toast('新装备孔位不足，多出的宝石已放回宝石背包。') }
+  if (dedupeGearGems(oldGear) + dedupeGearGems(newGear) > 0) returned = true
+  if (returned) { markBagUnread(); toast('新装备孔位不足或已有同类宝石，多出的宝石已放回宝石背包。') }
 }
 function equip(id: string) {
   if (!game || scene !== 'town') { toast('请回到小镇后更换装备。'); return }
