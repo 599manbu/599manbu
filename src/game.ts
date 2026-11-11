@@ -62,6 +62,7 @@ const UPDATE_NOTES = [
   '换装时宝石按孔位自动转移；新装备孔位不足时，多出的宝石自动放回宝石背包。',
   '宝石背包改为独立槽位卡片，每颗宝石一个槽位。',
   '同一件装备每种宝石只能镶嵌一颗（等阶不同也不行）；不同装备可各镶一颗，旧存档与换装转移会自动去重。',
+  '角色等级上限提升到 130；宝石最高可合成到十五阶；装备阶级仍可通过合成无限提升。',
   '新增「技能觉醒」：救出小满后可进入时间回廊，在觉醒界面选择当前武器技能进行觉醒；普通与觉醒版本共享技能等级。',
   '觉醒条件：战士用目标技能对稻草人造成单次 ≥800 伤害（多段合计）计 1 次；法师靠近稻草人承受反击，每次受击计 1 次。',
   '每 10 次计数使觉醒碎片掉率 +1%；集齐 3 个碎片兑换觉醒书。返回小镇会清零计数、掉率与碎片。',
@@ -112,7 +113,7 @@ const PUBLIC_UPDATE_NOTES = [
   '打孔消耗改为每孔 1~5 个打孔石。',
   '战斗背景改为大晴天暖色滤镜，保留各关色相。',
   '所有怪物闪避降低 10%。',
-  '宝石镶嵌改为左右点选布局。换装时宝石按孔位自动转移，宝石背包改为独立槽位。同一件装备每种宝石限一颗。',
+  '宝石镶嵌改为左右点选布局。换装时宝石按孔位自动转移，宝石背包改为独立槽位。同一件装备每种宝石限一颗。角色等级上限 130，宝石最高十五阶。',
   '新增技能觉醒系统：四种武器各四个技能均可觉醒，觉醒后永久 +10% 伤害。',
   '时间回廊、觉醒碎片与觉醒书玩法上线；4399 版兑换觉醒书需观看广告。',
   '新增大量觉醒技能与专属特效，涵盖剑、弓、法杖与魔法书。',
@@ -267,7 +268,7 @@ const ARMOR_NAMES: Record<Role, string[]> = {
   warrior: ['苔纹战甲', '沉钟重铠', '赤岩战铠', '风蚀战甲', '幽蓝战甲', '断星战铠', '灰烬战甲', '血牙重甲', '苍白战铠', '终焉战甲', '裂空战甲', '黑潮铁甲', '镜湖战铠', '熔核战甲', '雷暴战甲', '瘟疫战甲', '时砂战甲', '幽影战甲', '星核战甲', '天穹战甲'],
   mage: ['苔纹法袍', '沉钟长袍', '赤岩法袍', '风蚀长袍', '幽蓝法袍', '断星长袍', '灰烬法袍', '血牙长袍', '苍白法袍', '终焉法袍', '裂空法袍', '黑潮长袍', '镜湖法袍', '熔核法袍', '雷暴法袍', '瘟疫法袍', '时砂法袍', '幽影法袍', '星核法袍', '天穹法袍'],
 }
-const MAX_LEVEL = 70
+const MAX_LEVEL = 130
 // 旧版升到 19 级所需的总经验，现在改成升到 70 级所需的总经验。
 const LEGACY_TOTAL_XP_TO_19 = 88_472_800
 
@@ -581,20 +582,21 @@ const GEM_STAT_BASE: Record<GemKind, number> = { life: 100, defense: 10, attack:
 const GEM_MAX_SOCKETS = 5
 // 开孔消耗：第 1~5 孔依次需要 1 / 2 / 3 / 4 / 5 个打孔石。
 const PUNCH_SOCKET_COSTS = [1, 2, 3, 4, 5]
-const GEM_TIER_NAMES = ['一阶', '二阶', '三阶', '四阶', '五阶', '六阶', '七阶']
+const GEM_MAX_TIER = 15
+const GEM_TIER_NAMES = ['一阶', '二阶', '三阶', '四阶', '五阶', '六阶', '七阶', '八阶', '九阶', '十阶', '十一阶', '十二阶', '十三阶', '十四阶', '十五阶']
 function gemTierName(tier: number) { return GEM_TIER_NAMES[tier - 1] ?? `${tier} 阶` }
 function gemStatValue(kind: GemKind, tier: number) { return GEM_STAT_BASE[kind] * 2 ** (Math.max(1, Math.floor(tier)) - 1) }
 function gemName(gem: Gem) { return `${gemTierName(gem.tier)}${GEM_NAMES[gem.kind]}` }
 function gemSummary(gem: Gem) { return `${GEM_STAT_LABEL[gem.kind]} +${gemStatValue(gem.kind, gem.tier)}` }
 function randomGemKind(): GemKind { return GEM_KINDS[Math.floor(Math.random() * GEM_KINDS.length)] }
 function makeGem(kind: GemKind, tier: number): Gem {
-  return { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, kind, tier: Math.max(1, Math.min(7, Math.floor(tier))) }
+  return { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, kind, tier: Math.max(1, Math.min(GEM_MAX_TIER, Math.floor(tier))) }
 }
 function normalizeGem(value: unknown): Gem | null {
   if (!value || typeof value !== 'object') return null
   const raw = value as { id?: unknown; kind?: unknown; tier?: unknown }
   if (!GEM_KINDS.includes(raw.kind as GemKind)) return null
-  const tier = Math.max(1, Math.min(7, Math.floor(Number(raw.tier) || 1)))
+  const tier = Math.max(1, Math.min(GEM_MAX_TIER, Math.floor(Number(raw.tier) || 1)))
   return { id: typeof raw.id === 'string' && raw.id ? raw.id : `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, kind: raw.kind as GemKind, tier }
 }
 // 新装备随机获得 0~5 个孔位：28% / 38% / 22% / 8.5% / 3% / 0.5%，5 孔最稀有。
@@ -652,7 +654,7 @@ function demoShopItems(): ShopItem[] {
     items.push({ id: `demo-cloak-${level}`, name: `${level} 阶披风 ×1`, cost: 1, desc: '体验版商城道具 · 暴击 / 防爆', category: 'equipment', icon: 'cloak', demoOnly: true, grant: { kind: 'gear', gearType: 'cloak', level } })
   }
   for (const kind of GEM_KINDS) {
-    for (let tier = 1; tier <= 7; tier += 1) {
+    for (let tier = 1; tier <= GEM_MAX_TIER; tier += 1) {
       items.push({ id: `demo-gem-${kind}-${tier}`, name: `${gemName({ id: '', kind, tier })} ×1`, cost: 1, desc: `体验版商城道具 · ${gemSummary({ id: '', kind, tier })}`, category: 'gem', icon: 'gem', iconClass: `gem-${kind}`, demoOnly: true, grant: { kind: 'gem', gemKind: kind, tier } })
     }
   }
@@ -1951,7 +1953,7 @@ function normalizeSave(data: Save): Save {
   while (data.level < MAX_LEVEL && data.exp >= xpToNext(data.level)) { data.exp -= xpToNext(data.level); data.level += 1 }
   return applyDemoUnlock(data)
 }
-// 1 → 70 级的总经验与旧版 1 → 19 级相同，按等级平方分摊到每一级。
+// 1 → 70 级沿用旧经验曲线；71 → 130 级继续按等级平方增长。
 function xpToNext(level: number) {
   if (level >= MAX_LEVEL) return Infinity
   const current = Math.max(1, Math.floor(level))
@@ -2109,11 +2111,16 @@ function levelGrowth(level: number) {
   const attackCoefficient = m + triangle / 2
   return { hp: 100 * hpCoefficient, mp: 10 * hpCoefficient, attack: 10 * attackCoefficient, defense: 10 * attackCoefficient }
 }
-// 等级上限改为 70：把 1~70 级线性映射回旧版 1~19 级的成长曲线，
-// 因此 70 级角色的属性总量与旧版 19 级相同，只是分摊到更多等级。
+// 1~70 级保持旧版成长曲线；70 级以后按同样的每级速率继续成长到 130 级，
+// 因此老角色 70 级属性不变，新等级会继续提升生命、法力、攻击与防御。
+const LEGACY_LEVEL_CAP = 70
+const LEGACY_GROWTH_SPAN = 18
 function growthLevel(level: number) {
   const clamped = Math.max(1, Math.min(MAX_LEVEL, level))
-  return 1 + (clamped - 1) * (18 / (MAX_LEVEL - 1))
+  const rate = LEGACY_GROWTH_SPAN / (LEGACY_LEVEL_CAP - 1)
+  return clamped <= LEGACY_LEVEL_CAP
+    ? 1 + (clamped - 1) * rate
+    : 1 + (LEGACY_LEVEL_CAP - 1) * rate + (clamped - LEGACY_LEVEL_CAP) * rate
 }
 function roleLevelGrowth(role: Role, level: number) {
   const growth = levelGrowth(growthLevel(level))
@@ -5952,7 +5959,7 @@ const NIGHTMARE_GEM_REWARDS: Array<Array<{ tier: number; count: number }>> = [
   [{ tier: 2, count: 3 }, { tier: 1, count: 1 }],
   [{ tier: 3, count: 1 }],
   [{ tier: 3, count: 1 }, { tier: 2, count: 2 }],
-  // 第二章噩梦：宝石最高开放到七阶。
+  // 噩梦掉落最高到七阶；背包内可以继续 3→1 合成到十五阶。
   [{ tier: 3, count: 2 }],
   [{ tier: 3, count: 2 }, { tier: 2, count: 1 }],
   [{ tier: 4, count: 1 }],
@@ -6161,7 +6168,7 @@ function removeGem(slot: string, index: number) {
   toast(`已取出 ${gemName(gem)}。`)
 }
 function combineGems(kind: GemKind, tier: number) {
-  if (!game || tier >= 7) return
+  if (!game || tier >= GEM_MAX_TIER) return
   game.gems ??= []
   const matching = game.gems.filter((gem) => gem.kind === kind && gem.tier === tier)
   if (matching.length < 3) { toast('需要 3 个同阶同类宝石。'); return }
@@ -6215,7 +6222,7 @@ function gemsMarkup() {
       const alreadyKind = Boolean(selectedGear?.socketGems?.some((socketGem) => socketGem?.kind === gem.kind))
       const hasEmptySocket = Boolean(selectedGear && firstEmptySocket(selectedGear) >= 0)
       const canSocket = Boolean(selectedGear && compatible && !alreadyKind && hasEmptySocket)
-      const canCombine = list.length >= 3 && gem.tier < 7
+      const canCombine = list.length >= 3 && gem.tier < GEM_MAX_TIER
       const targetHint = !compatible
         ? `${selected.label}不能镶嵌${GEM_STAT_LABEL[gem.kind]}`
         : alreadyKind ? '本装备已有同类宝石 · 换其他装备仍可镶嵌'
@@ -6224,7 +6231,7 @@ function gemsMarkup() {
       return `<article class="gem-slot-card gem-kind-${gem.kind}"><header><span class="gear-glyph">${gemIcon(gem)}</span><span class="gem-slot-count">×${list.length}</span></header><b class="gem-slot-name">${gemName(gem)}</b><small class="gem-slot-stats">${gemSummary(gem)} · ${naturalSlot === 'armor' ? '护甲孔' : '武器孔'}</small><small class="gem-slot-target">${targetHint}</small><div class="gem-slot-actions"><button data-action="gem-socket" data-kind="${gem.kind}" data-tier="${gem.tier}" ${canSocket ? '' : 'disabled'}>镶嵌</button>${canCombine ? `<button data-action="gem-combine" data-kind="${gem.kind}" data-tier="${gem.tier}">合成</button>` : ''}</div></article>`
     }).join('')
   const selectedPanel = `<section class="gem-panel gem-panel-slots"><header><h3>${selected.label}孔位</h3><small>点击已镶嵌宝石可取出</small></header><div class="gem-equips">${gemSocketMarkup(selectedGear, selected.slot)}</div><p class="bag-note">护甲孔可镶嵌生命/防御/闪避/防爆宝石，武器孔可镶嵌攻击/能量/命中/暴击宝石；戒指与披风可以镶嵌任意宝石。</p></section>`
-  return `<div class="gem-layout gem-layout-pick">${selectedPanel}<section class="gem-panel gem-panel-bag"><header><h3>装备与宝石</h3><small>先点装备，再点宝石镶嵌</small></header><div class="gem-pick-list">${picker}</div><div class="gem-slot-grid">${inventory || '<div class="empty-gear">宝石背包为空<small>噩梦副本的守关者会掉落宝石</small></div>'}</div><p class="bag-note">每件装备每种宝石限镶嵌 1 颗；戒指与披风可各镶 1 颗，所以攻击宝石可分别出现在武器、戒指与披风中。同阶同类宝石可以合成更高一阶（最高七阶）。点击右侧装备后，左侧会切换到该装备的孔位。</p></section></div>`
+  return `<div class="gem-layout gem-layout-pick">${selectedPanel}<section class="gem-panel gem-panel-bag"><header><h3>装备与宝石</h3><small>先点装备，再点宝石镶嵌</small></header><div class="gem-pick-list">${picker}</div><div class="gem-slot-grid">${inventory || '<div class="empty-gear">宝石背包为空<small>噩梦副本的守关者会掉落宝石</small></div>'}</div><p class="bag-note">每件装备每种宝石限镶嵌 1 颗；戒指与披风可各镶 1 颗，所以攻击宝石可分别出现在武器、戒指与披风中。同阶同类宝石可以合成更高一阶（最高十五阶）。点击右侧装备后，左侧会切换到该装备的孔位。</p></section></div>`
 }
 function todayKey() {
   const now = new Date()
