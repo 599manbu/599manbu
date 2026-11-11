@@ -61,7 +61,7 @@ const UPDATE_NOTES = [
   '宝石镶嵌改为左右布局：右侧点选装备与宝石，左侧显示所选装备孔位。',
   '换装时宝石按孔位自动转移；新装备孔位不足时，多出的宝石自动放回宝石背包。',
   '宝石背包改为独立槽位卡片，每颗宝石一个槽位。',
-  '同一件装备每种宝石只能镶嵌一颗（等阶不同也不行）；旧存档与换装转移会自动去重。',
+  '同一件装备每种宝石只能镶嵌一颗（等阶不同也不行）；不同装备可各镶一颗，旧存档与换装转移会自动去重。',
   '新增「技能觉醒」：救出小满后可进入时间回廊，在觉醒界面选择当前武器技能进行觉醒；普通与觉醒版本共享技能等级。',
   '觉醒条件：战士用目标技能对稻草人造成单次 ≥800 伤害（多段合计）计 1 次；法师靠近稻草人承受反击，每次受击计 1 次。',
   '每 10 次计数使觉醒碎片掉率 +1%；集齐 3 个碎片兑换觉醒书。返回小镇会清零计数、掉率与碎片。',
@@ -6213,15 +6213,18 @@ function gemsMarkup() {
       const naturalSlot = gemSlotForKind(gem.kind)
       const compatible = gemSelectedSlot === 'ring' || gemSelectedSlot === 'cloak' || naturalSlot === gemSelectedSlot
       const alreadyKind = Boolean(selectedGear?.socketGems?.some((socketGem) => socketGem?.kind === gem.kind))
-      const canSocket = Boolean(selectedGear && compatible && !alreadyKind && firstEmptySocket(selectedGear) >= 0)
+      const hasEmptySocket = Boolean(selectedGear && firstEmptySocket(selectedGear) >= 0)
+      const canSocket = Boolean(selectedGear && compatible && !alreadyKind && hasEmptySocket)
       const canCombine = list.length >= 3 && gem.tier < 7
       const targetHint = !compatible
         ? `${selected.label}不能镶嵌${GEM_STAT_LABEL[gem.kind]}`
-        : alreadyKind ? '该装备已镶嵌同类宝石' : `镶嵌到${selected.label}`
+        : alreadyKind ? '本装备已有同类宝石 · 换其他装备仍可镶嵌'
+          : !hasEmptySocket ? '本装备没有空孔位 · 请先打孔'
+            : `镶嵌到${selected.label}`
       return `<article class="gem-slot-card gem-kind-${gem.kind}"><header><span class="gear-glyph">${gemIcon(gem)}</span><span class="gem-slot-count">×${list.length}</span></header><b class="gem-slot-name">${gemName(gem)}</b><small class="gem-slot-stats">${gemSummary(gem)} · ${naturalSlot === 'armor' ? '护甲孔' : '武器孔'}</small><small class="gem-slot-target">${targetHint}</small><div class="gem-slot-actions"><button data-action="gem-socket" data-kind="${gem.kind}" data-tier="${gem.tier}" ${canSocket ? '' : 'disabled'}>镶嵌</button>${canCombine ? `<button data-action="gem-combine" data-kind="${gem.kind}" data-tier="${gem.tier}">合成</button>` : ''}</div></article>`
     }).join('')
   const selectedPanel = `<section class="gem-panel gem-panel-slots"><header><h3>${selected.label}孔位</h3><small>点击已镶嵌宝石可取出</small></header><div class="gem-equips">${gemSocketMarkup(selectedGear, selected.slot)}</div><p class="bag-note">护甲孔可镶嵌生命/防御/闪避/防爆宝石，武器孔可镶嵌攻击/能量/命中/暴击宝石；戒指与披风可以镶嵌任意宝石。</p></section>`
-  return `<div class="gem-layout gem-layout-pick">${selectedPanel}<section class="gem-panel gem-panel-bag"><header><h3>装备与宝石</h3><small>先点装备，再点宝石镶嵌</small></header><div class="gem-pick-list">${picker}</div><div class="gem-slot-grid">${inventory || '<div class="empty-gear">宝石背包为空<small>噩梦副本的守关者会掉落宝石</small></div>'}</div><p class="bag-note">同阶同类宝石可以合成更高一阶（最高七阶）。点击右侧装备后，左侧会切换到该装备的孔位。</p></section></div>`
+  return `<div class="gem-layout gem-layout-pick">${selectedPanel}<section class="gem-panel gem-panel-bag"><header><h3>装备与宝石</h3><small>先点装备，再点宝石镶嵌</small></header><div class="gem-pick-list">${picker}</div><div class="gem-slot-grid">${inventory || '<div class="empty-gear">宝石背包为空<small>噩梦副本的守关者会掉落宝石</small></div>'}</div><p class="bag-note">每件装备每种宝石限镶嵌 1 颗；戒指与披风可各镶 1 颗，所以攻击宝石可分别出现在武器、戒指与披风中。同阶同类宝石可以合成更高一阶（最高七阶）。点击右侧装备后，左侧会切换到该装备的孔位。</p></section></div>`
 }
 function todayKey() {
   const now = new Date()
