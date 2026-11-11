@@ -21,7 +21,7 @@ type SaveSlot = { id: string; label: string; data: Save; updatedAt: number }
 // Boss 元素技能：按关卡主题分配，避免所有 Boss 都使用喷火/狂风模板。
 type BossElement = 'fire' | 'wind' | 'frost' | 'poison' | 'thunder' | 'earth' | 'shadow' | 'holy' | 'water' | 'void'
 type BossSpecialKind = 'pierce' | 'exclusive' | 'laser' | 'homing' | BossElement
-type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; flyPhase?: number; flyAmplitude?: number; flySpeed?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number; specialTimer?: number; specialWindup?: number; specialKind?: BossSpecialKind; specialNext?: BossSpecialKind; specialStep?: number; specialDirection?: number; mobSkillTimer?: number; skillWindup?: number; skillKind?: 'lunge' | 'slam'; preferredAttack?: 'melee' | 'ranged'; spiralLiftTimer?: number; lift?: number; staggerTimer?: number; staggerHits?: number; staggerHitTimer?: number; staggerImmune?: number; superArmor?: number; revived?: boolean; twinIndex?: 0 | 1; permaStealth?: boolean; inMeleeRange?: boolean; tutorial?: boolean; mirror?: boolean; mirrorRole?: Role; mirrorSet?: SkillSetKey; stationary?: boolean; scarecrow?: boolean; burnTimer?: number; burnTick?: number; burnDamage?: number; chillTimer?: number; anchorX?: number; summonCount?: number; summonTimer?: number; invulnTimer?: number; invulnCycle?: number; fieldTimer?: number; mp?: number; mirrorSkillTimer?: number; mirrorWindup?: number; mirrorSkill?: number; mirrorBuffTimer?: number; mirrorBurst?: number; mirrorBurstWait?: number; mirrorSwitch?: number; mirrorSwapTimer?: number; mirrorNextRole?: Role; mirrorNextSet?: SkillSetKey; mirrorGuard?: number; mirrorGuardCd?: number; mirrorBoltTimer?: number; wanderTimer?: number; wanderTargetX?: number | null; bossClone?: boolean; cloneExpire?: number; cloneSource?: number; permanentArmor?: boolean; hiddenTimer?: number; phase?: number; guardTimer?: number; guardCd?: number; modelIndex?: number; mobVariant?: number; scaleVariant?: number; teleport?: boolean; teleportTimer?: number; platformX?: number; platformW?: number; platformHeight?: number }
+type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; flyPhase?: number; flyAmplitude?: number; flySpeed?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number; specialTimer?: number; specialWindup?: number; specialKind?: BossSpecialKind; specialNext?: BossSpecialKind; specialStep?: number; specialDirection?: number; mobSkillTimer?: number; skillWindup?: number; skillKind?: 'lunge' | 'slam'; preferredAttack?: 'melee' | 'ranged'; spiralLiftTimer?: number; lift?: number; staggerTimer?: number; staggerHits?: number; staggerHitTimer?: number; staggerImmune?: number; superArmor?: number; revived?: boolean; twinIndex?: 0 | 1; permaStealth?: boolean; inMeleeRange?: boolean; tutorial?: boolean; mirror?: boolean; mirrorRole?: Role; mirrorSet?: SkillSetKey; stationary?: boolean; scarecrow?: boolean; burnTimer?: number; burnTick?: number; burnDamage?: number; chillTimer?: number; anchorX?: number; summonCount?: number; summonTimer?: number; invulnTimer?: number; invulnCycle?: number; fieldTimer?: number; mirrorSkillTimer?: number; mirrorWindup?: number; mirrorSkill?: number; mirrorBuffTimer?: number; mirrorBurst?: number; mirrorBurstWait?: number; mirrorSwitch?: number; mirrorSwapTimer?: number; mirrorNextRole?: Role; mirrorNextSet?: SkillSetKey; mirrorGuard?: number; mirrorGuardCd?: number; mirrorBoltTimer?: number; wanderTimer?: number; wanderTargetX?: number | null; bossClone?: boolean; cloneExpire?: number; cloneSource?: number; permanentArmor?: boolean; hiddenTimer?: number; phase?: number; guardTimer?: number; guardCd?: number; modelIndex?: number; mobVariant?: number; scaleVariant?: number; teleport?: boolean; teleportTimer?: number; platformX?: number; platformW?: number; platformHeight?: number }
 type Fx = { x: number; y: number; life: number; kind: string; direction?: number; text?: string; damage?: number; duration?: number; vx?: number; vy?: number; color?: string; radius?: number }
 type HazardKind = 'spike' | 'flame' | 'ice' | 'poison' | 'lightning' | 'void' | 'light'
 type Hazard = { id: number; x: number; kind: HazardKind; warn: number; warnTotal: number; active: number; activeTotal: number; hit: boolean; radius: number; fromBoss?: boolean }
@@ -75,7 +75,8 @@ const UPDATE_NOTES = [
   '战斗背景改为按关卡生成独立地貌与地面材质：尖峰、沙丘、石柱、岩台、废墟、水晶、森林等山形各不相同，地面分为草地、积雪、沙地、灰烬、碎石、地砖、藤蔓、虚空裂纹、金属与大理石，天空与地面使用对比色。',
   '第 11~20 关、21~30 关的 Boss 也会掉落王印印章，概率分别为 40% 与 60%；第 11 关起按十种王印循环发放，方便集齐 10 枚挑战隐藏关卡。',
   '第 10、20、30 关的最终 Boss 体型缩小，不再占满天空。',
-  '隐藏关卡的宿敌数值会随当前关卡进度缩放：以已解锁关卡的同关 Boss 为基准，进度越高，生命、攻击与法力越高。',
+  '隐藏关卡的宿敌数值会随当前关卡进度缩放：以已解锁关卡的同关 Boss 为基准，进度越高，生命与攻击越高。',
+  '隐藏关卡宿敌不再设置法力，所有技能不消耗法力。',
   '御剑飞行期间按 S 除了下降，也能拾取物品、开启宝箱和进入传送门。',
   '修复螺旋斩在空中使用时，第二段仍会把地面怪物卷起并造成伤害的问题。',
   '第 21~30 关小怪血量提高 20%，攻击降低 10%。',
@@ -133,7 +134,7 @@ const PUBLIC_UPDATE_NOTES = [
   '双生 Boss 使用不同模型；御剑飞行与御剑术对 Boss 判定放宽并必定命中；21~30 关小怪血量 +20%、攻击 -10%。Boss 元素技能按关卡分为火、风、冰、毒、雷、土、暗影、圣光、水、虚空十种。',
   '战斗背景按关卡生成不同地貌与地面材质，天空与地面改为对比色，不再所有关卡共用同一套山形。',
   '第 11~30 关的 Boss 也会掉落王印印章，概率随章节提高；第 10、20、30 关最终 Boss 体型缩小。',
-  '隐藏关卡宿敌数值随当前进度缩放；御剑飞行中按 S 可拾取物品并进入传送门；修复螺旋斩空中二段误伤地面怪物。',
+  '隐藏关卡宿敌数值随当前进度缩放，并移除法力限制、技能无消耗；御剑飞行中按 S 可拾取物品并进入传送门；修复螺旋斩空中二段误伤地面怪物。',
   '御剑飞行持续时间由 3 秒延长到 7 秒。',
   '修复复活 Boss 无敌不结束的问题。',
   '新增技能觉醒系统：四种武器各四个技能均可觉醒，觉醒后永久 +10% 伤害。',
@@ -421,7 +422,7 @@ function nextMirrorSet(set: SkillSetKey): SkillSetKey { return MIRROR_SETS[(MIRR
 // 第 11 关（隐藏关卡）对应的 Boss 数值。
 // 隐藏关卡宿敌的数值随当前关卡进度缩放：以当前已解锁关卡的同关 Boss 为基准。
 // 第 10 关时仍为原来的 148,500 生命 / 4,060 攻击 / 1,000 法力。
-let hiddenConfigCache: { bossHp: number; bossAtk: number; mp: number } | null = null
+let hiddenConfigCache: { bossHp: number; bossAtk: number } | null = null
 function hiddenProgressStage() {
   return Math.max(1, Math.min(STAGE_COUNT, game?.unlockedStage ?? game?.stage ?? 1))
 }
@@ -432,7 +433,6 @@ function hiddenConfig() {
   hiddenConfigCache = {
     bossHp: Math.max(1, Math.round(ref.bossHp * .1024)),
     bossAtk: Math.max(1, Math.round(ref.bossAtk * 1.16)),
-    mp: Math.round(800 + stage * 20),
   }
   return hiddenConfigCache
 }
@@ -3816,7 +3816,7 @@ function spawnMirror(): Foe {
   const mirrorSet: SkillSetKey = game ? activeSkillSet() : 'staff'
   const mirrorRole = mirrorRoleForSet(mirrorSet)
   const mirrorHp = hiddenConfig().bossHp * (coopRuntime ? 2 : 1)
-  return { id: nextFoeId++, x: Math.min(BASE_MAP_WIDTH - 120, heroX + 320), hp: mirrorHp, maxHp: mirrorHp, boss: true, mirror: true, mirrorRole, mirrorSet, mp: hiddenConfig().mp, timer: 1.3, skillTimer: 999, rangedTimer: 999, flash: 0, attackAnim: 0, stunTimer: 0, mirrorSkillTimer: 1.2, mirrorSkill: -1, mirrorSwapTimer: 16 + Math.random() * 8, mirrorGuardCd: 8 + Math.random() * 3, mirrorBoltTimer: .8 }
+  return { id: nextFoeId++, x: Math.min(BASE_MAP_WIDTH - 120, heroX + 320), hp: mirrorHp, maxHp: mirrorHp, boss: true, mirror: true, mirrorRole, mirrorSet, timer: 1.3, skillTimer: 999, rangedTimer: 999, flash: 0, attackAnim: 0, stunTimer: 0, mirrorSkillTimer: 1.2, mirrorSkill: -1, mirrorSwapTimer: 16 + Math.random() * 8, mirrorGuardCd: 8 + Math.random() * 3, mirrorBoltTimer: .8 }
 }
 function beginHiddenBattle() {
   if (!game) return
@@ -3970,7 +3970,6 @@ function pickRivalSkill(foe: Foe) {
 }
 function updateMirrorFoe(foe: Foe, dt: number, distance: number, direction: number) {
   if (!game) return
-  foe.mp = Math.min(hiddenConfig().mp, (foe.mp ?? 0) + dt * 4)
   foe.mirrorBuffTimer = Math.max(0, (foe.mirrorBuffTimer ?? 0) - dt)
   if ((foe.mirrorBurst ?? 0) > 0) {
     foe.mirrorBurstWait = (foe.mirrorBurstWait ?? 0) - dt
@@ -3996,7 +3995,6 @@ function updateMirrorFoe(foe: Foe, dt: number, distance: number, direction: numb
       foe.mirrorSkill = -1
       foe.mirrorSkillTimer = .9
       foe.mirrorWindup = undefined
-      foe.mp = hiddenConfig().mp
       foe.mirrorBoltTimer = .45
       foe.mirrorGuardCd = Math.max(foe.mirrorGuardCd ?? 0, 8)
       foe.flash = .2; foe.attackAnim = .3
@@ -4073,23 +4071,17 @@ function updateMirrorFoe(foe: Foe, dt: number, distance: number, direction: numb
   foe.mirrorSkillTimer = Math.max(0, (foe.mirrorSkillTimer ?? 0) - dt)
   if (foe.mirrorSkillTimer <= 0 && Math.abs(distance) < 700) {
     const set = foe.mirrorSet ?? (foe.mirrorRole === 'mage' ? 'staff' : 'sword')
-    let skill = pickRivalSkill(foe)
-    let cost = SKILL_COSTS[set][skill]
-    if ((foe.mp ?? 0) < cost) { skill = 0; cost = SKILL_COSTS[set][0] }
-    if ((foe.mp ?? 0) >= cost) {
-      foe.mp = Math.max(0, (foe.mp ?? 0) - cost)
-      foe.mirrorSkill = skill
-      foe.mirrorWindup = .3
-      foe.mirrorSkillTimer = rivalSkillInterval()
-      foe.flash = .18; foe.attackAnim = .4
-      const color = set === 'sword' ? '#f2c46d' : set === 'bow' ? '#c8f0a0' : set === 'book' ? '#d6b4ff' : '#c9a7e8'
-      effects.push({ kind: 'mirror-charge', x: foe.x, y: world.floor - 86, direction, life: .5, duration: .5, color, text: SKILL_LABELS[set][skill] })
-      addSparks(foe.x, world.floor - 80, 5, [color, '#ffffff'], 90)
-      setLog(`宿敌正在蓄力「${SKILL_LABELS[set][skill]}」...`)
-      playSfx('boss')
-    } else {
-      foe.mirrorSkillTimer = 1.2
-    }
+    // 宿敌没有法力设定，所有技能都不消耗法力。
+    const skill = pickRivalSkill(foe)
+    foe.mirrorSkill = skill
+    foe.mirrorWindup = .3
+    foe.mirrorSkillTimer = rivalSkillInterval()
+    foe.flash = .18; foe.attackAnim = .4
+    const color = set === 'sword' ? '#f2c46d' : set === 'bow' ? '#c8f0a0' : set === 'book' ? '#d6b4ff' : '#c9a7e8'
+    effects.push({ kind: 'mirror-charge', x: foe.x, y: world.floor - 86, direction, life: .5, duration: .5, color, text: SKILL_LABELS[set][skill] })
+    addSparks(foe.x, world.floor - 80, 5, [color, '#ffffff'], 90)
+    setLog(`宿敌正在蓄力「${SKILL_LABELS[set][skill]}」...`)
+    playSfx('boss')
   }
 }
 function beginStage(stage: number, mode: 'restart' | 'boss' = 'restart') {
