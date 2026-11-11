@@ -65,6 +65,8 @@ const UPDATE_NOTES = [
   '角色等级上限提升到 130；宝石最高可合成到十五阶；装备阶级仍可通过合成无限提升。',
   '修复第 21 关 Boss 复活后无敌不结束、一直免疫的问题。',
   '第 22 关双 Boss 使用不同模型与对比配色。',
+  '御剑飞行对 Boss 的垂直命中范围放宽到 230px，穿过 Boss 必定结算伤害。',
+  '第 21~30 关小怪血量提高 20%，攻击降低 10%。',
   '新增「技能觉醒」：救出小满后可进入时间回廊，在觉醒界面选择当前武器技能进行觉醒；普通与觉醒版本共享技能等级。',
   '觉醒条件：战士用目标技能对稻草人造成单次 ≥800 伤害（多段合计）计 1 次；法师靠近稻草人承受反击，每次受击计 1 次。',
   '每 10 次计数使觉醒碎片掉率 +1%；集齐 3 个碎片兑换觉醒书。返回小镇会清零计数、掉率与碎片。',
@@ -116,8 +118,8 @@ const PUBLIC_UPDATE_NOTES = [
   '战斗背景改为大晴天暖色滤镜，保留各关色相。',
   '所有怪物闪避降低 10%。',
   '宝石镶嵌改为左右点选布局。换装时宝石按孔位自动转移，宝石背包改为独立槽位。同一件装备每种宝石限一颗。角色等级上限 130，宝石最高十五阶。',
+  '双生 Boss 使用不同模型；御剑飞行对 Boss 判定放宽并必定命中；21~30 关小怪血量 +20%、攻击 -10%。',
   '修复复活 Boss 无敌不结束的问题。',
-  '双生 Boss 使用不同模型与配色。',
   '新增技能觉醒系统：四种武器各四个技能均可觉醒，觉醒后永久 +10% 伤害。',
   '时间回廊、觉醒碎片与觉醒书玩法上线；4399 版兑换觉醒书需观看广告。',
   '新增大量觉醒技能与专属特效，涵盖剑、弓、法杖与魔法书。',
@@ -355,16 +357,16 @@ const STAGE_CONFIG = [
   { mobHp: 180000, mobAtk: 9100, bossHp: 5625000, bossAtk: 16940, bossDef: 2200 },
   { mobHp: 210000, mobAtk: 10500, bossHp: 6450000, bossAtk: 18900, bossDef: 2500 },
   // 第三章：30 关大结局。第 23 关限时 Boss 血量略低于前一关。
-  { mobHp: 245000, mobAtk: 12200, bossHp: 7400000, bossAtk: 21800, bossDef: 2850 },
-  { mobHp: 285000, mobAtk: 14000, bossHp: 8500000, bossAtk: 24500, bossDef: 3200 },
-  { mobHp: 330000, mobAtk: 16000, bossHp: 8000000, bossAtk: 27000, bossDef: 3500 },
-  { mobHp: 380000, mobAtk: 18300, bossHp: 9800000, bossAtk: 30000, bossDef: 3850 },
-  { mobHp: 440000, mobAtk: 21000, bossHp: 11500000, bossAtk: 33500, bossDef: 4200 },
-  { mobHp: 510000, mobAtk: 24000, bossHp: 13500000, bossAtk: 37000, bossDef: 4600 },
-  { mobHp: 590000, mobAtk: 27500, bossHp: 15800000, bossAtk: 41000, bossDef: 5000 },
-  { mobHp: 680000, mobAtk: 31500, bossHp: 18500000, bossAtk: 45500, bossDef: 5500 },
-  { mobHp: 780000, mobAtk: 36000, bossHp: 21500000, bossAtk: 50500, bossDef: 6000 },
-  { mobHp: 900000, mobAtk: 41000, bossHp: 25000000, bossAtk: 56000, bossDef: 6600 },
+  { mobHp: 294000, mobAtk: 10980, bossHp: 7400000, bossAtk: 21800, bossDef: 2850 },
+  { mobHp: 342000, mobAtk: 12600, bossHp: 8500000, bossAtk: 24500, bossDef: 3200 },
+  { mobHp: 396000, mobAtk: 14400, bossHp: 8000000, bossAtk: 27000, bossDef: 3500 },
+  { mobHp: 456000, mobAtk: 16470, bossHp: 9800000, bossAtk: 30000, bossDef: 3850 },
+  { mobHp: 528000, mobAtk: 18900, bossHp: 11500000, bossAtk: 33500, bossDef: 4200 },
+  { mobHp: 612000, mobAtk: 21600, bossHp: 13500000, bossAtk: 37000, bossDef: 4600 },
+  { mobHp: 708000, mobAtk: 24750, bossHp: 15800000, bossAtk: 41000, bossDef: 5000 },
+  { mobHp: 816000, mobAtk: 28350, bossHp: 18500000, bossAtk: 45500, bossDef: 5500 },
+  { mobHp: 936000, mobAtk: 32400, bossHp: 21500000, bossAtk: 50500, bossDef: 6000 },
+  { mobHp: 1080000, mobAtk: 36900, bossHp: 25000000, bossAtk: 56000, bossDef: 6600 },
 ]
 const STAMP_UNLOCK = 10
 const STAMP_DROP_CHANCE = .2
@@ -8468,7 +8470,7 @@ function canStrikeVertically(foe: Foe) {
 }
 // 返回 true 表示本次伤害真正命中；被闪避、免疫或高度不符时返回 false。
 // 需要附带击退/聚怪等效果的技能应以此为准，未命中则不触发这些效果。
-function strike(target: Foe, damage: number, label: string, fromClone = false, lethal = false, ignoreHeight = false, quiet = false): boolean {
+function strike(target: Foe, damage: number, label: string, fromClone = false, lethal = false, ignoreHeight = false, quiet = false, guaranteedHit = false): boolean {
   if (!game || !foes.includes(target)) return false
   // 剑类近战与法系攻击需要满足垂直高度：站在石头或跳到空中时打不到下方地面上的敌人。
   if (!ignoreHeight && activeSkillSet() !== 'bow' && !canStrikeVertically(target)) return false
@@ -8483,7 +8485,7 @@ function strike(target: Foe, damage: number, label: string, fromClone = false, l
     return false
   }
   // 命中判定：飞行/高闪避的 Boss 可能闪开普通攻击与技能；稻草人必定命中。
-  if (!target.tutorial && !target.scarecrow && hiddenUltTimer <= 0 && Math.random() > playerHitChance(target)) {
+  if (!guaranteedHit && !target.tutorial && !target.scarecrow && hiddenUltTimer <= 0 && Math.random() > playerHitChance(target)) {
     const dodgeY = target.flying ? foeWorldY(target) - 24 : target.mirror ? world.floor - 120 : target.boss ? world.floor - 170 : world.floor - 92
     effects.push({ kind: 'damage-number', x: target.x, y: dodgeY, life: .75, duration: .75, text: '闪避', damage: 0 })
     addSparks(target.x, dodgeY + 16, 5, ['#c8d8ff', '#ffffff'], 90)
@@ -9343,11 +9345,12 @@ function updateSwordFlight(dt: number) {
     if ((swordFlightHits.get(foe.id) ?? 0) > 0) continue
     // 只有从敌人身体高度穿过时才算命中；飞行可自由上下，不受地面高度限制。
     const foeFoot = world.floor - foeFlyOffset(foe)
-    const verticalReach = foe.scarecrow ? 270 : 95
+    // Boss 体型较高：飞行高度在 Boss 身体范围内即可命中；普通小怪仍为 95px。
+    const verticalReach = foe.scarecrow ? 270 : foe.boss ? 230 : 95
     if (Math.abs(heroFoot - foeFoot) > verticalReach) continue
     swordFlightHits.set(foe.id, .45)
-    // 不再分 5 段：每次穿过直接结算与拔剑突刺相同的完整伤害；冷却结束后再次穿过仍会受伤。
-    strike(foe, swordFlightPower, '御剑飞行', false, false, true)
+    // 穿过攻击必定结算，不受 Boss 高闪避影响。
+    strike(foe, swordFlightPower, '御剑飞行', false, false, true, false, true)
     addSparks(foe.x, world.floor - 66, 10, [weaponFxColor(), '#fff6d0'], 150)
     if (!foe.boss && !foe.stationary && foe.hp > 0) foe.x = clampFoeX(foe.x + facing * 26)
   }
