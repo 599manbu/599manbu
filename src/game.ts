@@ -70,6 +70,7 @@ const UPDATE_NOTES = [
   '第 22 关双 Boss 使用不同模型与对比配色。',
   '御剑飞行对 Boss 的垂直命中范围放宽到 230px，穿过 Boss 必定结算伤害。',
   '御剑术飞剑后续攻击必定命中并忽略高度判定。',
+  '御剑飞行持续时间由 3 秒延长到 7 秒。',
   'Boss 元素技能按关卡属性分化：火（正面喷火）、风（推退）、冰（冰锥封锁）、毒（毒雾）、雷（连续落雷）、土（岩刺裂地）、暗影（瞬移背刺）、圣光（光柱审判）、水（潮汐推退）、虚空（引力拉扯），不再共用同一套吐息模板。',
   '第 21~30 关小怪血量提高 20%，攻击降低 10%。',
   '新增「技能觉醒」：救出小满后可进入时间回廊，在觉醒界面选择当前武器技能进行觉醒；普通与觉醒版本共享技能等级。',
@@ -77,7 +78,7 @@ const UPDATE_NOTES = [
   '每 10 次计数使觉醒碎片掉率 +1%；集齐 3 个碎片兑换觉醒书。返回小镇会清零计数、掉率与碎片。',
   '未选择觉醒目标时回廊内技能免蓝；选择目标后恢复原蓝耗且不自动回蓝。已觉醒技能永久 +10% 伤害，可随时关闭/开启。',
   '4399 版每兑换一个觉醒技能需要看完广告；其他平台直接解锁。',
-  '剑觉醒：御剑术、多重螺旋斩（左右各 2 段）、御剑飞行（可升降）、万剑归一（剑环 6 段）。',
+  '剑觉醒：御剑术、多重螺旋斩（左右各 2 段）、御剑飞行（可升降，持续 7 秒）、万剑归一（剑环 6 段）。',
   '弓觉醒：连珠箭雨（10 连穿透）、踏云箭雨（7 秒云朵，减伤 50%）、后羿降临（7 秒变身）、陨星坠击（陨石）。',
   '法杖觉醒：石化（7 秒防御/护盾提升）、焚天火海（3 秒灼烧）、碧水激光（长按穿透）、龙卷风（聚怪 5 段）。',
   '魔法书觉醒：暗影治愈（恢复 5% 生命）、自主分身（最多 2 个）、寒冰坠锥（5 段并减速）、法力封印（锁蓝免蓝，结束结算 60%）。',
@@ -124,6 +125,7 @@ const PUBLIC_UPDATE_NOTES = [
   '所有怪物闪避降低 10%。',
   '宝石镶嵌改为左右点选布局。换装时宝石按孔位自动转移，宝石背包改为独立槽位。同一件装备每种宝石限一颗。角色等级上限 130，宝石最高十五阶。',
   '双生 Boss 使用不同模型；御剑飞行与御剑术对 Boss 判定放宽并必定命中；21~30 关小怪血量 +20%、攻击 -10%。Boss 元素技能按关卡分为火、风、冰、毒、雷、土、暗影、圣光、水、虚空十种。',
+  '御剑飞行持续时间由 3 秒延长到 7 秒。',
   '修复复活 Boss 无敌不结束的问题。',
   '新增技能觉醒系统：四种武器各四个技能均可觉醒，觉醒后永久 +10% 伤害。',
   '时间回廊、觉醒碎片与觉醒书玩法上线；4399 版兑换觉醒书需观看广告。',
@@ -203,7 +205,7 @@ const AWAKENED_SKILL_INFO: Partial<Record<SkillSetKey, Record<number, { name: st
   sword: {
     0: { name: '御剑术', desc: '飞剑自动攻击 5 秒，每段为完整拔剑术伤害，可叠剑。' },
     1: { name: '多重螺旋斩', desc: '身侧追加第二道螺旋：左右各 2 段，共 4 段，范围更大。' },
-    2: { name: '御剑飞行', desc: '踏剑飞行 3 秒，跳跃/S 升降，穿过的敌人受伤。' },
+    2: { name: '御剑飞行', desc: '踏剑飞行 7 秒，跳跃/S 升降，穿过的敌人受伤。' },
     3: { name: '万剑归一', desc: '剑环围住前方，6 段穿刺，只命中剑环内敌人。' },
   },
   staff: {
@@ -1509,6 +1511,8 @@ let myriadImpactX = 0
 type FlyingSword = { x: number; y: number; vx: number; vy: number; angle: number; life: number; hitTimer: number; returning: boolean; targetId: number | null; lastHitId: number | null }
 let flyingSwords: FlyingSword[] = []
 // 御剑术：伤害按 5 段拆分，5 段打完后仍会继续造成伤害，直到飞剑归鞘。
+// 御剑飞行持续时间（秒）。
+const SWORD_FLIGHT_DURATION = 7
 let swordFlightTimer = 0
 let swordFlightPower = 0
 // 双持专精：原地按住 S 5 秒切换主副武器（技能组随主武器切换）。
@@ -9356,7 +9360,7 @@ function castFlyingSword(_power: number) {
 }
 function startSwordFlight(power: number) {
   const color = weaponFxColor()
-  swordFlightTimer = 3
+  swordFlightTimer = SWORD_FLIGHT_DURATION
   // 一次飞行对每个穿过的敌人造成与拔剑突刺相同的总伤害，再拆成 5 段。
   swordFlightPower = Math.max(1, Math.round(power))
   swordFlightHits = new Map()
@@ -9365,7 +9369,7 @@ function startSwordFlight(power: number) {
   // 飞剑直接在角色当前脚下生成：在地面就在地面脚下，在空中就在当前高度的脚下。
   jumpCount = 0
   heroSupportTop = world.floor
-  swordOutTimer = Math.max(swordOutTimer, 3)
+  swordOutTimer = Math.max(swordOutTimer, SWORD_FLIGHT_DURATION)
   addSparks(heroX, world.floor + heroY - 2, 18, [color, '#f2c46d', '#fff6d0'], 220)
   addFlash(.16, color)
   setLog('御剑飞行 · 飞剑在脚下生成，左右改变方向，跳跃上升、S 下降，穿过敌人造成伤害。')
@@ -9679,7 +9683,7 @@ function cast(index: number) {
       setLog(awakenedSpiral ? '多重螺旋斩：左右两道螺旋各有 2 段伤害（共 4 段），范围增大。' : '螺旋斩 · 第一段：被命中的敌人会被卷起，0.4 秒后追击第二段。')
     } else if (index === 2) {
       if (skillAwakened(2, 'sword')) {
-        // 御剑飞行：踏剑冲刺 3 秒，期间可自由改变方向。
+        // 御剑飞行：踏剑冲刺 7 秒，期间可自由改变方向。
         startSwordFlight(power)
       } else {
         // 拔剑突刺：先拔剑，再突进，结束后立刻收剑入鞘。
