@@ -54,9 +54,9 @@ const UPDATE_NOTES = [
   '第三章 Boss 攻击欲望提高，远程与专属技能更频繁。',
   '小镇新增第三座「创世法阵」，用于选择第三章 21~30 关；旅行商人移至更右侧。',
   '商店界面整体放大；背包装备框顺序改为武器/护甲/戒指/披风/时装。',
-  '第三章性能保护：限制小怪弹幕、Boss 机关与专属特效数量，减轻 21 关及后续关卡卡顿。',
+  '第三章性能保护：限制小怪弹幕、Boss 机关与专属特效数量，下调渲染分辨率上限并降低战斗天气粒子密度。',
   '打孔消耗调整为第 1~5 孔依次 1 / 2 / 3 / 4 / 5 个打孔石。',
-  '战斗背景改为大晴天暖色滤镜：提高亮度、混入暖白并叠加淡暖光，保留各关原本色相差异；暗角大幅减弱。',
+  '取消战斗背景的统一暖色叠加与暗角；改为提高亮度与少量饱和度，保留各关原本色相差异。',
   '所有怪物与 Boss 的闪避成长降低 10%，玩家攻击更容易命中。',
   '宝石镶嵌改为左右布局：右侧点选装备与宝石，左侧显示所选装备孔位。',
   '换装时宝石按孔位自动转移；新装备孔位不足时，多出的宝石自动放回宝石背包。',
@@ -115,7 +115,7 @@ const PUBLIC_UPDATE_NOTES = [
   '小镇新增创世法阵，商店界面放大，背包槽位顺序调整。',
   '优化第三章弹幕与特效数量，减轻卡顿。',
   '打孔消耗改为每孔 1~5 个打孔石。',
-  '战斗背景改为大晴天暖色滤镜，保留各关色相。',
+  '战斗背景改为明亮高饱和配色，取消暖色滤镜与暗角。',
   '所有怪物闪避降低 10%。',
   '宝石镶嵌改为左右点选布局。换装时宝石按孔位自动转移，宝石背包改为独立槽位。同一件装备每种宝石限一颗。角色等级上限 130，宝石最高十五阶。',
   '双生 Boss 使用不同模型；御剑飞行对 Boss 判定放宽并必定命中；21~30 关小怪血量 +20%、攻击 -10%。',
@@ -1210,7 +1210,7 @@ const STAGE_BACKGROUNDS: BackgroundTheme[] = [
   { skyTop: '#0a0a1a', skyMid: '#1a1a3a', skyLow: '#34346a', far: '#12122a', near: '#1e1e44', ground: '#0c0c1a', line: '#5a5aa0', orb: '#e0e0ff', accent: '#b8a4f4' },
   { skyTop: '#1a1408', skyMid: '#3a2e12', skyLow: '#7a6028', far: '#2a200c', near: '#3a2e14', ground: '#1a160a', line: '#b09048', orb: '#fffbe0', accent: '#ffe6a8' },
 ]
-// 战斗背景采用“大晴天”暖色滤镜：提高亮度并混入暖白，但保留每关原有色相差异。
+// 战斗背景提高亮度与少量饱和度，保留每关原有色相差异。
 function brightenHex(hex: string, amount: number) {
   const match = /^#([0-9a-f]{6})$/i.exec(hex)
   if (!match) return hex
@@ -1221,16 +1221,20 @@ function brightenHex(hex: string, amount: number) {
   const b = lift(value & 255)
   return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`
 }
-function mixHex(hex: string, target: string, amount: number) {
-  const parse = (text: string) => {
-    const match = /^#([0-9a-f]{6})$/i.exec(text)
-    return match ? parseInt(match[1], 16) : 0
-  }
-  const a = parse(hex); const b = parse(target)
-  const mix = (shift: number) => Math.round(((a >> shift) & 255) + (((b >> shift) & 255) - ((a >> shift) & 255)) * amount)
-  return `#${((mix(16) << 16) | (mix(8) << 8) | mix(0)).toString(16).padStart(6, '0')}`
+// 只提高亮度与少量饱和度，不再叠加统一暖色，避免“整层滤镜”观感。
+function vividHex(hex: string, lift: number, saturation: number) {
+  const bright = brightenHex(hex, lift)
+  const match = /^#([0-9a-f]{6})$/i.exec(bright)
+  if (!match) return bright
+  const value = parseInt(match[1], 16)
+  const r = (value >> 16) & 255
+  const g = (value >> 8) & 255
+  const b = value & 255
+  const luma = r * .2126 + g * .7152 + b * .0722
+  const sat = (channel: number) => Math.max(0, Math.min(255, Math.round(luma + (channel - luma) * saturation)))
+  return `#${((sat(r) << 16) | (sat(g) << 8) | sat(b)).toString(16).padStart(6, '0')}`
 }
-function sunnyGrade(hex: string) { return mixHex(brightenHex(hex, .32), '#fff1c8', .16) }
+function sunnyGrade(hex: string) { return vividHex(hex, .27, 1.16) }
 const SUNNY_STAGE_BACKGROUNDS: BackgroundTheme[] = STAGE_BACKGROUNDS.map((bg) => {
   const out = { ...bg }
   for (const key of Object.keys(out) as Array<keyof BackgroundTheme>) out[key] = sunnyGrade(bg[key])
@@ -11868,9 +11872,9 @@ function setupCanvas() {
   // 触屏设备默认再降一档渲染倍率，优先保证小怪较多时的帧率。
   const coarse = window.matchMedia('(pointer: coarse)').matches
   const quality = renderQuality === 'high'
-    ? { cap: 2.5, base: 2, shadow: 24, fx: 1 }
+    ? { cap: 1.5, base: 1.35, shadow: 12, fx: .9 }
     : renderQuality === 'balanced'
-      ? (coarse ? { cap: 1.25, base: 1.1, shadow: 4, fx: .55 } : { cap: 1.5, base: 1.25, shadow: 6, fx: .65 })
+      ? (coarse ? { cap: 1.1, base: 1, shadow: 3, fx: .5 } : { cap: 1.25, base: 1.1, shadow: 4, fx: .6 })
       : { cap: 1, base: 1, shadow: 0, fx: .35 }
   renderScale = dpr > 1 ? Math.min(quality.cap, dpr) : quality.base
   shadowCap = quality.shadow
@@ -13192,24 +13196,6 @@ function drawBackground(c: CanvasRenderingContext2D) {
       c.restore()
     }
   } else drawStageBackdrop(c, stageIndex, bg)
-  // 大晴天暖光：在场景上方叠一层很淡的暖白，让每关保留色相但整体明亮。
-  if (!town && daylight) {
-    const sunny = c.createLinearGradient(0, 0, 0, world.floor)
-    sunny.addColorStop(0, 'rgba(255, 242, 196, .12)')
-    sunny.addColorStop(.55, 'rgba(255, 232, 170, .05)')
-    sunny.addColorStop(1, 'rgba(255, 220, 150, .02)')
-    c.fillStyle = sunny
-    c.fillRect(0, 0, world.width, world.floor)
-  }
-  // 极轻的抗眩光暗角，只保留一点点边缘层次，不再像蒙了滤镜。
-  if (!town) {
-    const vignette = c.createRadialGradient(world.width / 2, 230, 180, world.width / 2, 230, 680)
-    vignette.addColorStop(0, 'rgba(0,0,0,0)')
-    vignette.addColorStop(.8, 'rgba(0,0,0,.02)')
-    vignette.addColorStop(1, 'rgba(0,0,0,.1)')
-    c.fillStyle = vignette
-    c.fillRect(0, 0, world.width, world.floor)
-  }
 }
 function drawStageBackdrop(c: CanvasRenderingContext2D, stageIndex: number, bg: BackgroundTheme) {
   const offset = -((cameraX * .28) % world.width)
@@ -17251,8 +17237,8 @@ function drawWeatherFx(c: CanvasRenderingContext2D) {
   if (!game || (scene !== 'town' && scene !== 'battle')) return
   const now = performance.now()
   const state = townWeatherNow()
-  // Boss 战降低天气粒子密度，把性能留给 Boss 技能与角色特效。
-  const density = scene === 'battle' && mainBossFoe() ? .58 : 1
+  // 战斗场景降低天气粒子密度，Boss 战再降一档，把性能留给战斗特效。
+  const density = scene !== 'battle' ? 1 : mainBossFoe() ? .3 : .45
   const set = weatherPair(state.weather, state.second, state.third)
   c.save()
   if (set.length >= 3) {
