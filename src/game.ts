@@ -55,6 +55,7 @@ const UPDATE_NOTES = [
   '小镇新增第三座「创世法阵」，用于选择第三章 21~30 关；旅行商人移至更右侧。',
   '商店界面整体放大；背包装备框顺序改为武器/护甲/戒指/披风/时装。',
   '第三章性能保护：限制小怪弹幕、Boss 机关与专属特效数量，减轻 21 关及后续关卡卡顿。',
+  '打孔消耗调整为第 1~5 孔依次 1 / 2 / 3 / 4 / 5 个打孔石。',
   '战斗背景改为大晴天暖色滤镜：提高亮度、混入暖白并叠加淡暖光，保留各关原本色相差异；暗角大幅减弱。',
   '所有怪物与 Boss 的闪避成长降低 10%，玩家攻击更容易命中。',
   '宝石镶嵌改为左右布局：右侧点选装备与宝石，左侧显示所选装备孔位。',
@@ -108,6 +109,7 @@ const PUBLIC_UPDATE_NOTES = [
   '第三章 Boss 攻击欲望与远程弹幕增强。',
   '小镇新增创世法阵，商店界面放大，背包槽位顺序调整。',
   '优化第三章弹幕与特效数量，减轻卡顿。',
+  '打孔消耗改为每孔 1~5 个打孔石。',
   '战斗背景改为大晴天暖色滤镜，保留各关色相。',
   '所有怪物闪避降低 10%。',
   '宝石镶嵌改为左右点选布局。换装时宝石按孔位自动转移，宝石背包改为独立槽位。同一件装备每种宝石限一颗。',
@@ -577,8 +579,8 @@ const GEM_NAMES: Record<GemKind, string> = { life: '生命宝石', defense: '防
 const GEM_STAT_LABEL: Record<GemKind, string> = { life: '生命', defense: '防御', attack: '攻击', energy: '法力', hit: '命中', dodge: '闪避', crit: '暴击', antiCrit: '防爆' }
 const GEM_STAT_BASE: Record<GemKind, number> = { life: 100, defense: 10, attack: 10, energy: 20, hit: 10, dodge: 10, crit: 10, antiCrit: 10 }
 const GEM_MAX_SOCKETS = 5
-// 开孔消耗：第 1~5 孔依次需要 1 / 2 / 3 / 6 / 12 个打孔石。
-const PUNCH_SOCKET_COSTS = [1, 2, 3, 6, 12]
+// 开孔消耗：第 1~5 孔依次需要 1 / 2 / 3 / 4 / 5 个打孔石。
+const PUNCH_SOCKET_COSTS = [1, 2, 3, 4, 5]
 const GEM_TIER_NAMES = ['一阶', '二阶', '三阶', '四阶', '五阶', '六阶', '七阶']
 function gemTierName(tier: number) { return GEM_TIER_NAMES[tier - 1] ?? `${tier} 阶` }
 function gemStatValue(kind: GemKind, tier: number) { return GEM_STAT_BASE[kind] * 2 ** (Math.max(1, Math.floor(tier)) - 1) }
