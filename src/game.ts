@@ -18,9 +18,12 @@ type AttributeAllocation = Record<AttributeStat, number>
 type StageProgress = { kills: number; bossDefeated: boolean; pointsClaimed?: number }
 type Save = { role: Role; stage: number; unlockedStage: number; kills: number; stageProgress?: Record<string, StageProgress>; hp: number; mp: number; gear: Gear[]; equipped: string | null; weaponId?: string | null; weapon2Id?: string | null; armorId?: string | null; armor2Id?: string | null; fashionId?: string | null; ringId?: string | null; cloakId?: string | null; specialTarget?: GearType; specialPity?: boolean; extraSlot?: 'weapon' | 'armor'; level?: number; exp?: number; drops?: WorldDrop[]; bossDefeated?: boolean; attributePoints?: number; attributeAllocation?: AttributeAllocation; soul?: number; normalTalent?: number; normalTalentLevels?: number[]; advancedTalent?: number; advancedTalentLevel?: number; talentFragments?: number; talentCoins?: number; lotteryChances?: number; shopFashionBought?: boolean; shopWeek?: string; shopBought?: string[]; travelMerchantDay?: string; travelMerchantOffer?: MerchantOffer | null; travelMerchantBoughtDay?: string; travelMerchantRerolls?: number; reviveCoins?: number; reviveUsed?: boolean; fragmentBuyDay?: string; reviveBuyAt?: number; materials?: Record<string, number>; stones?: number[]; enhance?: { weapon: number; armor: number; armor2: number; weapon2: number; ring: number; failWeapon: number; failArmor: number; failArmor2: number; failWeapon2: number; failRing: number }; nightmareCleared?: number[]; nightmareDay?: string; nightmareAttempts?: number; stamps?: number; stampTypes?: number[]; hiddenStake?: number; hiddenStakeTypes?: number[]; freeReviveDay?: string; tutorialDone?: boolean; hiddenCleared?: boolean; rivalTrust?: boolean; stage8Choice?: 'save' | 'chase' | 'together' | null; rescuedRock?: boolean; rescuedXiaoman?: boolean; rescuedZhou?: boolean; seenStories?: string[]; forgeIntroSeen?: boolean; shopIntroSeen?: boolean; lotteryIntroSeen?: boolean; townIntroSeen?: boolean; travelMerchantIntroSeen?: boolean; rankIntroSeen?: boolean; hazardIntroSeen?: boolean; treeClaimDay?: string; mainQuestsClaimed?: number[]; sideQuest?: { stage: number; clears: number } | null; sideQuestDay?: string; skillLevels?: Record<string, number>; awakenedSkills?: Record<string, boolean>; awakenPractice?: Record<string, number>; awakenDisabled?: Record<string, boolean>; awakenTarget?: { set: SkillSetKey; index: number } | null; gems?: Gem[]; punchStones?: number; punchBuyAt?: number; horns?: number; hornBuyAt?: number; hornBuff?: 'material' | 'attack' | 'gear' | null; hornBuffUntil?: number; name?: string; p2Name?: string; coop?: boolean; p2Role?: Role; p2WeaponId?: string | null; p2ArmorId?: string | null; p2FashionId?: string | null; mailClaimed?: boolean; mailClaimed2?: boolean; mailClaimed3?: boolean; deletedMails?: number[]; updateNoticeReadId?: string; bagUnread?: boolean; redeemedCodes?: string[]; redeemedCodes2?: string[]; combatData?: { attacks: number; skills: number; defends: number; skillUses: number[]; stages: number[] }; adDay?: string; adRewards?: string[]; adLongDay?: string; adLongRewards?: string[]; adReviveDay?: string; adReviveCount?: number; town: boolean; completed: boolean; dead: boolean }
 type SaveSlot = { id: string; label: string; data: Save; updatedAt: number }
-type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; flyPhase?: number; flyAmplitude?: number; flySpeed?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number; specialTimer?: number; specialWindup?: number; specialKind?: 'pierce' | 'exclusive' | 'laser' | 'homing' | 'fire' | 'wind'; specialNext?: 'pierce' | 'exclusive' | 'laser' | 'homing' | 'fire' | 'wind'; specialDirection?: number; mobSkillTimer?: number; skillWindup?: number; skillKind?: 'lunge' | 'slam'; preferredAttack?: 'melee' | 'ranged'; spiralLiftTimer?: number; lift?: number; staggerTimer?: number; staggerHits?: number; staggerHitTimer?: number; staggerImmune?: number; superArmor?: number; revived?: boolean; twinIndex?: 0 | 1; permaStealth?: boolean; inMeleeRange?: boolean; tutorial?: boolean; mirror?: boolean; mirrorRole?: Role; mirrorSet?: SkillSetKey; stationary?: boolean; scarecrow?: boolean; burnTimer?: number; burnTick?: number; burnDamage?: number; chillTimer?: number; anchorX?: number; summonCount?: number; summonTimer?: number; invulnTimer?: number; invulnCycle?: number; fieldTimer?: number; mp?: number; mirrorSkillTimer?: number; mirrorWindup?: number; mirrorSkill?: number; mirrorBuffTimer?: number; mirrorBurst?: number; mirrorBurstWait?: number; mirrorSwitch?: number; mirrorSwapTimer?: number; mirrorNextRole?: Role; mirrorNextSet?: SkillSetKey; mirrorGuard?: number; mirrorGuardCd?: number; mirrorBoltTimer?: number; wanderTimer?: number; wanderTargetX?: number | null; bossClone?: boolean; cloneExpire?: number; cloneSource?: number; permanentArmor?: boolean; hiddenTimer?: number; phase?: number; guardTimer?: number; guardCd?: number; modelIndex?: number; mobVariant?: number; scaleVariant?: number; teleport?: boolean; teleportTimer?: number; platformX?: number; platformW?: number; platformHeight?: number }
+// Boss 元素技能：按关卡主题分配，避免所有 Boss 都使用喷火/狂风模板。
+type BossElement = 'fire' | 'wind' | 'frost' | 'poison' | 'thunder' | 'earth' | 'shadow' | 'holy' | 'water' | 'void'
+type BossSpecialKind = 'pierce' | 'exclusive' | 'laser' | 'homing' | BossElement
+type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; flyPhase?: number; flyAmplitude?: number; flySpeed?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number; specialTimer?: number; specialWindup?: number; specialKind?: BossSpecialKind; specialNext?: BossSpecialKind; specialStep?: number; specialDirection?: number; mobSkillTimer?: number; skillWindup?: number; skillKind?: 'lunge' | 'slam'; preferredAttack?: 'melee' | 'ranged'; spiralLiftTimer?: number; lift?: number; staggerTimer?: number; staggerHits?: number; staggerHitTimer?: number; staggerImmune?: number; superArmor?: number; revived?: boolean; twinIndex?: 0 | 1; permaStealth?: boolean; inMeleeRange?: boolean; tutorial?: boolean; mirror?: boolean; mirrorRole?: Role; mirrorSet?: SkillSetKey; stationary?: boolean; scarecrow?: boolean; burnTimer?: number; burnTick?: number; burnDamage?: number; chillTimer?: number; anchorX?: number; summonCount?: number; summonTimer?: number; invulnTimer?: number; invulnCycle?: number; fieldTimer?: number; mp?: number; mirrorSkillTimer?: number; mirrorWindup?: number; mirrorSkill?: number; mirrorBuffTimer?: number; mirrorBurst?: number; mirrorBurstWait?: number; mirrorSwitch?: number; mirrorSwapTimer?: number; mirrorNextRole?: Role; mirrorNextSet?: SkillSetKey; mirrorGuard?: number; mirrorGuardCd?: number; mirrorBoltTimer?: number; wanderTimer?: number; wanderTargetX?: number | null; bossClone?: boolean; cloneExpire?: number; cloneSource?: number; permanentArmor?: boolean; hiddenTimer?: number; phase?: number; guardTimer?: number; guardCd?: number; modelIndex?: number; mobVariant?: number; scaleVariant?: number; teleport?: boolean; teleportTimer?: number; platformX?: number; platformW?: number; platformHeight?: number }
 type Fx = { x: number; y: number; life: number; kind: string; direction?: number; text?: string; damage?: number; duration?: number; vx?: number; vy?: number; color?: string; radius?: number }
-type HazardKind = 'spike' | 'flame' | 'poison' | 'lightning' | 'void' | 'light'
+type HazardKind = 'spike' | 'flame' | 'ice' | 'poison' | 'lightning' | 'void' | 'light'
 type Hazard = { id: number; x: number; kind: HazardKind; warn: number; warnTotal: number; active: number; activeTotal: number; hit: boolean; radius: number; fromBoss?: boolean }
 type Projectile = { x: number; y: number; vx: number; vy?: number; life: number; damage: number; targetId: number; kind?: 'homing' | 'arrow' | 'book' | 'charged' | 'fall' | 'blast'; pierce?: boolean; hitIds?: number[]; maxDistance?: number; startX?: number; label?: string; radius?: number; fromClone?: boolean }
 type FoeShot = { x: number; y: number; vx: number; vy: number; damage: number; radius: number; color: string; life: number; homing?: boolean; speed?: number; turnRate?: number; fromBoss?: boolean; wave?: number; wavePhase?: number; waveFreq?: number }
@@ -67,7 +70,7 @@ const UPDATE_NOTES = [
   '第 22 关双 Boss 使用不同模型与对比配色。',
   '御剑飞行对 Boss 的垂直命中范围放宽到 230px，穿过 Boss 必定结算伤害。',
   '御剑术飞剑后续攻击必定命中并忽略高度判定。',
-  'Boss 技能新增正面喷火与狂风吐息，喷火造成锥形伤害，狂风会把角色推退。',
+  'Boss 元素技能按关卡属性分化：火（正面喷火）、风（推退）、冰（冰锥封锁）、毒（毒雾）、雷（连续落雷）、土（岩刺裂地）、暗影（瞬移背刺）、圣光（光柱审判）、水（潮汐推退）、虚空（引力拉扯），不再共用同一套吐息模板。',
   '第 21~30 关小怪血量提高 20%，攻击降低 10%。',
   '新增「技能觉醒」：救出小满后可进入时间回廊，在觉醒界面选择当前武器技能进行觉醒；普通与觉醒版本共享技能等级。',
   '觉醒条件：战士用目标技能对稻草人造成单次 ≥800 伤害（多段合计）计 1 次；法师靠近稻草人承受反击，每次受击计 1 次。',
@@ -120,7 +123,7 @@ const PUBLIC_UPDATE_NOTES = [
   '战斗背景改为明亮高饱和配色，取消暖色滤镜与暗角。',
   '所有怪物闪避降低 10%。',
   '宝石镶嵌改为左右点选布局。换装时宝石按孔位自动转移，宝石背包改为独立槽位。同一件装备每种宝石限一颗。角色等级上限 130，宝石最高十五阶。',
-  '双生 Boss 使用不同模型；御剑飞行与御剑术对 Boss 判定放宽并必定命中；21~30 关小怪血量 +20%、攻击 -10%。Boss 新增喷火与狂风技能。',
+  '双生 Boss 使用不同模型；御剑飞行与御剑术对 Boss 判定放宽并必定命中；21~30 关小怪血量 +20%、攻击 -10%。Boss 元素技能按关卡分为火、风、冰、毒、雷、土、暗影、圣光、水、虚空十种。',
   '修复复活 Boss 无敌不结束的问题。',
   '新增技能觉醒系统：四种武器各四个技能均可觉醒，觉醒后永久 +10% 伤害。',
   '时间回廊、觉醒碎片与觉醒书玩法上线；4399 版兑换觉醒书需观看广告。',
@@ -773,6 +776,7 @@ const STAGE_HAZARDS: Array<HazardKind | null> = [null, null, 'flame', 'spike', '
 const HAZARD_CONFIG: Record<HazardKind, { radius: number; warn: number; active: number; name: string; shake: number }> = {
   spike: { radius: 44, warn: .75, active: 2, name: '地刺喷发', shake: 4 },
   flame: { radius: 52, warn: .85, active: 2, name: '火焰喷发', shake: 5 },
+  ice: { radius: 50, warn: .8, active: 2, name: '冰晶喷发', shake: 4 },
   poison: { radius: 58, warn: .9, active: 2, name: '毒气喷发', shake: 3 },
   lightning: { radius: 50, warn: .85, active: 2, name: '雷击', shake: 6 },
   void: { radius: 56, warn: .95, active: 2, name: '虚空裂隙', shake: 5 },
@@ -849,7 +853,7 @@ const MOB_RANGED: Array<BossRangedConfig | null> = [
 ]
 // 每个 Boss 都有独立专属技能；冷却更短，专属技能使用频率更高。
 const BOSS_SPECIAL_COOLDOWNS = [5.4, 5.2, 5.0, 4.8, 4.6, 4.4, 4.2, 4.0, 3.8, 2.4, 4.0, 3.8, 3.7, 3.6, 3.5, 3.4, 3.3, 3.2, 3.1, 2.0, 2.2, 2.1, 2.0, 1.9, 1.8, 1.8, 1.7, 1.7, 1.6, 1.4]
-const BOSS_SPECIAL_NAMES: Array<{ pierce: string; exclusive: string; laser?: string; homing?: string; fire?: string; wind?: string; effect?: string } | null> = [
+const BOSS_SPECIAL_NAMES: Array<{ pierce: string; exclusive: string; laser?: string; homing?: string; effect?: string } | null> = [
   { pierce: '苔痕突刺', exclusive: '古木震击', laser: '苔光射线', homing: '藤蔓追猎', effect: 'quake' },
   { pierce: '钟摆突刺', exclusive: '沉钟回响', laser: '冷钟射线', homing: '钟声追猎', effect: 'ring' },
   { pierce: '熔岩突刺', exclusive: '赤岩陨落', laser: '熔火射线', homing: '火种追猎', effect: 'meteor' },
@@ -882,6 +886,21 @@ const BOSS_SPECIAL_NAMES: Array<{ pierce: string; exclusive: string; laser?: str
   { pierce: '虚无穿刺', exclusive: '虚无审判', laser: '虚无射线', homing: '虚无追猎', effect: 'void' },
   { pierce: '创世穿刺', exclusive: '创世终焉', laser: '创世射线', homing: '创世追猎', effect: 'crown' },
 ]
+// 每个 Boss 的元素技能类型与名称：按关卡场景属性分配，不再所有 Boss 共用喷火/狂风模板。
+const BOSS_ELEMENTS: BossElement[] = [
+  'earth', 'frost', 'fire', 'wind', 'water', 'void', 'fire', 'shadow', 'holy', 'void',
+  'shadow', 'earth', 'frost', 'fire', 'thunder', 'poison', 'earth', 'shadow', 'holy', 'holy',
+  'shadow', 'holy', 'earth', 'shadow', 'void', 'fire', 'poison', 'shadow', 'void', 'holy',
+]
+const BOSS_ELEMENT_NAMES = [
+  '藤蔓绞杀', '霜钟寒潮', '熔岩喷吐', '裂风吐息', '潮汐冲击', '虚空吞噬', '灰烬焚风', '血影猎杀', '日轮圣裁', '星门虚空',
+  '双影绞杀', '铁壁地裂', '镜霜折射', '炉心烈焰', '雷暴链', '腐殖瘴雾', '流沙葬', '帷幕暗影', '星核圣光', '天穹审判',
+  '暮影侵蚀', '日月裁决', '时砂流葬', '无影斩杀', '深渊引力', '星陨火雨', '永夜毒瘴', '终幕暗影', '虚无坍缩', '创世圣光',
+]
+const BOSS_ELEMENT_KINDS: BossElement[] = ['fire', 'wind', 'frost', 'poison', 'thunder', 'earth', 'shadow', 'holy', 'water', 'void']
+function isBossElement(kind: BossSpecialKind): kind is BossElement {
+  return (BOSS_ELEMENT_KINDS as string[]).includes(kind)
+}
 // 主题顺序与关卡名称对应；第二章使用独立的配色与场景。
 const BOSS_THEMES = ['moss', 'frost', 'ember', 'storm', 'tide', 'void', 'ash', 'blood', 'sun', 'star', 'rift', 'iron', 'mirror', 'forge', 'thunder', 'plague', 'time', 'shadow', 'stellar', 'crown', 'dusk', 'twin', 'hourglass', 'stealth', 'abyss', 'starfall', 'nightgarden', 'finale', 'void2', 'genesis']
 const BOSS_THEME_COLORS: Record<string, string> = { ember: '#f49b58', frost: '#a9e2e5', storm: '#f2dc79', void: '#d78fb4', moss: '#a7cf77', sun: '#ffe28a', blood: '#ec6464', tide: '#69c7d2', ash: '#c9c2b0', star: '#b8a4f4', rift: '#b58cff', iron: '#8fa7c7', mirror: '#9fe8e0', forge: '#ff9a5a', thunder: '#e8d86a', plague: '#8fd06a', time: '#e8c97a', shadow: '#c77a9f', stellar: '#8fb8ff', crown: '#ffd27a', dusk: '#e8a060', twin: '#c9a7ff', hourglass: '#f0d890', stealth: '#8a9aa8', abyss: '#a06ad0', starfall: '#8fc8ff', nightgarden: '#b8e08a', finale: '#e88aa8', void2: '#b8a4f4', genesis: '#ffe6a8' }
@@ -3150,18 +3169,22 @@ function startBossSpecial(foe: Foe, stageIndex: number) {
   if (!game) return
   const special = BOSS_SPECIAL_NAMES[stageIndex]
   if (!special) return
-  // 专属技能在循环中出现三次，保证每个 Boss 的特色机制有足够使用频率。
-  const cycle: Array<'pierce' | 'exclusive' | 'laser' | 'homing' | 'fire' | 'wind'> = foe.twinIndex === 1
-    ? ['homing', 'fire', 'laser', 'exclusive', 'wind', 'pierce', 'exclusive']
-    : ['pierce', 'exclusive', 'fire', 'laser', 'exclusive', 'wind', 'homing', 'exclusive']
-  const kind: 'pierce' | 'exclusive' | 'laser' | 'homing' | 'fire' | 'wind' = foe.specialNext && cycle.includes(foe.specialNext) ? foe.specialNext : 'pierce'
+  // 专属技能在循环中出现三次；喷射类技能使用当关自己的元素，而不是统一的火/风。
+  const element = BOSS_ELEMENTS[stageIndex] ?? 'void'
+  const cycle: BossSpecialKind[] = foe.twinIndex === 1
+    ? ['homing', element, 'laser', 'exclusive', element, 'pierce', 'exclusive']
+    : ['pierce', 'exclusive', element, 'laser', 'exclusive', element, 'homing', 'exclusive']
+  // 用 specialStep 记录循环位置，允许同一个元素在循环里出现两次而不卡在同一格。
+  const step = typeof foe.specialStep === 'number'
+    ? foe.specialStep % cycle.length
+    : Math.max(0, cycle.indexOf(foe.specialNext ?? 'pierce'))
+  const kind: BossSpecialKind = cycle[step]
   const name = kind === 'pierce' ? special.pierce
     : kind === 'exclusive' ? special.exclusive
       : kind === 'laser' ? (special.laser ?? '湮灭激光')
-        : kind === 'fire' ? (special.fire ?? '焚风吐息')
-          : kind === 'wind' ? (special.wind ?? '裂风吐息')
-            : (special.homing ?? '追踪弹幕')
-  const duration = kind === 'pierce' ? .8 : kind === 'laser' ? .9 : kind === 'fire' || kind === 'wind' ? 1.05 : .95
+        : kind === 'homing' ? (special.homing ?? '追踪弹幕')
+          : (BOSS_ELEMENT_NAMES[stageIndex] ?? '元素爆发')
+  const duration = kind === 'pierce' ? .8 : kind === 'laser' ? .9 : isBossElement(kind) ? 1.05 : .95
   const theme = BOSS_THEMES[stageIndex]
   const color = BOSS_THEME_COLORS[theme] ?? '#d78fb4'
   const direction = Math.sign(heroX - foe.x) || 1
@@ -3169,7 +3192,9 @@ function startBossSpecial(foe: Foe, stageIndex: number) {
   foe.specialDirection = direction
   foe.specialWindup = duration
   foe.specialTimer = (BOSS_SPECIAL_COOLDOWNS[stageIndex] ?? 6) * (foe.bossClone ? 1.6 : 1)
-  foe.specialNext = cycle[(cycle.indexOf(kind) + 1) % cycle.length]
+  const nextStep = (step + 1) % cycle.length
+  foe.specialStep = nextStep
+  foe.specialNext = cycle[nextStep]
   foe.flash = .2; foe.attackAnim = .5
   if (effects.length < 160) effects.push({ kind: `boss-unique-${stageIndex}`, x: foe.x, y: world.floor - 110, direction, life: duration, duration, color, text: name })
   addSparks(foe.x, world.floor - 105, 12, [color, '#fff6d0'], 130)
@@ -3328,7 +3353,7 @@ function executeExclusiveEffect(foe: Foe, effect: string | undefined, stageIndex
       addShake(9)
   }
 }
-function executeBossSpecial(foe: Foe, kind: 'pierce' | 'exclusive' | 'laser' | 'homing' | 'fire' | 'wind', stageIndex: number) {
+function executeBossSpecial(foe: Foe, kind: BossSpecialKind, stageIndex: number) {
   if (!game) return
   const stageValues = STAGE_CONFIG[stageIndex]
   const color = BOSS_THEME_COLORS[BOSS_THEMES[stageIndex]] ?? '#d78fb4'
@@ -3338,9 +3363,8 @@ function executeBossSpecial(foe: Foe, kind: 'pierce' | 'exclusive' | 'laser' | '
   const name = kind === 'pierce' ? (special?.pierce ?? '贯穿')
     : kind === 'exclusive' ? (special?.exclusive ?? '专属技能')
       : kind === 'laser' ? (special?.laser ?? '湮灭射线')
-        : kind === 'fire' ? (special?.fire ?? '焚风吐息')
-          : kind === 'wind' ? (special?.wind ?? '裂风吐息')
-            : (special?.homing ?? '追踪弹幕')
+        : kind === 'homing' ? (special?.homing ?? '追踪弹幕')
+          : (BOSS_ELEMENT_NAMES[stageIndex] ?? '元素爆发')
   if (kind !== 'exclusive' && effects.length < 160) {
     effects.push({ kind: `boss-unique-${stageIndex}`, x: foe.x, y: world.floor - 86, direction, life: 1.1, duration: 1.1, color, text: name })
   }
@@ -3354,25 +3378,8 @@ function executeBossSpecial(foe: Foe, kind: 'pierce' | 'exclusive' | 'laser' | '
     setLog(`守关者释放「${name}」！跳跃可以躲开。`)
     return
   }
-  if (kind === 'fire') {
-    // 正面火焰吐息：持续向前方喷出锥形火焰。
-    addFx('boss-breath-fire', foe.x, world.floor - 86, direction, 1.15, '#ff8a3c')
-    addShake(8)
-    if (Math.sign(heroX - foe.x) === direction && Math.abs(heroX - foe.x) <= 430 && heroY > -130) {
-      hurtPlayer(stageValues.bossAtk * 2.1, 8, true, foe.x)
-    }
-    setLog(`守关者向前方喷出「${name}」！不要在正面停留。`)
-    return
-  }
-  if (kind === 'wind') {
-    // 正面狂风：伤害较低，但会把角色强力推开。
-    addFx('boss-breath-wind', foe.x, world.floor - 86, direction, 1.1, '#bfe8ff')
-    addShake(9)
-    if (Math.sign(heroX - foe.x) === direction && Math.abs(heroX - foe.x) <= 520) {
-      heroX = clampHeroX(heroX + direction * 220)
-      hurtPlayer(stageValues.bossAtk * 1.1, 6, true, foe.x)
-    }
-    setLog(`守关者吹出「${name}」！角色会被强风推退。`)
+  if (isBossElement(kind)) {
+    executeBossElement(foe, kind, stageIndex)
     return
   }
   if (kind === 'homing') {
@@ -3390,6 +3397,111 @@ function executeBossSpecial(foe: Foe, kind: 'pierce' | 'exclusive' | 'laser' | '
   }
   executeExclusiveEffect(foe, special?.effect, stageIndex)
   setLog(`${foe.bossClone ? '分身' : '守关者'}释放「${name}」！`)
+}
+function executeBossElement(foe: Foe, element: BossElement, stageIndex: number) {
+  if (!game) return
+  const config = STAGE_CONFIG[stageIndex]
+  const color = BOSS_THEME_COLORS[BOSS_THEMES[stageIndex]] ?? '#d78fb4'
+  const direction = foe.specialDirection ?? (Math.sign(heroX - foe.x) || 1)
+  const name = BOSS_ELEMENT_NAMES[stageIndex] ?? '元素爆发'
+  const label = foe.bossClone ? '分身' : '守关者'
+  // 落点跟随施法瞬间的角色位置，避免元素技能全部变成同一种正面吐息。
+  const at = (offset: number) => Math.max(MAP_LEFT + 50, Math.min(unlockedWidth - 60, heroX + offset))
+  // 火/风沿用原有吐息演出，其余元素使用各自的独立特效。
+  const fxKind = element === 'fire' ? 'boss-breath-fire' : element === 'wind' ? 'boss-breath-wind' : `boss-element-${element}`
+  const fxColor = element === 'fire' ? '#ff8a3c' : element === 'wind' ? '#bfe8ff' : color
+  addFx(fxKind, foe.x, world.floor - 86, direction, 1.15, fxColor)
+  switch (element) {
+    case 'fire':
+      // 火：正面锥形喷火，持续伤害正面区域。
+      addShake(8)
+      if (Math.sign(heroX - foe.x) === direction && Math.abs(heroX - foe.x) <= 430 && heroY > -130) {
+        hurtPlayer(config.bossAtk * 2.1, 8, true, foe.x)
+      }
+      setLog(`${label}喷出「${name}」！不要停留在正面。`)
+      break
+    case 'wind':
+      // 风：伤害较低，但把角色强力推离 Boss。
+      addShake(9)
+      if (Math.sign(heroX - foe.x) === direction && Math.abs(heroX - foe.x) <= 520) {
+        heroX = clampHeroX(heroX + direction * 220)
+        hurtPlayer(config.bossAtk * 1.1, 6, true, foe.x)
+      }
+      setLog(`${label}卷起「${name}」！角色会被强风推退。`)
+      break
+    case 'frost':
+      // 冰：冰锥从角色脚下与身侧刺出，追加一排冰弹封锁走位。
+      for (let i = 0; i < 3; i += 1) spawnBossHazard('ice', at((i - 1) * 130), .7 + i * .12)
+      fireShotFan(foe.x, world.floor - 70, heroX, 5, .7, 380, config.bossAtk * .55, '#c8f5ff', 7, 4, true)
+      addSparks(foe.x, world.floor - 80, 18, ['#c8f5ff', '#ffffff'], 190)
+      addShake(7)
+      setLog(`${label}释放「${name}」！冰锥会从脚下刺出。`)
+      break
+    case 'poison':
+      // 毒：毒雾连续封锁角色周围的地面，并追加追踪毒弹。
+      spawnBossHazard('poison', at(0), .75)
+      spawnBossHazard('poison', at(-150), .95)
+      spawnBossHazard('poison', at(150), 1.15)
+      fireHomingVolley(foe, stageIndex, 3)
+      addShake(6)
+      setLog(`${label}释放「${name}」！毒雾会持续封锁地面。`)
+      break
+    case 'thunder':
+      // 雷：沿角色两侧连续落雷，再向四周射出电弹。
+      for (let i = 0; i < 4; i += 1) spawnBossHazard('lightning', at((i - 1.5) * 170), .55 + i * .1)
+      fireShotFan(foe.x, world.floor - 70, heroX, 6, Math.PI * 2, 360, config.bossAtk * .5, '#f2dc79', 6, 3.5, true)
+      addShake(11)
+      setLog(`${label}释放「${name}」！落雷会沿地面追来。`)
+      break
+    case 'earth':
+      // 土：沿地面裂出一排岩刺，近身范围额外震伤。
+      for (let i = 0; i < 3; i += 1) spawnBossHazard('spike', at(direction * (i - 1) * 150), .7 + i * .1)
+      addShake(13)
+      if (Math.abs(heroX - foe.x) < 260 && heroY > -46) hurtPlayer(config.bossAtk * 1.8, 10, true, foe.x)
+      setLog(`${label}释放「${name}」！地面会裂开并刺出岩刺。`)
+      break
+    case 'shadow':
+      // 暗影：瞬移到角色另一侧，从背后斩出暗影弹。
+      addFx('blink-rift', foe.x, world.floor - 70, direction, .45, '#c77a9f')
+      foe.x = clampFoeX(heroX + direction * 150)
+      addFx('blink-rift', foe.x, world.floor - 70, -direction, .55, '#c77a9f')
+      fireShotFan(foe.x, world.floor - 70, heroX, 8, 1.1, 420, config.bossAtk * .6, '#c77a9f', 7, 4, true)
+      if (Math.abs(heroX - foe.x) < 190) hurtPlayer(config.bossAtk * 1.7, 9, true, foe.x)
+      addShake(8)
+      setLog(`${label}隐入暗影，从背后发动「${name}」！`)
+      break
+    case 'holy':
+      // 圣光：在角色周围降下光柱，并用圣光弹封住退路。
+      spawnBossHazard('light', at(0), .7)
+      spawnBossHazard('light', at(-160), .95)
+      spawnBossHazard('light', at(160), 1.2)
+      fireShotFan(foe.x, world.floor - 90, heroX, 8, Math.PI * 2, 300, config.bossAtk * .5, '#ffe6a8', 7, 3.5, true)
+      addShake(10)
+      setLog(`${label}降下「${name}」！光柱落地前会先亮起。`)
+      break
+    case 'water':
+      // 水：环形水浪冲击全场，并把角色向外推开。
+      fireShotFan(foe.x, world.floor - 60, heroX, 14, Math.PI * 2, 300, config.bossAtk * .45, '#86d4dc', 8, 3.2, true)
+      if (Math.abs(heroX - foe.x) <= 560) {
+        heroX = clampHeroX(heroX + (Math.sign(heroX - foe.x) || 1) * 150)
+        hurtPlayer(config.bossAtk * 1.2, 7, true, foe.x)
+      }
+      addShake(8)
+      setLog(`${label}掀起「${name}」！水浪会把角色推开。`)
+      break
+    case 'void':
+      // 虚空：把角色拉向 Boss，并在脚下展开虚空裂隙。
+      spawnBossHazard('void', at(0), .8)
+      if (Math.abs(heroX - foe.x) <= 620) {
+        const pull = Math.sign(foe.x - heroX) || 1
+        heroX = clampHeroX(heroX + pull * 190)
+        hurtPlayer(config.bossAtk * 1.3, 7, true, foe.x)
+      }
+      fireHomingVolley(foe, stageIndex, 4)
+      addShake(10)
+      setLog(`${label}展开「${name}」！角色会被拉向 Boss。`)
+      break
+  }
 }
 function spawnWavePair() {
   if (!game || !waveSpawnQueue.length) return
@@ -13533,10 +13645,11 @@ function drawHazards(c: CanvasRenderingContext2D) {
       const ratio = 1 - hazard.warn / hazard.warnTotal
       const color = hazard.kind === 'poison' ? '#8fe08a'
         : hazard.kind === 'flame' ? '#ff9a5c'
-          : hazard.kind === 'lightning' ? '#f2dc79'
-            : hazard.kind === 'void' ? '#c58ae8'
-              : hazard.kind === 'light' ? '#ffe6a8'
-                : theme.accent
+          : hazard.kind === 'ice' ? '#a9e8ff'
+            : hazard.kind === 'lightning' ? '#f2dc79'
+              : hazard.kind === 'void' ? '#c58ae8'
+                : hazard.kind === 'light' ? '#ffe6a8'
+                  : theme.accent
       const pulse = .35 + Math.sin(now / 95 + hazard.id) * .12
       c.globalAlpha = pulse
       c.fillStyle = color
@@ -13560,6 +13673,24 @@ function drawHazards(c: CanvasRenderingContext2D) {
         }
         c.globalAlpha = .5; c.fillStyle = theme.accent
         c.beginPath(); c.ellipse(hazard.x, world.floor + 2, hazard.radius, hazard.radius * .22, 0, 0, Math.PI * 2); c.fill()
+      } else if (hazard.kind === 'ice') {
+        // 冰晶喷发：淡蓝色冰柱与地面霜环。
+        for (let i = 0; i < 4; i += 1) {
+          const sx = hazard.x + (i - 1.5) * 17
+          const height = 22 + (i % 2) * 12 + rise * 26
+          c.globalAlpha = .92
+          c.fillStyle = i % 2 ? '#e8fbff' : '#9fe0f5'
+          c.beginPath(); c.moveTo(sx - 6, world.floor + 2); c.lineTo(sx, world.floor - height); c.lineTo(sx + 7, world.floor + 2); c.closePath(); c.fill()
+          c.strokeStyle = '#ffffff'; c.lineWidth = 1; c.stroke()
+        }
+        c.globalAlpha = .5; c.strokeStyle = '#c8f5ff'; c.lineWidth = 2
+        c.beginPath(); c.ellipse(hazard.x, world.floor + 2, hazard.radius * (.8 + rise * .2), hazard.radius * .24, 0, 0, Math.PI * 2); c.stroke()
+        c.globalAlpha = .8; c.fillStyle = '#ffffff'
+        for (let i = 0; i < 6; i += 1) {
+          const bx = hazard.x + Math.sin(now / 180 + i * 2.2) * 22
+          const by = world.floor - 10 - ((now / 11 + i * 15) % 56)
+          c.beginPath(); c.arc(bx, by, 1.4 + (i % 2), 0, Math.PI * 2); c.fill()
+        }
       } else if (hazard.kind === 'flame') {
         // 火焰喷发：橙红色火柱 + 上升火星。
         const height = 42 + rise * 36
@@ -15322,6 +15453,136 @@ function drawUniqueBossSkill(c: CanvasRenderingContext2D, stage: number, p: numb
   }
   c.restore()
 }
+// Boss 元素技能的独立演出：每种属性使用不同几何形状，避免所有 Boss 共用吐息模板。
+function drawBossElementFx(c: CanvasRenderingContext2D, fx: Fx, progress: number, alpha: number) {
+  const element = fx.kind.slice('boss-element-'.length)
+  const dir = fx.direction ?? 1
+  const color = fx.color ?? '#d78fb4'
+  const now = performance.now()
+  c.save()
+  c.strokeStyle = color; c.fillStyle = color; c.lineWidth = 2.4; c.lineJoin = 'round'
+  if (element === 'frost') {
+    // 冰霜：扩散的六角雪环与飞散的冰晶。
+    for (let ring = 0; ring < 3; ring += 1) {
+      const k = Math.min(1, progress * 1.4 + ring * .12)
+      c.globalAlpha = alpha * (1 - k * .65)
+      c.beginPath()
+      for (let i = 0; i < 6; i += 1) {
+        const angle = i * Math.PI / 3 + now / 1600
+        const radius = 26 + k * 130 + ring * 16
+        const px = fx.x + Math.cos(angle) * radius
+        const py = fx.y + Math.sin(angle) * radius * .55
+        if (i === 0) c.moveTo(px, py); else c.lineTo(px, py)
+      }
+      c.closePath(); c.stroke()
+    }
+    c.globalAlpha = alpha * .85; c.fillStyle = '#e8fbff'
+    for (let i = 0; i < 10; i += 1) {
+      const angle = now / 500 + i * .63
+      const radius = 30 + progress * 120 + (i % 3) * 16
+      c.beginPath(); c.arc(fx.x + Math.cos(angle) * radius, fx.y + Math.sin(angle) * radius * .55, 1.6 + (i % 2), 0, Math.PI * 2); c.fill()
+    }
+  } else if (element === 'poison') {
+    // 毒素：膨胀的毒云与滴落的毒液。
+    for (let i = 0; i < 6; i += 1) {
+      const bx = fx.x + Math.sin(now / 300 + i * 1.7) * (18 + progress * 40)
+      const by = fx.y - 6 + Math.cos(now / 340 + i * 2.1) * 14 - progress * 20
+      c.globalAlpha = alpha * (.18 + (i % 3) * .07)
+      c.beginPath(); c.arc(bx, by, 16 + progress * 16 + (i % 3) * 5, 0, Math.PI * 2); c.fill()
+    }
+    c.globalAlpha = alpha * .8; c.fillStyle = '#d8ffb0'
+    for (let i = 0; i < 9; i += 1) {
+      const bx = fx.x + dir * (20 + progress * 130) + Math.sin(now / 140 + i) * 16
+      const by = fx.y + 20 + ((now / 16 + i * 13) % 50)
+      c.beginPath(); c.arc(bx, by, 1.5 + (i % 2), 0, Math.PI * 2); c.fill()
+    }
+  } else if (element === 'thunder') {
+    // 雷电：从天空劈下的折线电光与冲击环。
+    c.globalAlpha = alpha * .9; c.strokeStyle = '#fff6b0'; c.lineWidth = 3
+    for (let bolt = 0; bolt < 3; bolt += 1) {
+      let px = fx.x + (bolt - 1) * 34
+      c.beginPath(); c.moveTo(px, -30)
+      for (let seg = 1; seg <= 6; seg += 1) {
+        px += Math.sin(now / 45 + seg * 1.7 + bolt * 2.3) * 15
+        c.lineTo(px, world.floor * seg / 6)
+      }
+      c.stroke()
+    }
+    c.globalAlpha = alpha * .7; c.strokeStyle = color; c.lineWidth = 2
+    c.beginPath(); c.ellipse(fx.x, world.floor - 2, 40 + progress * 160, 14 + progress * 46, 0, 0, Math.PI * 2); c.stroke()
+  } else if (element === 'earth') {
+    // 大地：放射状地裂与从裂缝中隆起的岩块。
+    c.globalAlpha = alpha * .85; c.strokeStyle = color; c.lineWidth = 3
+    for (let i = 0; i < 7; i += 1) {
+      const angle = (i / 7) * Math.PI * 2
+      c.beginPath(); c.moveTo(fx.x, world.floor + 2)
+      c.lineTo(fx.x + Math.cos(angle) * (30 + progress * 150), world.floor - Math.abs(Math.sin(angle)) * 18)
+      c.stroke()
+    }
+    c.globalAlpha = alpha * .9; c.fillStyle = color
+    for (let i = 0; i < 8; i += 1) {
+      const offset = (i - 3.5) * 26
+      const height = 18 + (i % 3) * 12 + progress * 26
+      c.beginPath(); c.moveTo(fx.x + offset - 8, world.floor + 2); c.lineTo(fx.x + offset, world.floor - height); c.lineTo(fx.x + offset + 8, world.floor + 2); c.closePath(); c.fill()
+    }
+  } else if (element === 'shadow') {
+    // 暗影：旋转的暗影旋涡与伸出的触须。
+    for (let ring = 0; ring < 3; ring += 1) {
+      const k = progress + ring * .18
+      c.globalAlpha = alpha * (.7 - ring * .15)
+      c.beginPath(); c.ellipse(fx.x, fx.y, 20 + k * 90, 12 + k * 50, now / 900 + ring, 0, Math.PI * 2); c.stroke()
+    }
+    c.globalAlpha = alpha * .8; c.lineWidth = 4
+    for (let i = 0; i < 6; i += 1) {
+      const angle = now / 380 + i * 1.05
+      c.beginPath(); c.moveTo(fx.x, fx.y)
+      c.quadraticCurveTo(fx.x + Math.cos(angle) * 40, fx.y + Math.sin(angle) * 24, fx.x + Math.cos(angle + .5) * (50 + progress * 60), fx.y + Math.sin(angle + .5) * (30 + progress * 40))
+      c.stroke()
+    }
+  } else if (element === 'holy') {
+    // 圣光：从天而降的光柱与旋转光轮。
+    c.globalAlpha = alpha * .28; c.fillStyle = '#fff6d0'
+    c.fillRect(fx.x - 34, -40, 68, world.floor + 40)
+    c.globalAlpha = alpha * .55; c.fillStyle = '#ffe6a8'
+    c.fillRect(fx.x - dir * 10 - 12, -40, 24, world.floor + 40)
+    c.globalAlpha = alpha * .85; c.strokeStyle = '#fff6d0'; c.lineWidth = 3
+    for (let i = 0; i < 12; i += 1) {
+      const angle = (i / 12) * Math.PI * 2 + now / 1200
+      c.beginPath(); c.moveTo(fx.x + Math.cos(angle) * 20, fx.y + Math.sin(angle) * 12)
+      c.lineTo(fx.x + Math.cos(angle) * (50 + progress * 60), fx.y + Math.sin(angle) * (30 + progress * 36)); c.stroke()
+    }
+    c.beginPath(); c.arc(fx.x, fx.y, 24 + progress * 18, 0, Math.PI * 2); c.stroke()
+  } else if (element === 'water') {
+    // 潮汐：多层向外翻涌的水环。
+    for (let ring = 0; ring < 4; ring += 1) {
+      const k = Math.min(1, progress * 1.2 + ring * .14)
+      c.globalAlpha = alpha * (1 - k * .7); c.strokeStyle = ring % 2 ? '#c9f5f7' : color; c.lineWidth = 4 - ring * .6
+      c.beginPath(); c.ellipse(fx.x, world.floor - 30, 30 + k * 220, 18 + k * 90, 0, Math.PI, Math.PI * 2); c.stroke()
+    }
+    c.globalAlpha = alpha * .7; c.fillStyle = '#e6fbff'
+    for (let i = 0; i < 10; i += 1) {
+      const angle = Math.PI + (i / 9) * Math.PI
+      const radius = 40 + progress * 180
+      c.beginPath(); c.arc(fx.x + Math.cos(angle) * radius, world.floor - 30 + Math.sin(angle) * radius * .42, 1.6 + (i % 2), 0, Math.PI * 2); c.fill()
+    }
+  } else {
+    // 虚空：向内坍缩的裂隙与环绕粒子。
+    for (let ring = 0; ring < 3; ring += 1) {
+      const k = Math.max(0, 1 - progress * 1.3 - ring * .14)
+      c.globalAlpha = alpha * (.8 - ring * .16); c.strokeStyle = ring === 0 ? '#e0b6ff' : color; c.lineWidth = 3
+      c.beginPath(); c.ellipse(fx.x, fx.y, 28 + k * 150, 18 + k * 90, now / 700 + ring, 0, Math.PI * 2); c.stroke()
+    }
+    c.globalAlpha = alpha * .55; c.fillStyle = '#2a1238'
+    c.beginPath(); c.ellipse(fx.x, fx.y, 20 + progress * 10, 12 + progress * 6, 0, 0, Math.PI * 2); c.fill()
+    c.globalAlpha = alpha * .9; c.fillStyle = '#e0b6ff'
+    for (let i = 0; i < 12; i += 1) {
+      const angle = now / 400 + i * .52
+      const radius = 90 - progress * 70 + (i % 3) * 12
+      c.beginPath(); c.arc(fx.x + Math.cos(angle) * radius, fx.y + Math.sin(angle) * radius * .6, 1.5 + (i % 2), 0, Math.PI * 2); c.fill()
+    }
+  }
+  c.restore()
+}
 function drawFx(c: CanvasRenderingContext2D, fx: Fx) {
   const duration = fx.duration ?? .55
   const alpha = Math.min(1, fx.life / duration)
@@ -16185,6 +16446,8 @@ function drawFx(c: CanvasRenderingContext2D, fx: Fx) {
         c.beginPath(); c.moveTo(fx.x + Math.cos(angle) * radius, fx.y + Math.sin(angle) * radius * .6); c.lineTo(fx.x + Math.cos(angle + 2.5) * radius * .7, fx.y + Math.sin(angle + 2.5) * radius * .4); c.stroke()
       }
     }
+  } else if (fx.kind.startsWith('boss-element-')) {
+    drawBossElementFx(c, fx, progress, alpha)
   } else if (fx.kind === 'boss-breath-fire') {
     // 正面火焰吐息：从 Boss 口部喷出的多层锥形火舌。
     const dir = fx.direction ?? 1
