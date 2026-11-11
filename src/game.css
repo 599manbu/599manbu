@@ -2141,7 +2141,28 @@ body { background: #0d1717; }
 .gem-pick span { display: grid; gap: 3px; min-width: 0; }
 .gem-pick b { color: #f0dfb2; font-size: 11px; font-weight: 500; }
 .gem-pick small { overflow: hidden; color: #9fb0a3; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
-.gem-layout-pick .gem-inventory { max-height: 46vh; overflow-y: auto; }
+/* 宝石背包：每颗宝石占一个独立槽位卡片。 */
+.gem-slot-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; max-height: 46vh; overflow-y: auto; padding-right: 2px; }
+.gem-slot-card { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 9px 10px; border: 1px solid rgba(191, 202, 169, .22); border-left: 3px solid #c9b273; border-radius: 3px; background: linear-gradient(120deg, rgba(24, 42, 38, .72), rgba(15, 28, 26, .62)); }
+.gem-slot-card header { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.gem-slot-card .gear-glyph { width: 28px; height: 28px; }
+.gem-slot-card .gear-glyph .item-icon { width: 22px; height: 22px; filter: drop-shadow(0 0 5px currentColor); }
+.gem-slot-count { color: #e4d6a8; font-family: var(--mono); font-size: 11px; }
+.gem-slot-name { overflow: hidden; color: #eee9d7; font-size: 12px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+.gem-slot-stats { overflow: hidden; color: #9fb0a3; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.gem-slot-target { overflow: hidden; color: #8fa79a; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.gem-slot-actions { display: flex; gap: 5px; margin-top: auto; }
+.gem-slot-actions button { flex: 1; min-height: 28px; padding: 0 6px; border: 1px solid rgba(201, 178, 115, .35); border-radius: 2px; background: rgba(40, 60, 52, .55); color: #d9c49a; font-size: 10px; cursor: pointer; }
+.gem-slot-actions button:hover:not(:disabled) { border-color: #e2c57e; background: rgba(66, 56, 30, .6); }
+.gem-slot-actions button:disabled { opacity: .4; cursor: not-allowed; }
+.gem-slot-card.gem-kind-life { border-left-color: #e67a67; }
+.gem-slot-card.gem-kind-defense { border-left-color: #8fcf8a; }
+.gem-slot-card.gem-kind-attack { border-left-color: #ffb066; }
+.gem-slot-card.gem-kind-energy { border-left-color: #7fb8ff; }
+.gem-slot-card.gem-kind-hit { border-left-color: #ffd27a; }
+.gem-slot-card.gem-kind-dodge { border-left-color: #b8e8ff; }
+.gem-slot-card.gem-kind-crit { border-left-color: #ff8a5c; }
+.gem-slot-card.gem-kind-antiCrit { border-left-color: #c9a8ff; }
 .gem-panel { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 12px; border: 1px solid rgba(191, 202, 169, .22); background: rgba(20, 35, 35, .55); }
 .gem-panel > header { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding-bottom: 6px; border-bottom: 1px solid rgba(201, 178, 115, .18); }
 .gem-panel > header h3 { margin: 0; color: #f0dfb2; font-size: 17px; font-weight: 500; }
