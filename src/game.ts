@@ -18,7 +18,7 @@ type AttributeAllocation = Record<AttributeStat, number>
 type StageProgress = { kills: number; bossDefeated: boolean; pointsClaimed?: number }
 type Save = { role: Role; stage: number; unlockedStage: number; kills: number; stageProgress?: Record<string, StageProgress>; hp: number; mp: number; gear: Gear[]; equipped: string | null; weaponId?: string | null; weapon2Id?: string | null; armorId?: string | null; armor2Id?: string | null; fashionId?: string | null; ringId?: string | null; cloakId?: string | null; specialTarget?: GearType; specialPity?: boolean; extraSlot?: 'weapon' | 'armor'; level?: number; exp?: number; drops?: WorldDrop[]; bossDefeated?: boolean; attributePoints?: number; attributeAllocation?: AttributeAllocation; soul?: number; normalTalent?: number; normalTalentLevels?: number[]; advancedTalent?: number; advancedTalentLevel?: number; talentFragments?: number; talentCoins?: number; lotteryChances?: number; shopFashionBought?: boolean; shopWeek?: string; shopBought?: string[]; travelMerchantDay?: string; travelMerchantOffer?: MerchantOffer | null; travelMerchantBoughtDay?: string; travelMerchantRerolls?: number; reviveCoins?: number; reviveUsed?: boolean; fragmentBuyDay?: string; reviveBuyAt?: number; materials?: Record<string, number>; stones?: number[]; enhance?: { weapon: number; armor: number; armor2: number; weapon2: number; ring: number; failWeapon: number; failArmor: number; failArmor2: number; failWeapon2: number; failRing: number }; nightmareCleared?: number[]; nightmareDay?: string; nightmareAttempts?: number; stamps?: number; stampTypes?: number[]; hiddenStake?: number; hiddenStakeTypes?: number[]; freeReviveDay?: string; tutorialDone?: boolean; hiddenCleared?: boolean; rivalTrust?: boolean; stage8Choice?: 'save' | 'chase' | 'together' | null; rescuedRock?: boolean; rescuedXiaoman?: boolean; rescuedZhou?: boolean; seenStories?: string[]; forgeIntroSeen?: boolean; shopIntroSeen?: boolean; lotteryIntroSeen?: boolean; townIntroSeen?: boolean; travelMerchantIntroSeen?: boolean; rankIntroSeen?: boolean; hazardIntroSeen?: boolean; treeClaimDay?: string; mainQuestsClaimed?: number[]; sideQuest?: { stage: number; clears: number } | null; sideQuestDay?: string; skillLevels?: Record<string, number>; awakenedSkills?: Record<string, boolean>; awakenPractice?: Record<string, number>; awakenDisabled?: Record<string, boolean>; awakenTarget?: { set: SkillSetKey; index: number } | null; gems?: Gem[]; punchStones?: number; punchBuyAt?: number; horns?: number; hornBuyAt?: number; hornBuff?: 'material' | 'attack' | 'gear' | null; hornBuffUntil?: number; name?: string; p2Name?: string; coop?: boolean; p2Role?: Role; p2WeaponId?: string | null; p2ArmorId?: string | null; p2FashionId?: string | null; mailClaimed?: boolean; mailClaimed2?: boolean; mailClaimed3?: boolean; deletedMails?: number[]; updateNoticeReadId?: string; bagUnread?: boolean; redeemedCodes?: string[]; redeemedCodes2?: string[]; combatData?: { attacks: number; skills: number; defends: number; skillUses: number[]; stages: number[] }; adDay?: string; adRewards?: string[]; adLongDay?: string; adLongRewards?: string[]; adReviveDay?: string; adReviveCount?: number; town: boolean; completed: boolean; dead: boolean }
 type SaveSlot = { id: string; label: string; data: Save; updatedAt: number }
-type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; flyPhase?: number; flyAmplitude?: number; flySpeed?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number; specialTimer?: number; specialWindup?: number; specialKind?: 'pierce' | 'exclusive' | 'laser' | 'homing'; specialNext?: 'pierce' | 'exclusive' | 'laser' | 'homing'; specialDirection?: number; mobSkillTimer?: number; skillWindup?: number; skillKind?: 'lunge' | 'slam'; preferredAttack?: 'melee' | 'ranged'; spiralLiftTimer?: number; lift?: number; staggerTimer?: number; staggerHits?: number; staggerHitTimer?: number; staggerImmune?: number; superArmor?: number; revived?: boolean; twinIndex?: 0 | 1; permaStealth?: boolean; inMeleeRange?: boolean; tutorial?: boolean; mirror?: boolean; mirrorRole?: Role; mirrorSet?: SkillSetKey; stationary?: boolean; scarecrow?: boolean; burnTimer?: number; burnTick?: number; burnDamage?: number; chillTimer?: number; anchorX?: number; summonCount?: number; summonTimer?: number; invulnTimer?: number; invulnCycle?: number; fieldTimer?: number; mp?: number; mirrorSkillTimer?: number; mirrorWindup?: number; mirrorSkill?: number; mirrorBuffTimer?: number; mirrorBurst?: number; mirrorBurstWait?: number; mirrorSwitch?: number; mirrorSwapTimer?: number; mirrorNextRole?: Role; mirrorNextSet?: SkillSetKey; mirrorGuard?: number; mirrorGuardCd?: number; mirrorBoltTimer?: number; wanderTimer?: number; wanderTargetX?: number | null; bossClone?: boolean; cloneExpire?: number; cloneSource?: number; permanentArmor?: boolean; hiddenTimer?: number; phase?: number; guardTimer?: number; guardCd?: number; modelIndex?: number; mobVariant?: number; scaleVariant?: number; teleport?: boolean; teleportTimer?: number; platformX?: number; platformW?: number; platformHeight?: number }
+type Foe = { id: number; x: number; hp: number; maxHp: number; boss: boolean; timer: number; skillTimer: number; rangedTimer: number; flash: number; attackAnim: number; flying?: boolean; flyHeight?: number; flyPhase?: number; flyAmplitude?: number; flySpeed?: number; dashWindup?: number; dashDirection?: number; rangedWindup?: number; stunTimer?: number; specialTimer?: number; specialWindup?: number; specialKind?: 'pierce' | 'exclusive' | 'laser' | 'homing' | 'fire' | 'wind'; specialNext?: 'pierce' | 'exclusive' | 'laser' | 'homing' | 'fire' | 'wind'; specialDirection?: number; mobSkillTimer?: number; skillWindup?: number; skillKind?: 'lunge' | 'slam'; preferredAttack?: 'melee' | 'ranged'; spiralLiftTimer?: number; lift?: number; staggerTimer?: number; staggerHits?: number; staggerHitTimer?: number; staggerImmune?: number; superArmor?: number; revived?: boolean; twinIndex?: 0 | 1; permaStealth?: boolean; inMeleeRange?: boolean; tutorial?: boolean; mirror?: boolean; mirrorRole?: Role; mirrorSet?: SkillSetKey; stationary?: boolean; scarecrow?: boolean; burnTimer?: number; burnTick?: number; burnDamage?: number; chillTimer?: number; anchorX?: number; summonCount?: number; summonTimer?: number; invulnTimer?: number; invulnCycle?: number; fieldTimer?: number; mp?: number; mirrorSkillTimer?: number; mirrorWindup?: number; mirrorSkill?: number; mirrorBuffTimer?: number; mirrorBurst?: number; mirrorBurstWait?: number; mirrorSwitch?: number; mirrorSwapTimer?: number; mirrorNextRole?: Role; mirrorNextSet?: SkillSetKey; mirrorGuard?: number; mirrorGuardCd?: number; mirrorBoltTimer?: number; wanderTimer?: number; wanderTargetX?: number | null; bossClone?: boolean; cloneExpire?: number; cloneSource?: number; permanentArmor?: boolean; hiddenTimer?: number; phase?: number; guardTimer?: number; guardCd?: number; modelIndex?: number; mobVariant?: number; scaleVariant?: number; teleport?: boolean; teleportTimer?: number; platformX?: number; platformW?: number; platformHeight?: number }
 type Fx = { x: number; y: number; life: number; kind: string; direction?: number; text?: string; damage?: number; duration?: number; vx?: number; vy?: number; color?: string; radius?: number }
 type HazardKind = 'spike' | 'flame' | 'poison' | 'lightning' | 'void' | 'light'
 type Hazard = { id: number; x: number; kind: HazardKind; warn: number; warnTotal: number; active: number; activeTotal: number; hit: boolean; radius: number; fromBoss?: boolean }
@@ -66,6 +66,8 @@ const UPDATE_NOTES = [
   '修复第 21 关 Boss 复活后无敌不结束、一直免疫的问题。',
   '第 22 关双 Boss 使用不同模型与对比配色。',
   '御剑飞行对 Boss 的垂直命中范围放宽到 230px，穿过 Boss 必定结算伤害。',
+  '御剑术飞剑后续攻击必定命中并忽略高度判定。',
+  'Boss 技能新增正面喷火与狂风吐息，喷火造成锥形伤害，狂风会把角色推退。',
   '第 21~30 关小怪血量提高 20%，攻击降低 10%。',
   '新增「技能觉醒」：救出小满后可进入时间回廊，在觉醒界面选择当前武器技能进行觉醒；普通与觉醒版本共享技能等级。',
   '觉醒条件：战士用目标技能对稻草人造成单次 ≥800 伤害（多段合计）计 1 次；法师靠近稻草人承受反击，每次受击计 1 次。',
@@ -118,7 +120,7 @@ const PUBLIC_UPDATE_NOTES = [
   '战斗背景改为明亮高饱和配色，取消暖色滤镜与暗角。',
   '所有怪物闪避降低 10%。',
   '宝石镶嵌改为左右点选布局。换装时宝石按孔位自动转移，宝石背包改为独立槽位。同一件装备每种宝石限一颗。角色等级上限 130，宝石最高十五阶。',
-  '双生 Boss 使用不同模型；御剑飞行对 Boss 判定放宽并必定命中；21~30 关小怪血量 +20%、攻击 -10%。',
+  '双生 Boss 使用不同模型；御剑飞行与御剑术对 Boss 判定放宽并必定命中；21~30 关小怪血量 +20%、攻击 -10%。Boss 新增喷火与狂风技能。',
   '修复复活 Boss 无敌不结束的问题。',
   '新增技能觉醒系统：四种武器各四个技能均可觉醒，觉醒后永久 +10% 伤害。',
   '时间回廊、觉醒碎片与觉醒书玩法上线；4399 版兑换觉醒书需观看广告。',
@@ -847,7 +849,7 @@ const MOB_RANGED: Array<BossRangedConfig | null> = [
 ]
 // 每个 Boss 都有独立专属技能；冷却更短，专属技能使用频率更高。
 const BOSS_SPECIAL_COOLDOWNS = [5.4, 5.2, 5.0, 4.8, 4.6, 4.4, 4.2, 4.0, 3.8, 2.4, 4.0, 3.8, 3.7, 3.6, 3.5, 3.4, 3.3, 3.2, 3.1, 2.0, 2.2, 2.1, 2.0, 1.9, 1.8, 1.8, 1.7, 1.7, 1.6, 1.4]
-const BOSS_SPECIAL_NAMES: Array<{ pierce: string; exclusive: string; laser?: string; homing?: string; effect?: string } | null> = [
+const BOSS_SPECIAL_NAMES: Array<{ pierce: string; exclusive: string; laser?: string; homing?: string; fire?: string; wind?: string; effect?: string } | null> = [
   { pierce: '苔痕突刺', exclusive: '古木震击', laser: '苔光射线', homing: '藤蔓追猎', effect: 'quake' },
   { pierce: '钟摆突刺', exclusive: '沉钟回响', laser: '冷钟射线', homing: '钟声追猎', effect: 'ring' },
   { pierce: '熔岩突刺', exclusive: '赤岩陨落', laser: '熔火射线', homing: '火种追猎', effect: 'meteor' },
@@ -3149,15 +3151,17 @@ function startBossSpecial(foe: Foe, stageIndex: number) {
   const special = BOSS_SPECIAL_NAMES[stageIndex]
   if (!special) return
   // 专属技能在循环中出现三次，保证每个 Boss 的特色机制有足够使用频率。
-  const cycle: Array<'pierce' | 'exclusive' | 'laser' | 'homing'> = foe.twinIndex === 1
-    ? ['homing', 'laser', 'exclusive', 'pierce', 'exclusive', 'homing']
-    : ['pierce', 'exclusive', 'laser', 'exclusive', 'homing', 'exclusive']
-  const kind: 'pierce' | 'exclusive' | 'laser' | 'homing' = foe.specialNext && cycle.includes(foe.specialNext) ? foe.specialNext : 'pierce'
+  const cycle: Array<'pierce' | 'exclusive' | 'laser' | 'homing' | 'fire' | 'wind'> = foe.twinIndex === 1
+    ? ['homing', 'fire', 'laser', 'exclusive', 'wind', 'pierce', 'exclusive']
+    : ['pierce', 'exclusive', 'fire', 'laser', 'exclusive', 'wind', 'homing', 'exclusive']
+  const kind: 'pierce' | 'exclusive' | 'laser' | 'homing' | 'fire' | 'wind' = foe.specialNext && cycle.includes(foe.specialNext) ? foe.specialNext : 'pierce'
   const name = kind === 'pierce' ? special.pierce
     : kind === 'exclusive' ? special.exclusive
       : kind === 'laser' ? (special.laser ?? '湮灭激光')
-        : (special.homing ?? '追踪弹幕')
-  const duration = kind === 'pierce' ? .8 : kind === 'laser' ? .9 : .95
+        : kind === 'fire' ? (special.fire ?? '焚风吐息')
+          : kind === 'wind' ? (special.wind ?? '裂风吐息')
+            : (special.homing ?? '追踪弹幕')
+  const duration = kind === 'pierce' ? .8 : kind === 'laser' ? .9 : kind === 'fire' || kind === 'wind' ? 1.05 : .95
   const theme = BOSS_THEMES[stageIndex]
   const color = BOSS_THEME_COLORS[theme] ?? '#d78fb4'
   const direction = Math.sign(heroX - foe.x) || 1
@@ -3324,7 +3328,7 @@ function executeExclusiveEffect(foe: Foe, effect: string | undefined, stageIndex
       addShake(9)
   }
 }
-function executeBossSpecial(foe: Foe, kind: 'pierce' | 'exclusive' | 'laser' | 'homing', stageIndex: number) {
+function executeBossSpecial(foe: Foe, kind: 'pierce' | 'exclusive' | 'laser' | 'homing' | 'fire' | 'wind', stageIndex: number) {
   if (!game) return
   const stageValues = STAGE_CONFIG[stageIndex]
   const color = BOSS_THEME_COLORS[BOSS_THEMES[stageIndex]] ?? '#d78fb4'
@@ -3334,7 +3338,9 @@ function executeBossSpecial(foe: Foe, kind: 'pierce' | 'exclusive' | 'laser' | '
   const name = kind === 'pierce' ? (special?.pierce ?? '贯穿')
     : kind === 'exclusive' ? (special?.exclusive ?? '专属技能')
       : kind === 'laser' ? (special?.laser ?? '湮灭射线')
-        : (special?.homing ?? '追踪弹幕')
+        : kind === 'fire' ? (special?.fire ?? '焚风吐息')
+          : kind === 'wind' ? (special?.wind ?? '裂风吐息')
+            : (special?.homing ?? '追踪弹幕')
   if (kind !== 'exclusive' && effects.length < 160) {
     effects.push({ kind: `boss-unique-${stageIndex}`, x: foe.x, y: world.floor - 86, direction, life: 1.1, duration: 1.1, color, text: name })
   }
@@ -3346,6 +3352,27 @@ function executeBossSpecial(foe: Foe, kind: 'pierce' | 'exclusive' | 'laser' | '
       hurtPlayer(stageValues.bossAtk * 2, 12, true, foe.x)
     }
     setLog(`守关者释放「${name}」！跳跃可以躲开。`)
+    return
+  }
+  if (kind === 'fire') {
+    // 正面火焰吐息：持续向前方喷出锥形火焰。
+    addFx('boss-breath-fire', foe.x, world.floor - 86, direction, 1.15, '#ff8a3c')
+    addShake(8)
+    if (Math.sign(heroX - foe.x) === direction && Math.abs(heroX - foe.x) <= 430 && heroY > -130) {
+      hurtPlayer(stageValues.bossAtk * 2.1, 8, true, foe.x)
+    }
+    setLog(`守关者向前方喷出「${name}」！不要在正面停留。`)
+    return
+  }
+  if (kind === 'wind') {
+    // 正面狂风：伤害较低，但会把角色强力推开。
+    addFx('boss-breath-wind', foe.x, world.floor - 86, direction, 1.1, '#bfe8ff')
+    addShake(9)
+    if (Math.sign(heroX - foe.x) === direction && Math.abs(heroX - foe.x) <= 520) {
+      heroX = clampHeroX(heroX + direction * 220)
+      hurtPlayer(stageValues.bossAtk * 1.1, 6, true, foe.x)
+    }
+    setLog(`守关者吹出「${name}」！角色会被强风推退。`)
     return
   }
   if (kind === 'homing') {
@@ -9287,7 +9314,7 @@ function updateFlyingSwords(dt: number) {
         const dy = ty - sword.y
         const dist = Math.hypot(dx, dy) || 1
         if (dist < 34 && sword.hitTimer <= 0 && (scene === 'battle' || Boolean(target.scarecrow))) {
-          const hit = strike(target, perHit, '御剑术')
+          const hit = strike(target, perHit, '御剑术', false, false, true, false, true)
           sword.hitTimer = .75
           if (hit) {
             sword.lastHitId = target.id
@@ -16158,6 +16185,41 @@ function drawFx(c: CanvasRenderingContext2D, fx: Fx) {
         c.beginPath(); c.moveTo(fx.x + Math.cos(angle) * radius, fx.y + Math.sin(angle) * radius * .6); c.lineTo(fx.x + Math.cos(angle + 2.5) * radius * .7, fx.y + Math.sin(angle + 2.5) * radius * .4); c.stroke()
       }
     }
+  } else if (fx.kind === 'boss-breath-fire') {
+    // 正面火焰吐息：从 Boss 口部喷出的多层锥形火舌。
+    const dir = fx.direction ?? 1
+    const now = performance.now()
+    for (let layer = 0; layer < 6; layer += 1) {
+      const len = 130 + progress * 300 + layer * 26
+      const spread = 18 + layer * 12 + progress * 34
+      c.globalAlpha = (1 - progress) * (0.16 + layer * .045)
+      c.fillStyle = layer % 2 ? '#ffb04c' : (fx.color ?? '#ff8a3c')
+      c.beginPath(); c.moveTo(fx.x, fx.y - 18)
+      for (let step = 0; step <= 8; step += 1) {
+        const k = step / 8
+        c.lineTo(fx.x + dir * len * k, fx.y - spread * (1 - k) - Math.sin(now / 90 + step + layer) * 10 * k)
+      }
+      for (let step = 8; step >= 0; step -= 1) {
+        const k = step / 8
+        c.lineTo(fx.x + dir * len * k, fx.y + spread * (1 - k) + Math.sin(now / 110 + step + layer) * 10 * k)
+      }
+      c.closePath(); c.fill()
+    }
+    c.globalAlpha = alpha * .9; c.fillStyle = '#fff0b8'
+    for (let i = 0; i < 6; i += 1) { c.beginPath(); c.arc(fx.x + dir * (60 + progress * 260 + i * 28), fx.y - 14 + Math.sin(now / 100 + i) * 14, 3 + (i % 3), 0, Math.PI * 2); c.fill() }
+  } else if (fx.kind === 'boss-breath-wind') {
+    // 正面狂风：多层弧形风刃与卷起的尘线。
+    const dir = fx.direction ?? 1
+    const now = performance.now()
+    c.globalAlpha = alpha * .8; c.strokeStyle = fx.color ?? '#bfe8ff'; c.lineCap = 'round'
+    for (let i = 0; i < 7; i += 1) {
+      c.lineWidth = 2 + (i % 3)
+      const y = fx.y - 46 + i * 14 + Math.sin(now / 120 + i) * 7
+      const x = fx.x + dir * (30 + progress * 120)
+      c.beginPath(); c.moveTo(x, y); c.bezierCurveTo(x + dir * 90, y - 26, x + dir * 190, y + 26, x + dir * (300 + progress * 120), y - 4); c.stroke()
+    }
+    c.globalAlpha = alpha * .45; c.fillStyle = '#ffffff'
+    for (let i = 0; i < 9; i += 1) { c.beginPath(); c.arc(fx.x + dir * (70 + progress * 300 + i * 17), fx.y - 30 + Math.sin(now / 90 + i) * 30, 1.5 + (i % 2), 0, Math.PI * 2); c.fill() }
   } else if (fx.kind === 'boss-laser') {
     const dir = fx.direction ?? 1
     const color = fx.color ?? '#d78fb4'
