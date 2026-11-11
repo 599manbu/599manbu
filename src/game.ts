@@ -58,6 +58,7 @@ const UPDATE_NOTES = [
   '战斗背景改为大晴天暖色滤镜：提高亮度、混入暖白并叠加淡暖光，保留各关原本色相差异；暗角大幅减弱。',
   '所有怪物与 Boss 的闪避成长降低 10%，玩家攻击更容易命中。',
   '宝石镶嵌改为左右布局：右侧点选装备与宝石，左侧显示所选装备孔位。',
+  '换装时宝石按孔位自动转移；新装备孔位不足时，多出的宝石自动放回宝石背包。',
   '新增「技能觉醒」：救出小满后可进入时间回廊，在觉醒界面选择当前武器技能进行觉醒；普通与觉醒版本共享技能等级。',
   '觉醒条件：战士用目标技能对稻草人造成单次 ≥800 伤害（多段合计）计 1 次；法师靠近稻草人承受反击，每次受击计 1 次。',
   '每 10 次计数使觉醒碎片掉率 +1%；集齐 3 个碎片兑换觉醒书。返回小镇会清零计数、掉率与碎片。',
@@ -107,7 +108,7 @@ const PUBLIC_UPDATE_NOTES = [
   '优化第三章弹幕与特效数量，减轻卡顿。',
   '战斗背景改为大晴天暖色滤镜，保留各关色相。',
   '所有怪物闪避降低 10%。',
-  '宝石镶嵌改为左右点选布局。',
+  '宝石镶嵌改为左右点选布局。换装时宝石按孔位自动转移。',
   '新增技能觉醒系统：四种武器各四个技能均可觉醒，觉醒后永久 +10% 伤害。',
   '时间回廊、觉醒碎片与觉醒书玩法上线；4399 版兑换觉醒书需观看广告。',
   '新增大量觉醒技能与专属特效，涵盖剑、弓、法杖与魔法书。',
@@ -10360,6 +10361,36 @@ function partnerToggleGear(gear: Gear) {
   if (gear.type === 'fashion' && game.p2FashionId === gear.id) return partnerUnequip('fashion')
   partnerEquipGear(gear)
 }
+// 换装时把旧装备的宝石按孔位转移到新装备；新装备孔位不足时，多出的宝石回到宝石背包。
+function transferSocketGems(oldId: string | null | undefined, newGear: Gear) {
+  if (!game || !oldId || oldId === newGear.id) return
+  const oldGear = game.gear.find((entry) => entry.id === oldId)
+  if (!oldGear) return
+  const oldSockets = Math.max(0, Math.min(GEM_MAX_SOCKETS, oldGear.sockets ?? 0))
+  const newSockets = Math.max(0, Math.min(GEM_MAX_SOCKETS, newGear.sockets ?? 0))
+  const oldGems = Array.from({ length: oldSockets }, (_, index) => oldGear.socketGems?.[index] ?? null)
+  const newGems = Array.from({ length: newSockets }, (_, index) => newGear.socketGems?.[index] ?? null)
+  let returned = false
+  for (let index = 0; index < newSockets; index += 1) {
+    const oldGem = oldGems[index]
+    if (!oldGem) continue
+    // 同孔位交换，避免新装备原有的宝石被直接覆盖丢失。
+    const newGem = newGems[index]
+    newGems[index] = oldGem
+    oldGems[index] = newGem ?? null
+  }
+  for (let index = newSockets; index < oldSockets; index += 1) {
+    const gem = oldGems[index]
+    if (!gem) continue
+    game.gems ??= []
+    game.gems.push(gem)
+    oldGems[index] = null
+    returned = true
+  }
+  oldGear.socketGems = oldGems
+  newGear.socketGems = newGems
+  if (returned) { markBagUnread(); toast('新装备孔位不足，多出的宝石已放回宝石背包。') }
+}
 function equip(id: string) {
   if (!game || scene !== 'town') { toast('请回到小镇后更换装备。'); return }
   const gear = game.gear.find((entry) => entry.id === id)
@@ -10367,6 +10398,12 @@ function equip(id: string) {
   if (bagPlayer === 2 && coopRuntime) { partnerEquipGear(gear); return }
   if (gear.type === 'weapon' && !canUseWeapon(gear)) { toast(`当前职业无法使用${gear.name}。`); return }
   if (gear.type === 'armor' && !canUseArmor(gear)) { toast(`当前职业无法穿戴${gear.name}。`); return }
+  if (gear.type === 'weapon') {
+    const goesOff = dualWieldUnlocked() && Boolean(game.weaponId) && game.weaponId !== id
+    transferSocketGems(goesOff ? game.weapon2Id : game.weaponId, gear)
+  } else if (gear.type === 'armor') transferSocketGems(game.armorId, gear)
+  else if (gear.type === 'ring') transferSocketGems(game.ringId, gear)
+  else if (gear.type === 'cloak') transferSocketGems(game.cloakId, gear)
   const before = stats()
   game.equipped = id
   if (gear.type === 'fashion') game.fashionId = id
@@ -10394,6 +10431,7 @@ function equipSlot(id: string, slot: 'main' | 'off') {
   if (bagPlayer === 2 && coopRuntime) { if (slot === 'off') { toast('玩家二没有副手槽位。'); return } partnerEquipGear(gear); return }
   if (!canUseWeapon(gear)) { toast(`当前职业无法使用${gear.name}。`); return }
   if (slot === 'off' && !dualWieldUnlocked()) { toast('需要双持专精天赋才能装备副武器。'); return }
+  transferSocketGems(slot === 'off' ? game.weapon2Id : game.weaponId, gear)
   const before = stats()
   if (slot === 'off') {
     if (game.weaponId === id) game.weaponId = null
@@ -10415,6 +10453,7 @@ function equipArmor2(id: string) {
   const gear = game.gear.find((entry) => entry.id === id)
   if (!gear || gear.type !== 'armor') return
   if (!canUseArmor(gear)) { toast(`当前职业无法穿戴${gear.name}。`); return }
+  transferSocketGems(game.armor2Id, gear)
   const before = stats()
   if (game.armorId === id) game.armorId = null
   game.armor2Id = id
