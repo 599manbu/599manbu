@@ -63,6 +63,8 @@ const UPDATE_NOTES = [
   '宝石背包改为独立槽位卡片，每颗宝石一个槽位。',
   '同一件装备每种宝石只能镶嵌一颗（等阶不同也不行）；不同装备可各镶一颗，旧存档与换装转移会自动去重。',
   '角色等级上限提升到 130；宝石最高可合成到十五阶；装备阶级仍可通过合成无限提升。',
+  '修复第 21 关 Boss 复活后无敌不结束、一直免疫的问题。',
+  '第 22 关双 Boss 使用不同模型与对比配色。',
   '新增「技能觉醒」：救出小满后可进入时间回廊，在觉醒界面选择当前武器技能进行觉醒；普通与觉醒版本共享技能等级。',
   '觉醒条件：战士用目标技能对稻草人造成单次 ≥800 伤害（多段合计）计 1 次；法师靠近稻草人承受反击，每次受击计 1 次。',
   '每 10 次计数使觉醒碎片掉率 +1%；集齐 3 个碎片兑换觉醒书。返回小镇会清零计数、掉率与碎片。',
@@ -114,6 +116,8 @@ const PUBLIC_UPDATE_NOTES = [
   '战斗背景改为大晴天暖色滤镜，保留各关色相。',
   '所有怪物闪避降低 10%。',
   '宝石镶嵌改为左右点选布局。换装时宝石按孔位自动转移，宝石背包改为独立槽位。同一件装备每种宝石限一颗。角色等级上限 130，宝石最高十五阶。',
+  '修复复活 Boss 无敌不结束的问题。',
+  '双生 Boss 使用不同模型与配色。',
   '新增技能觉醒系统：四种武器各四个技能均可觉醒，觉醒后永久 +10% 伤害。',
   '时间回廊、觉醒碎片与觉醒书玩法上线；4399 版兑换觉醒书需观看广告。',
   '新增大量觉醒技能与专属特效，涵盖剑、弓、法杖与魔法书。',
@@ -2949,6 +2953,7 @@ function spawnBossFoes(x: number): Foe[] {
     first.maxHp = hp; first.hp = hp
     second.maxHp = hp; second.hp = hp
     second.twinIndex = 1
+    second.modelIndex = 10
     second.specialNext = 'homing'
     return [first, second]
   }
@@ -12652,15 +12657,18 @@ function update(dt: number) {
         continue
       }
       const mobRanged = MOB_RANGED[stageIndex]
-      if (foe.boss) foe.specialTimer = Math.max(0, (foe.specialTimer ?? 0) - dt)
-      else foe.mobSkillTimer = Math.max(0, (foe.mobSkillTimer ?? 0) - dt)
-      // 第 10、20 关最终 Boss：固定站位、周期无敌隐身、召唤守卫与场地攻击。
-      if (foe.boss && foe.stationary) {
-        foe.x = foe.anchorX ?? foe.x
+      if (foe.boss) {
+        foe.specialTimer = Math.max(0, (foe.specialTimer ?? 0) - dt)
+        // 无敌计时对所有 Boss 统一递减；否则复活 Boss 的短暂无敌会永远不结束。
         if ((foe.invulnTimer ?? 0) > 0) {
           foe.invulnTimer = Math.max(0, (foe.invulnTimer ?? 0) - dt)
           if (foe.invulnTimer === 0) setLog('守关者重新现身！')
-        } else {
+        }
+      } else foe.mobSkillTimer = Math.max(0, (foe.mobSkillTimer ?? 0) - dt)
+      // 第 10、20、30 关最终 Boss：固定站位、周期无敌隐身、召唤守卫与场地攻击。
+      if (foe.boss && foe.stationary) {
+        foe.x = foe.anchorX ?? foe.x
+        if ((foe.invulnTimer ?? 0) <= 0) {
           foe.invulnCycle = Math.max(0, (foe.invulnCycle ?? 15) - dt)
           if (foe.invulnCycle <= 0) {
             foe.invulnTimer = 5
@@ -14579,9 +14587,11 @@ function mobSprite(index: number, theme: EnemyTheme) {
   return canvas
 }
 function drawFoe(c: CanvasRenderingContext2D, foe: Foe) {
-  const theme = currentStageTheme()
   const stageIndex = Math.max(0, Math.min(STAGE_COUNT - 1, (game?.stage ?? 1) - 1))
-  const index = foe.boss ? stageIndex : (foe.modelIndex ?? stageIndex)
+  // 双生 Boss：第二位使用独立模型与对比色，避免两个完全一样的轮廓叠在一起。
+  const twin = Boolean(foe.boss && foe.twinIndex === 1)
+  const theme = twin ? STAGE_THEMES[(stageIndex + 13) % STAGE_THEMES.length] : currentStageTheme()
+  const index = twin ? (foe.modelIndex ?? 10) : foe.boss ? stageIndex : (foe.modelIndex ?? stageIndex)
   const scale = foe.tutorial ? 1.7 : foe.mirror ? .9 : foe.boss ? (BOSS_SCALES[stageIndex] ?? 2.25) : .8 * (foe.scaleVariant ?? 1)
   const dir = heroX <= foe.x ? -1 : 1
   const now = performance.now()
