@@ -73,6 +73,8 @@ const UPDATE_NOTES = [
   '御剑飞行持续时间由 3 秒延长到 7 秒。',
   'Boss 元素技能按关卡属性分化：火（正面喷火）、风（推退）、冰（冰锥封锁）、毒（毒雾）、雷（连续落雷）、土（岩刺裂地）、暗影（瞬移背刺）、圣光（光柱审判）、水（潮汐推退）、虚空（引力拉扯），不再共用同一套吐息模板。',
   '战斗背景改为按关卡生成独立地貌与地面材质：尖峰、沙丘、石柱、岩台、废墟、水晶、森林等山形各不相同，地面分为草地、积雪、沙地、灰烬、碎石、地砖、藤蔓、虚空裂纹、金属与大理石，天空与地面使用对比色。',
+  '第 11~20 关、21~30 关的 Boss 也会掉落王印印章，概率分别为 45% 与 70%；第 11 关起按十种王印循环发放，方便集齐 10 枚挑战隐藏关卡。',
+  '第 10、20、30 关的最终 Boss 体型缩小，不再占满天空。',
   '第 21~30 关小怪血量提高 20%，攻击降低 10%。',
   '新增「技能觉醒」：救出小满后可进入时间回廊，在觉醒界面选择当前武器技能进行觉醒；普通与觉醒版本共享技能等级。',
   '觉醒条件：战士用目标技能对稻草人造成单次 ≥800 伤害（多段合计）计 1 次；法师靠近稻草人承受反击，每次受击计 1 次。',
@@ -127,6 +129,7 @@ const PUBLIC_UPDATE_NOTES = [
   '宝石镶嵌改为左右点选布局。换装时宝石按孔位自动转移，宝石背包改为独立槽位。同一件装备每种宝石限一颗。角色等级上限 130，宝石最高十五阶。',
   '双生 Boss 使用不同模型；御剑飞行与御剑术对 Boss 判定放宽并必定命中；21~30 关小怪血量 +20%、攻击 -10%。Boss 元素技能按关卡分为火、风、冰、毒、雷、土、暗影、圣光、水、虚空十种。',
   '战斗背景按关卡生成不同地貌与地面材质，天空与地面改为对比色，不再所有关卡共用同一套山形。',
+  '第 11~30 关的 Boss 也会掉落王印印章，概率随章节提高；第 10、20、30 关最终 Boss 体型缩小。',
   '御剑飞行持续时间由 3 秒延长到 7 秒。',
   '修复复活 Boss 无敌不结束的问题。',
   '新增技能觉醒系统：四种武器各四个技能均可觉醒，觉醒后永久 +10% 伤害。',
@@ -379,6 +382,19 @@ const STAGE_CONFIG = [
 ]
 const STAMP_UNLOCK = 10
 const STAMP_DROP_CHANCE = .2
+// 第二、三章的 Boss 也会掉落王印，且概率逐章提高，方便集齐十印挑战隐藏关卡。
+const STAMP_DROP_CHANCE_CHAPTER2 = .45
+const STAMP_DROP_CHANCE_CHAPTER3 = .7
+function stampDropChance(stage: number) {
+  if (stage <= CHAPTER_SIZE) return STAMP_DROP_CHANCE
+  if (stage <= CHAPTER_SIZE * 2) return STAMP_DROP_CHANCE_CHAPTER2
+  return STAMP_DROP_CHANCE_CHAPTER3
+}
+// 第 11 关起按 1~10 循环发放十种王印，避免后期关卡只掉同一种印章。
+function stampTypeForStage(stage: number) {
+  if (stage <= CHAPTER_SIZE) return Math.max(1, stage)
+  return ((stage - 1) % CHAPTER_SIZE) + 1
+}
 // 十枚王印对应十个图案；第二章沿用十印体系，不新增印章种类。
 const STAMP_DESIGNS = [
   { name: '勇气印', glyph: '⚔', color: '#e8b56f', bg: '#3a2a1c', pattern: 'blade' },
@@ -909,7 +925,8 @@ function isBossElement(kind: BossSpecialKind): kind is BossElement {
 const BOSS_THEMES = ['moss', 'frost', 'ember', 'storm', 'tide', 'void', 'ash', 'blood', 'sun', 'star', 'rift', 'iron', 'mirror', 'forge', 'thunder', 'plague', 'time', 'shadow', 'stellar', 'crown', 'dusk', 'twin', 'hourglass', 'stealth', 'abyss', 'starfall', 'nightgarden', 'finale', 'void2', 'genesis']
 const BOSS_THEME_COLORS: Record<string, string> = { ember: '#f49b58', frost: '#a9e2e5', storm: '#f2dc79', void: '#d78fb4', moss: '#a7cf77', sun: '#ffe28a', blood: '#ec6464', tide: '#69c7d2', ash: '#c9c2b0', star: '#b8a4f4', rift: '#b58cff', iron: '#8fa7c7', mirror: '#9fe8e0', forge: '#ff9a5a', thunder: '#e8d86a', plague: '#8fd06a', time: '#e8c97a', shadow: '#c77a9f', stellar: '#8fb8ff', crown: '#ffd27a', dusk: '#e8a060', twin: '#c9a7ff', hourglass: '#f0d890', stealth: '#8a9aa8', abyss: '#a06ad0', starfall: '#8fc8ff', nightgarden: '#b8e08a', finale: '#e88aa8', void2: '#b8a4f4', genesis: '#ffe6a8' }
 // 每个 Boss 使用不同的体型比例，避免只是换颜色。
-const BOSS_SCALES = [2.25, 2.35, 2.45, 2.1, 2.2, 2.3, 2.4, 2.35, 2.2, 3.2, 2.05, 2.4, 2.0, 2.15, 2.25, 2.3, 2.15, 2.0, 2.45, 3.3, 2.6, 2.5, 2.55, 2.4, 2.7, 2.8, 2.6, 2.5, 2.9, 3.6]
+// 每章最终 Boss 不再放大到占满天空，保留比普通守关者略大的体型即可。
+const BOSS_SCALES = [2.25, 2.35, 2.45, 2.1, 2.2, 2.3, 2.4, 2.35, 2.2, 2.5, 2.05, 2.4, 2.0, 2.15, 2.25, 2.3, 2.15, 2.0, 2.45, 2.6, 2.6, 2.5, 2.55, 2.4, 2.7, 2.8, 2.6, 2.5, 2.9, 2.7]
 type EnemyTheme = { body: string; dark: string; light: string; accent: string; eye: string; glow: string }
 const STAGE_THEMES: EnemyTheme[] = [
   { body: '#5f7a4a', dark: '#33452c', light: '#a4c070', accent: '#d6e39a', eye: '#ffe58a', glow: '#a7cf77' },
@@ -10063,8 +10080,9 @@ function defeatFoe(target: Foe) {
     // Boss 掉落先放入宝箱，靠近后按 S 开启。
     const rewards = [`${itemIcon('soul')} 硬币 +${soulGain}`]
     for (const gear of droppedGear) rewards.push(`${itemIcon(gear.type === 'armor' ? 'armor' : gear.type === 'ring' ? 'ring' : 'weapon')} ${gear.level} 阶 · ${gear.name}`)
-    const stamps = clearedStage <= CHAPTER_SIZE && Math.random() < STAMP_DROP_CHANCE ? 1 : 0
-    if (stamps) rewards.push(`${itemIcon('stamp')} ${STAMP_DESIGNS[Math.min(CHAPTER_SIZE, clearedStage) - 1]?.name ?? '王印印章'} +1`)
+    const stampType = stampTypeForStage(clearedStage)
+    const stamps = Math.random() < stampDropChance(clearedStage) ? 1 : 0
+    if (stamps) rewards.push(`${itemIcon('stamp')} ${STAMP_DESIGNS[stampType - 1]?.name ?? '王印印章'} +1`)
     // 首次通关会立即进入抽奖；不再累积保存抽奖次数。
     const lottery = wasFirstClear ? 1 : 0
     let fragments = 0
@@ -10161,7 +10179,7 @@ function openBossChest() {
   game.soul = (game.soul ?? 0) + chest.loot.soul
   for (const gear of chest.loot.gear) game.gear.unshift(gear)
   markBagUnread()
-  if (chest.loot.stamps > 0) addStamp(Math.min(CHAPTER_SIZE, chest.stage), chest.loot.stamps)
+  if (chest.loot.stamps > 0) addStamp(stampTypeForStage(chest.stage), chest.loot.stamps)
   // 首次通关的抽奖改为离开宝箱后立即进入，不保存为可累积次数。
   if (chest.loot.lottery > 0) pendingStageLottery = true
   game.talentFragments = (game.talentFragments ?? 0) + chest.loot.fragments
