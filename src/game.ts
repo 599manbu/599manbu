@@ -73,7 +73,7 @@ const UPDATE_NOTES = [
   '御剑飞行持续时间由 3 秒延长到 7 秒。',
   'Boss 元素技能按关卡属性分化：火（正面喷火）、风（推退）、冰（冰锥封锁）、毒（毒雾）、雷（连续落雷）、土（岩刺裂地）、暗影（瞬移背刺）、圣光（光柱审判）、水（潮汐推退）、虚空（引力拉扯），不再共用同一套吐息模板。',
   '战斗背景改为按关卡生成独立地貌与地面材质：尖峰、沙丘、石柱、岩台、废墟、水晶、森林等山形各不相同，地面分为草地、积雪、沙地、灰烬、碎石、地砖、藤蔓、虚空裂纹、金属与大理石，天空与地面使用对比色。',
-  '第 11~20 关、21~30 关的 Boss 也会掉落王印印章，概率分别为 45% 与 70%；第 11 关起按十种王印循环发放，方便集齐 10 枚挑战隐藏关卡。',
+  '第 11~20 关、21~30 关的 Boss 也会掉落王印印章，概率分别为 40% 与 60%；第 11 关起按十种王印循环发放，方便集齐 10 枚挑战隐藏关卡。',
   '第 10、20、30 关的最终 Boss 体型缩小，不再占满天空。',
   '第 21~30 关小怪血量提高 20%，攻击降低 10%。',
   '新增「技能觉醒」：救出小满后可进入时间回廊，在觉醒界面选择当前武器技能进行觉醒；普通与觉醒版本共享技能等级。',
@@ -383,8 +383,8 @@ const STAGE_CONFIG = [
 const STAMP_UNLOCK = 10
 const STAMP_DROP_CHANCE = .2
 // 第二、三章的 Boss 也会掉落王印，且概率逐章提高，方便集齐十印挑战隐藏关卡。
-const STAMP_DROP_CHANCE_CHAPTER2 = .45
-const STAMP_DROP_CHANCE_CHAPTER3 = .7
+const STAMP_DROP_CHANCE_CHAPTER2 = .4
+const STAMP_DROP_CHANCE_CHAPTER3 = .6
 function stampDropChance(stage: number) {
   if (stage <= CHAPTER_SIZE) return STAMP_DROP_CHANCE
   if (stage <= CHAPTER_SIZE * 2) return STAMP_DROP_CHANCE_CHAPTER2
